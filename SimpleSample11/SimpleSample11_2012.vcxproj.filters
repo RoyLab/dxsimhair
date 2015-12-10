@@ -9,17 +9,43 @@
       <UniqueIdentifier>{2c3d4c8c-5d1a-459a-a05a-a4e4b608a44e}</UniqueIdentifier>
       <Extensions>fx;fxh;hlsl</Extensions>
     </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{c8e38fb0-7363-4ab5-a945-4da15b5fa078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{92f93590-a349-4e41-9fd3-1c044611c7ae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\DXUT\Optional\directx.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Line.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="wrHairLoader.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="wrHair.cpp" />
-    <ClCompile Include="wrStrand.cpp" />
+    <ClCompile Include="wrColorGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrHair.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrHairLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrHairRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrStrand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -36,12 +62,29 @@
     <ResourceCompile Include="SimpleSample.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-    <ClInclude Include="linmath.h" />
-    <ClInclude Include="wrStrand.h" />
-    <ClInclude Include="wrHairRenderer.h" />
-    <ClInclude Include="wrHair.h" />
-    <ClInclude Include="wrHairLoader.h" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="linmath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrColorGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrHair.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrHairLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrHairRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrLogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrStrand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

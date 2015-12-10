@@ -1,7 +1,7 @@
 #pragma once
 #include "linmath.h"
 
-#define N_PARTICLES 25
+#define N_PARTICLES_PER_STRAND 25
 
 struct wrParticle
 {
@@ -21,10 +21,11 @@ public:
 	void release();
 	void onFrame();
 
-	const wrParticle* getParticles() const { return particles; }
+    const wrParticle* getParticles() const { return particles; }
+    wrParticle* getParticles() { return particles; }
 
 private:
-	wrParticle particles[N_PARTICLES];
+	wrParticle particles[N_PARTICLES_PER_STRAND];
 
 };
 

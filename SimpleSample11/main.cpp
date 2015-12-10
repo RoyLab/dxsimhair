@@ -14,11 +14,19 @@
 #include "SDKmisc.h"
 #include "SDKmesh.h"
 #include "resource.h"
+
 #include "wrHairLoader.h"
-#include <io.h>
+#include "wrLogger.h"
+#include "wrHairRenderer.h"
+
+#include <io.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <Windows.h>
+
+#ifdef _DEBUG
+//#include <vld.h>
+#endif
 
 #pragma warning( disable : 4100 )
 
@@ -33,6 +41,9 @@ CD3DSettingsDlg             g_SettingsDlg;          // Device settings dialog
 CDXUTTextHelper*            g_pTxtHelper = nullptr;
 CDXUTDialog                 g_HUD;                  // dialog for standard controls
 CDXUTDialog                 g_SampleUI;             // dialog for sample specific controls
+wrLogger                    g_Logger;
+wrHair*                     g_Hair;
+wrHairRenderer              g_HairRenderer;
 
 // Direct3D 11 resources
 ID3D11VertexShader*         g_pVertexShader11 = nullptr;
@@ -159,11 +170,7 @@ void InitApp()
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
 
     CreateConsole();
-
-    wrHairLoader loader;
-    wrHair *hair = loader.loadFile(L"../../models/straight.hair");
-
-    delete hair;
+    g_Logger.init();
 }
 
 
@@ -275,6 +282,12 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     DXUT_SetDebugName( g_pcbVSPerFrame11, "CB_VS_PER_FRAME" );
 
     // Create other render resources here
+    wrHairLoader loader;
+    g_Hair = loader.loadFile(L"../../models/straight.hair");
+
+    g_HairRenderer.init(*g_Hair);
+    wrHairTransformer::scale(*g_Hair, 0.03f);
+    wrHairTransformer::mirror(*g_Hair, false, true, false);
 
     // Setup the camera's view parameters
     static const XMVECTORF32 s_vecEye = { 0.0f, 0.0f, -5.0f, 0.f };
@@ -365,6 +378,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     pd3dImmediateContext->PSSetSamplers( 0, 1, &g_pSamLinear );
 
     // Render objects here...
+    g_HairRenderer.render(*g_Hair);
 
     DXUT_BeginPerfEvent( DXUT_PERFEVENTCOLOR, L"HUD / Stats" );
     g_HUD.OnRender( fElapsedTime );
@@ -410,6 +424,9 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 
     SAFE_RELEASE( g_pcbVSPerObject11 );
     SAFE_RELEASE( g_pcbVSPerFrame11 );
+
+    g_HairRenderer.release();
+    SAFE_DELETE(g_Hair);
 }
 
 
