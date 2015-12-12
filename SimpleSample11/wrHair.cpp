@@ -16,7 +16,7 @@ wrHair::~wrHair()
 
 void wrHairTransformer::scale(wrHair& hair, float scale)
 {
-    int n_strands = hair.n_strand();
+    int n_strands = hair.n_strands();
     for (int i = 0; i < n_strands; i++)
     {
         auto particles = hair.getStrand(i).getParticles();
@@ -27,7 +27,7 @@ void wrHairTransformer::scale(wrHair& hair, float scale)
 
 void wrHairTransformer::mirror(wrHair& hair, bool x, bool y, bool z)
 {
-    int n_strands = hair.n_strand();
+    int n_strands = hair.n_strands();
 
     int c[3] = { (x) ? -1 : 1, (y) ? -1 : 1, (z) ? -1 : 1 };
 

@@ -18,6 +18,7 @@
 #include "wrHairLoader.h"
 #include "wrLogger.h"
 #include "wrHairRenderer.h"
+#include "wrHairSimulator.h"
 
 #include <io.h>
 #include <stdio.h>
@@ -42,8 +43,9 @@ CDXUTTextHelper*            g_pTxtHelper = nullptr;
 CDXUTDialog                 g_HUD;                  // dialog for standard controls
 CDXUTDialog                 g_SampleUI;             // dialog for sample specific controls
 wrLogger                    g_Logger;
-wrHair*                     g_Hair;
+wrHair*                     g_pHair;
 wrHairRenderer              g_HairRenderer;
+wrHairSimulator             g_Simulator;
 
 // Direct3D 11 resources
 ID3D11VertexShader*         g_pVertexShader11 = nullptr;
@@ -283,14 +285,15 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
 
     // Create other render resources here
     wrHairLoader loader;
-    g_Hair = loader.loadFile(L"../../models/straight.hair");
+    g_pHair = loader.loadFile(L"../../models/straight.hair");
 
-    g_HairRenderer.init(*g_Hair);
-    wrHairTransformer::scale(*g_Hair, 0.03f);
-    wrHairTransformer::mirror(*g_Hair, false, true, false);
+    wrHairTransformer::scale(*g_pHair, 0.01f);
+    wrHairTransformer::mirror(*g_pHair, false, true, false);
+    g_HairRenderer.init(*g_pHair);
+    g_Simulator.init(g_pHair);
 
     // Setup the camera's view parameters
-    static const XMVECTORF32 s_vecEye = { 0.0f, 0.0f, -5.0f, 0.f };
+    static const XMVECTORF32 s_vecEye = { 1.0f, 1.0f, -2.0f, 0.f };
     g_Camera.SetViewParams( s_vecEye, g_XMZero );
 
     g_HUD.GetButton( IDC_TOGGLEWARP )->SetEnabled( true );
@@ -349,6 +352,15 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     XMMATRIX mWorld = g_Camera.GetWorldMatrix();
     XMMATRIX mView = g_Camera.GetViewMatrix();
     XMMATRIX mProj = g_Camera.GetProjMatrix();
+
+    //XMFLOAT4X4 world;
+    //XMStoreFloat4x4(&world, mWorld);
+
+    //for (int i = 0; i < 4; i++)
+    //    for (int j = 0; j < 4; j++)
+    //        std::cout << world.m[i][j] << '\t';
+    //std::cout << std::endl;
+
     XMMATRIX mWorldViewProjection = mWorld * mView * mProj;
 
     // Set the constant buffers
@@ -378,7 +390,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     pd3dImmediateContext->PSSetSamplers( 0, 1, &g_pSamLinear );
 
     // Render objects here...
-    g_HairRenderer.render(*g_Hair);
+    g_HairRenderer.render(*g_pHair);
 
     DXUT_BeginPerfEvent( DXUT_PERFEVENTCOLOR, L"HUD / Stats" );
     g_HUD.OnRender( fElapsedTime );
@@ -426,7 +438,7 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     SAFE_RELEASE( g_pcbVSPerFrame11 );
 
     g_HairRenderer.release();
-    SAFE_DELETE(g_Hair);
+    SAFE_DELETE(g_pHair);
 }
 
 
@@ -446,6 +458,7 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
 {
     // Update the camera's position based on user input 
     g_Camera.FrameMove( fElapsedTime );
+    g_Simulator.onFrame(g_pHair, static_cast<float>(fTime), fElapsedTime);
 }
 
 

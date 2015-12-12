@@ -389,6 +389,7 @@
     <ClCompile Include="wrHair.cpp" />
     <ClCompile Include="wrHairLoader.cpp" />
     <ClCompile Include="wrHairRenderer.cpp" />
+    <ClCompile Include="wrHairSimulator.cpp" />
     <ClCompile Include="wrLogger.cpp" />
     <ClCompile Include="wrStrand.cpp" />
   </ItemGroup>
@@ -402,6 +403,7 @@
     <ClInclude Include="wrHair.h" />
     <ClInclude Include="wrHairLoader.h" />
     <ClInclude Include="wrHairRenderer.h" />
+    <ClInclude Include="wrHairSimulator.h" />
     <ClInclude Include="wrLogger.h" />
     <ClInclude Include="wrMath.h" />
     <ClInclude Include="wrStrand.h" />

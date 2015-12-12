@@ -44,6 +44,10 @@ static inline void vec##n##_norm(vec##n r, vec##n const v) \
 static inline void vec##n##_copy(vec##n t, const float*  s) \
 { \
 	memcpy(t, s, sizeof(vec##n)); \
+}\
+static inline void vec##n##_rz(vec##n t) \
+{ \
+	memset(t, 0, sizeof(vec##n)); \
 }
 
 LINMATH_H_DEFINE_VEC(2)

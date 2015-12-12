@@ -4,6 +4,12 @@
 #include <boost\log\trivial.hpp>
 #include <iostream>
 #include <string>
+#include "wrHairSimulator.h"
+#include "wrMath.h"
+
+#ifdef _DEBUG
+const int COMPRESS_RATIO = 20;
+#endif
 
 wrHair* wrHairLoader::loadFile(wchar_t* path)
 {
@@ -21,8 +27,8 @@ wrHair* wrHairLoader::loadFile(wchar_t* path)
         int n_strands = *reinterpret_cast<int*>(cbuffer);
 
 #ifdef _DEBUG
-        n_strands /= 10;
-        n_particles /= 10;
+        n_strands /= COMPRESS_RATIO;
+        n_particles /= COMPRESS_RATIO;
 #endif
 
         wprintf(L"Loading %s, total particles: %d, total strands: %d\n", path, n_particles, n_strands);
@@ -41,7 +47,7 @@ wrHair* wrHairLoader::loadFile(wchar_t* path)
             hair->getStrand(i).init(reinterpret_cast<float*>(cbuffer));
 
 #ifdef _DEBUG
-            file.seekg(sizeof(int) + 10 * i * sizeof(float) * 3 * N_PARTICLES_PER_STRAND);
+            file.seekg(sizeof(int) + (COMPRESS_RATIO * i + static_cast<int>(COMPRESS_RATIO * randf())) * sizeof(float) * 3 * N_PARTICLES_PER_STRAND);
 #endif
         }
 

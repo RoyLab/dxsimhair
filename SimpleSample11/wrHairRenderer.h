@@ -31,5 +31,5 @@ private:
     ID3D11PixelShader*      pPS = nullptr;
     ID3D11InputLayout*      pLayout = nullptr;
 
-    wrHairVertexInput*      vInputs = nullptr;
+    DirectX::XMFLOAT3*      vInputs = nullptr;
 };

@@ -18,16 +18,16 @@ bool wrHairRenderer::init(const wrHair& hair)
     pd3dDevice = DXUTGetD3D11Device();
     pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
-    int n_particles = hair.n_strand() *  N_PARTICLES_PER_STRAND;
+    int n_particles = hair.n_strands() *  N_PARTICLES_PER_STRAND;
 
     // assign random color
-    vInputs = new wrHairVertexInput[n_particles];
-    for (int i = 0; i < hair.n_strand(); i++)
+    vInputs = new XMFLOAT3[n_particles];
+    for (int i = 0; i < hair.n_strands(); i++)
     {
         vec3 color;
         wrColorGenerator::genRandSaturatedColor(color);
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-           memcpy(&vInputs[N_PARTICLES_PER_STRAND*i + j].color, color, sizeof(vec3));
+           memcpy(&vInputs[N_PARTICLES_PER_STRAND*i + j], color, sizeof(vec3));
     }
 
 
@@ -129,12 +129,12 @@ void wrHairRenderer::render(const wrHair& hair)
     V(pd3dImmediateContext->Map(pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
 
     auto pData = reinterpret_cast<wrHairVertexInput*>(MappedResource.pData);
-    int n_strands = hair.n_strand();
+    int n_strands = hair.n_strands();
     for (int i = 0; i < n_strands; i++)
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
         {
             memcpy(&pData[25 * i + j].pos, hair.getStrand(i).getParticles()[j].position, sizeof(vec3));
-            memcpy(&pData[25 * i + j].color, &vInputs[25 * i + j].color, sizeof(vec3));
+            memcpy(&pData[25 * i + j].color, &vInputs[25 * i + j], sizeof(vec3));
         }
 
     pd3dImmediateContext->Unmap(pVB, 0);

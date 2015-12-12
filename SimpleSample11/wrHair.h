@@ -1,19 +1,23 @@
 #pragma once
 #include "wrStrand.h"
 
+class wrHairSimulator;
+
 class wrHair
 {
+    friend class wrHairSimulator;
 public:
     wrHair(int);
-    ~wrHair();
+    virtual ~wrHair();
     
     wrStrand* getStrands() { return strands; }
+
     wrStrand& getStrand(int idx) { return strands[idx]; }
     const wrStrand& getStrand(int idx) const { return strands[idx]; }
 
-    int n_strand() const { return nStrands; }
+    int n_strands() const { return nStrands; }
 
-private:
+protected:
 	wrStrand* strands;
     int       nStrands;
 };
