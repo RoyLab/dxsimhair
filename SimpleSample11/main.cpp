@@ -19,6 +19,7 @@
 #include "wrLogger.h"
 #include "wrHairRenderer.h"
 #include "wrHairSimulator.h"
+#include "wrMesh.h"
 
 #include <io.h>
 #include <stdio.h>
@@ -170,6 +171,10 @@ void InitApp()
     g_HUD.AddButton( IDC_TOGGLEWARP, L"Toggle WARP (F4)", 0, iY += iYo, 170, 22, VK_F4 );
 
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
+
+    //wrSimpleVertexInput* a;
+    //DWORD* b;
+    //CreateSphere(1.0f, 3, 6, &a, &b);
 
     CreateConsole();
     g_Logger.init();

@@ -8,7 +8,7 @@
 #include "wrMath.h"
 
 #ifdef _DEBUG
-const int COMPRESS_RATIO = 20;
+const int COMPRESS_RATIO = 200;
 #endif
 
 wrHair* wrHairLoader::loadFile(wchar_t* path)

@@ -1,5 +1,5 @@
 #pragma once
-#include "linmath.h"
+
 class wrColorGenerator
 {
 private:

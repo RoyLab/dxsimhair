@@ -4,10 +4,10 @@
 
 namespace
 {
-    const float MAX_TIME_STEP = 10.0f * 1.0e-3f;
-    const float K_SPRINGS[N_SPRING_USED] = { 5.0e-2f };
+    const float MAX_TIME_STEP = 2.0e-3f;
+    const float K_SPRINGS[N_SPRING_USED] = { 2.0e-4f };
     const vec3 GRAVITY = { 0.0f, -10.0f, 0.0f };
-    const int MAX_PASS_NUMBER = 5;
+    const int MAX_PASS_NUMBER = 1;
 }
 
 
@@ -64,7 +64,7 @@ void wrHairSimulator::onFrame(wrHair* hair, float fTime, float fTimeElapsed)
         //Sleep(500);
     }
 
-    WR_LOG_DEBUG << " TIME: " << fTime << " e: " << fTimeElapsed << " nPass: " << nPass << std::endl;
+    //WR_LOG_DEBUG << " TIME: " << fTime << " e: " << fTimeElapsed << " nPass: " << nPass << std::endl;
 }
 
 
@@ -77,9 +77,11 @@ void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
     {
         auto &strand = pStrands[i];
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+            vec3_rz(strand.getParticles()[j].force);
+
+        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
         {
             auto &particle = strand.getParticles()[j];
-            vec3_rz(particle.force);
 
             // apply springs
             vec3 diff[N_SPRING_USED];
@@ -92,9 +94,13 @@ void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
                     vec3_sub(diff, sibling->position, particle.position);
 
                     float cLen = vec3_len(diff);
+#ifdef NUMERICAL_TRACE
+                    particle.cLen = cLen;
+#endif
                     float fScalar = K_SPRINGS[k] * (cLen - particle.springLens[k]) / particle.springLens[k];
                     vec3 force;
-                    vec3_scale(force, diff, fScalar);
+                    vec3_norm(force, diff);
+                    vec3_scale(force, force, fScalar);
                     
                     vec3_add(particle.force, particle.force, force);
                     vec3_sub(sibling->force, sibling->force, force);
@@ -110,6 +116,9 @@ void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
             vec3 acc;
             vec3_scale(acc, particle.force, particle.mass_1);
             vec3_add(acc, acc, GRAVITY); 
+#ifdef NUMERICAL_TRACE
+            vec3_copy(particle.acc1, acc);
+#endif
 
             vec3 dv;
             vec3_scale(dv, acc, fTimeElapsed / 2.0f);
@@ -124,14 +133,75 @@ void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
         {
             auto &particle = strand.getParticles()[j];
             vec3 dx;
-            vec3_scale(dx, particle.v_middle, fTimeElapsed);
-            vec3_add(particle.position, particle.position, dx);
+            vec3_scale(dx, particle.v_middle, fTimeElapsed / 2.0f);
+            vec3_add(particle.pos_middle, particle.position, dx);
+            vec3_add(particle.position, particle.pos_middle, dx);
+        }
+
+        // discard v, recomputing
+        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+            vec3_rz(strand.getParticles()[j].force);
+
+        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+        {
+            auto &particle = strand.getParticles()[j];
+
+            // apply springs
+            vec3 diff[N_SPRING_USED];
+            for (int k = 0; k < N_SPRING_USED; k++)
+            {
+                auto sibling = particle.siblings[k];
+                if (sibling)
+                {
+                    vec3 diff;
+                    vec3_sub(diff, sibling->pos_middle, particle.pos_middle);
+
+                    float cLen = vec3_len(diff);
+                    float fScalar = K_SPRINGS[k] * (cLen - particle.springLens[k]) / particle.springLens[k];
+                    vec3 force;
+                    vec3_norm(force, diff);
+                    vec3_scale(force, force, fScalar);
+
+                    vec3_add(particle.force, particle.force, force);
+                    vec3_sub(sibling->force, sibling->force, force);
+                }
+            }
+        } // per strand end
+
+        // compute v[n+1/2]
+        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+        {
+            auto &particle = strand.getParticles()[j];
+
+            vec3 acc;
+            vec3_scale(acc, particle.force, particle.mass_1);
+            vec3_add(acc, acc, GRAVITY);
+#ifdef NUMERICAL_TRACE
+            vec3_copy(particle.acc2, acc);
+#endif
+
+            vec3 dv;
+            vec3_scale(dv, acc, fTimeElapsed / 2.0f);
+            vec3_add(particle.v_middle, particle.velocity, dv);
+
+            vec3 v2;
+            vec3_scale(v2, particle.v_middle, 2.0f);
+            vec3_sub(particle.velocity, v2, particle.velocity);
         }
 
     } // total hair
 
-    auto &sampler = hair->getStrand(3).getParticles()[3];
-    //WR_LOG_TRACE << "pos: " << sampler.position[0] << " " << sampler.position[1] << " " << sampler.position[1] << std::endl;
-    //WR_LOG_TRACE << "force: " << sampler.force[0] << " " << sampler.force[1] << " " << sampler.force[1] << std::endl;
-    //WR_LOG_TRACE << "vel: " << sampler.velocity[0] << " " << sampler.velocity[1] << " " << sampler.velocity[1] << std::endl;
+#ifdef NUMERICAL_TRACE
+    auto &sampler = hair->getStrand(3).getParticles()[1];
+    auto &sampler2 = hair->getStrand(3).getParticles()[0];
+    WR_LOG_TRACE << std::endl
+        << "pos: " << sampler.position[0] << " " << sampler.position[1] << " " << sampler.position[2] << std::endl
+        << "pos0: " << sampler2.position[0] << " " << sampler2.position[1] << " " << sampler2.position[2] << std::endl
+        << "force: " << sampler.force[0] << " " << sampler.force[1] << " " << sampler.force[2] << std::endl
+        << "vel: " << sampler.velocity[0] << " " << sampler.velocity[1] << " " << sampler.velocity[2] << std::endl
+        << "len1: " << sampler2.cLen << " " << sampler2.springLens[0] << std::endl
+        << "len2: " << sampler.cLen << " " << sampler.springLens[0] << std::endl
+        << "acc1: " << sampler.acc1[0] << " " << sampler.acc1[1] << " " << sampler.acc1[2] << std::endl
+        << "acc2: " << sampler.acc2[0] << " " << sampler.acc2[1] << " " << sampler.acc2[2] << std::endl;
+#endif
 }

@@ -11,9 +11,11 @@
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{c8e38fb0-7363-4ab5-a945-4da15b5fa078}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{92f93590-a349-4e41-9fd3-1c044611c7ae}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -21,6 +23,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Line.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="wrMesh.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
@@ -46,7 +51,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wrHairSimulator.cpp" />
+    <ClCompile Include="wrHairSimulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -87,6 +97,11 @@
     <ClInclude Include="wrStrand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wrHairSimulator.h" />
+    <ClInclude Include="wrHairSimulator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

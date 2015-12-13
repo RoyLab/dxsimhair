@@ -1,7 +1,5 @@
 #pragma once
 #include "wrHair.h"
-#include <d3d11.h>
-#include <DirectXMath.h>
 
 
 struct wrHairVertexInput
