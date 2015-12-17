@@ -6,7 +6,7 @@
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
-#include "DXUT.h"
+#include "precompiled.h"
 #include "DXUTgui.h"
 #include "DXUTmisc.h"
 #include "DXUTCamera.h"
@@ -16,7 +16,6 @@
 #include "resource.h"
 
 #include "wrHairLoader.h"
-#include "wrLogger.h"
 #include "wrHairRenderer.h"
 #include "wrHairSimulator.h"
 #include "wrMesh.h"
@@ -43,7 +42,6 @@ CD3DSettingsDlg             g_SettingsDlg;          // Device settings dialog
 CDXUTTextHelper*            g_pTxtHelper = nullptr;
 CDXUTDialog                 g_HUD;                  // dialog for standard controls
 CDXUTDialog                 g_SampleUI;             // dialog for sample specific controls
-wrLogger                    g_Logger;
 wrHair*                     g_pHair;
 wrHairRenderer              g_HairRenderer;
 wrHairSimulator             g_Simulator;
@@ -177,7 +175,6 @@ void InitApp()
     //CreateSphere(1.0f, 3, 6, &a, &b);
 
     CreateConsole();
-    g_Logger.init();
 }
 
 

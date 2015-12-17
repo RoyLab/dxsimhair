@@ -1,4 +1,4 @@
-#include "DXUT.h"
+#include "precompiled.h"
 #include "wrStrand.h"
 
 #define PARTICLE_MASS 5.0e-7f  // kg

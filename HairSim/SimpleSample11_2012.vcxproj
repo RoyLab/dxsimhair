@@ -134,7 +134,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>DXUT.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -216,7 +216,7 @@
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>DXUT.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -302,7 +302,7 @@
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>DXUT.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -385,13 +385,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="wrLogger.cpp" />
     <ClCompile Include="wrColorGenerator.cpp" />
     <ClCompile Include="wrMesh.cpp" />
     <ClCompile Include="wrHair.cpp" />
     <ClCompile Include="wrHairLoader.cpp" />
     <ClCompile Include="wrHairRenderer.cpp" />
     <ClCompile Include="wrHairSimulator.cpp" />
-    <ClCompile Include="wrLogger.cpp" />
     <ClCompile Include="wrStrand.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -400,6 +400,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="linmath.h" />
+    <ClInclude Include="precompiled.h" />
     <ClInclude Include="wrColorGenerator.h" />
     <ClInclude Include="wrHair.h" />
     <ClInclude Include="wrHairLoader.h" />

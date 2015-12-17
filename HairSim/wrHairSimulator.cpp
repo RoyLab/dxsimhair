@@ -1,4 +1,4 @@
-#include "DXUT.h"
+#include "precompiled.h"
 #include "wrHairSimulator.h"
 #include "wrLogger.h"
 
@@ -201,5 +201,7 @@ void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
         << "len2: " << sampler.cLen << " " << sampler.springLens[0] << std::endl
         << "acc1: " << sampler.acc1[0] << " " << sampler.acc1[1] << " " << sampler.acc1[2] << std::endl
         << "acc2: " << sampler.acc2[0] << " " << sampler.acc2[1] << " " << sampler.acc2[2] << std::endl;
+
+    WR_LOG_TRACE << "heihei";
 #endif
 }

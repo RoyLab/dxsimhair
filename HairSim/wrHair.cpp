@@ -1,4 +1,4 @@
-#include "DXUT.h"
+#include "precompiled.h"
 #include "wrHair.h"
 
 wrHair::wrHair(int nStrand)

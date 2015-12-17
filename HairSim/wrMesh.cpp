@@ -1,4 +1,4 @@
-#include "DXUT.h"
+#include "precompiled.h"
 #include "wrMesh.h"
 #include "wrMath.h"
 #include <DirectXMesh.h>

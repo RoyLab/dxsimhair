@@ -1,7 +1,6 @@
-#include "DXUT.h"
+#include "precompiled.h"
 #include "wrHairLoader.h"
 #include <fstream>
-#include <boost\log\trivial.hpp>
 #include <iostream>
 #include <string>
 #include "wrHairSimulator.h"
@@ -42,7 +41,7 @@ wrHair* wrHairLoader::loadFile(wchar_t* path)
             file.read(cbuffer, sizeof(float) * 3 * N_PARTICLES_PER_STRAND);
             if (file.eof())
             {
-                BOOST_LOG_TRIVIAL(fatal) << "unexpected eof flag";
+                WR_LOG_FATAL << "unexpected eof flag";
                 SAFE_DELETE(hair);
                 break;
             }

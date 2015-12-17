@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <boost/log/trivial.hpp>
+#include <sstream>
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -36,6 +37,7 @@ int _tmain(int argc, _TCHAR* argv[])
     BOOST_LOG_TRIVIAL(fatal) << "A fatal severity message";
 
     std::string a("fadsfds, %d", 3);
+    std::stringstream s;
 
 	system("pause");
 

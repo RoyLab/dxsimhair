@@ -1,4 +1,4 @@
-#include "DXUT.h"
+#include "precompiled.h"
 #include "wrColorGenerator.h"
 #include "wrMath.h"
 

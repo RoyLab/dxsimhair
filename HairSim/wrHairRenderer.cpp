@@ -1,4 +1,4 @@
-#include "DXUT.h"
+#include "precompiled.h"
 #include "wrHairRenderer.h"
 #include <DirectXMath.h>
 #include "wrColorGenerator.h"
