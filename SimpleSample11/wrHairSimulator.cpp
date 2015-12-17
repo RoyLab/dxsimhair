@@ -4,10 +4,10 @@
 
 namespace
 {
-    const float MAX_TIME_STEP = 2.0e-3f;
+    const float MAX_TIME_STEP = 5.0e-3f;
     const float K_SPRINGS[N_SPRING_USED] = { 2.0e-4f };
     const vec3 GRAVITY = { 0.0f, -10.0f, 0.0f };
-    const int MAX_PASS_NUMBER = 1;
+    const int MAX_PASS_NUMBER = 2;
 }
 
 
@@ -84,7 +84,6 @@ void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
             auto &particle = strand.getParticles()[j];
 
             // apply springs
-            vec3 diff[N_SPRING_USED];
             for (int k = 0; k < N_SPRING_USED; k++)
             {
                 auto sibling = particle.siblings[k];
@@ -147,7 +146,6 @@ void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
             auto &particle = strand.getParticles()[j];
 
             // apply springs
-            vec3 diff[N_SPRING_USED];
             for (int k = 0; k < N_SPRING_USED; k++)
             {
                 auto sibling = particle.siblings[k];

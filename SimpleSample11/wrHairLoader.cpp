@@ -7,7 +7,9 @@
 #include "wrHairSimulator.h"
 #include "wrMath.h"
 
-#ifdef _DEBUG
+#define COMPRESS
+
+#ifdef COMPRESS
 const int COMPRESS_RATIO = 200;
 #endif
 
@@ -26,7 +28,7 @@ wrHair* wrHairLoader::loadFile(wchar_t* path)
         file.read(cbuffer, sizeof(int));
         int n_strands = *reinterpret_cast<int*>(cbuffer);
 
-#ifdef _DEBUG
+#ifdef COMPRESS
         n_strands /= COMPRESS_RATIO;
         n_particles /= COMPRESS_RATIO;
 #endif
@@ -46,7 +48,7 @@ wrHair* wrHairLoader::loadFile(wchar_t* path)
             }
             hair->getStrand(i).init(reinterpret_cast<float*>(cbuffer));
 
-#ifdef _DEBUG
+#ifdef COMPRESS
             file.seekg(sizeof(int) + (COMPRESS_RATIO * i + static_cast<int>(COMPRESS_RATIO * randf())) * sizeof(float) * 3 * N_PARTICLES_PER_STRAND);
 #endif
         }

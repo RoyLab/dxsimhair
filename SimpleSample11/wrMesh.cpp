@@ -1,6 +1,7 @@
 #include "DXUT.h"
 #include "wrMesh.h"
 #include "wrMath.h"
+#include <DirectXMesh.h>
 
 using namespace DirectX;
 
