@@ -17,6 +17,9 @@
       <UniqueIdentifier>{92f93590-a349-4e41-9fd3-1c044611c7ae}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="FBX">
+      <UniqueIdentifier>{e366668c-c870-4fe5-8ea6-616560973fb5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\DXUT\Optional\directx.ico">
@@ -51,11 +54,23 @@
     <ClCompile Include="wrHairSimulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wrMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="wrLogger.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrSceneManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrMeshRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CFBXRendererDX11.cpp">
+      <Filter>FBX</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>FBX</Filter>
+    </ClCompile>
+    <ClCompile Include="CFBXLoader.cpp">
+      <Filter>FBX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -100,11 +115,23 @@
     <ClInclude Include="wrHairSimulator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wrMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="precompiled.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrSceneManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrMeshRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CFBXRendererDX11.h">
+      <Filter>FBX</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>FBX</Filter>
+    </ClInclude>
+    <ClInclude Include="CFBXLoader.h">
+      <Filter>FBX</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

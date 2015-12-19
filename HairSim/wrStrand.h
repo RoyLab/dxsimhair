@@ -1,10 +1,10 @@
 #pragma once
-#include "linmath.h"
+#include "wrMath.h"
 
 #define N_PARTICLES_PER_STRAND 25
 #define N_SPRING_USED 1
 
-#define NUMERICAL_TRACE
+//#define NUMERICAL_TRACE
 
 struct wrParticle
 {

@@ -15,18 +15,16 @@
 #include "SDKmesh.h"
 #include "resource.h"
 
-#include "wrHairLoader.h"
-#include "wrHairRenderer.h"
-#include "wrHairSimulator.h"
-#include "wrMesh.h"
+#include "wrSceneManager.h"
 
+// to create console
 #include <io.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <Windows.h>
 
 #ifdef _DEBUG
-//#include <vld.h>
+#include <vld.h>
 #endif
 
 #pragma warning( disable : 4100 )
@@ -42,38 +40,8 @@ CD3DSettingsDlg             g_SettingsDlg;          // Device settings dialog
 CDXUTTextHelper*            g_pTxtHelper = nullptr;
 CDXUTDialog                 g_HUD;                  // dialog for standard controls
 CDXUTDialog                 g_SampleUI;             // dialog for sample specific controls
-wrHair*                     g_pHair;
-wrHairRenderer              g_HairRenderer;
-wrHairSimulator             g_Simulator;
+wrSceneManager              g_SceneMngr;
 
-// Direct3D 11 resources
-ID3D11VertexShader*         g_pVertexShader11 = nullptr;
-ID3D11PixelShader*          g_pPixelShader11 = nullptr;
-ID3D11InputLayout*          g_pLayout11 = nullptr;
-ID3D11SamplerState*         g_pSamLinear = nullptr;
-
-//--------------------------------------------------------------------------------------
-// Constant buffers
-//--------------------------------------------------------------------------------------
-#pragma pack(push,1)
-struct CB_VS_PER_OBJECT
-{
-    XMFLOAT4X4  m_mWorldViewProjection;
-    XMFLOAT4X4  m_mWorld;
-    XMFLOAT4    m_MaterialAmbientColor;
-    XMFLOAT4    m_MaterialDiffuseColor;
-};
-
-struct CB_VS_PER_FRAME
-{
-    XMFLOAT3    m_vLightDir;
-    float       m_fTime;
-    XMFLOAT4    m_LightDiffuse;
-};
-#pragma pack(pop)
-
-ID3D11Buffer*                       g_pcbVSPerObject11 = nullptr;
-ID3D11Buffer*                       g_pcbVSPerFrame11 = nullptr;
 
 //--------------------------------------------------------------------------------------
 // UI control IDs
@@ -170,10 +138,6 @@ void InitApp()
 
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
 
-    //wrSimpleVertexInput* a;
-    //DWORD* b;
-    //CreateSphere(1.0f, 3, 6, &a, &b);
-
     CreateConsole();
 }
 
@@ -216,83 +180,9 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     V_RETURN( g_SettingsDlg.OnD3D11CreateDevice( pd3dDevice ) );
     g_pTxtHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, &g_DialogResourceManager, 15 );
 
-    // Read the HLSL file
-    // You should use the lowest possible shader profile for your shader to enable various feature levels. These
-    // shaders are simple enough to work well within the lowest possible profile, and will run on all feature levels
-
-    DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-    // Disable optimizations to further improve shader debugging
-    dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-    ID3DBlob* pVertexShaderBuffer = nullptr;
-    V_RETURN( DXUTCompileFromFile( L"SimpleSample.hlsl", nullptr, "RenderSceneVS", "vs_4_0_level_9_1", dwShaderFlags, 0,
-                                   &pVertexShaderBuffer ) );
-
-    ID3DBlob* pPixelShaderBuffer = nullptr;
-    V_RETURN( DXUTCompileFromFile( L"SimpleSample.hlsl", nullptr, "RenderScenePS", "ps_4_0_level_9_1", dwShaderFlags, 0, 
-                                   &pPixelShaderBuffer ) );
-
-    // Create the shaders
-    V_RETURN( pd3dDevice->CreateVertexShader( pVertexShaderBuffer->GetBufferPointer(),
-                                              pVertexShaderBuffer->GetBufferSize(), nullptr, &g_pVertexShader11 ) );
-    DXUT_SetDebugName( g_pVertexShader11, "RenderSceneVS" );
-
-    V_RETURN( pd3dDevice->CreatePixelShader( pPixelShaderBuffer->GetBufferPointer(),
-                                             pPixelShaderBuffer->GetBufferSize(), nullptr, &g_pPixelShader11 ) );
-    DXUT_SetDebugName( g_pPixelShader11, "RenderScenePS" );
-
-    // Create a layout for the object data
-    const D3D11_INPUT_ELEMENT_DESC layout[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-
-    V_RETURN( pd3dDevice->CreateInputLayout( layout, ARRAYSIZE( layout ), pVertexShaderBuffer->GetBufferPointer(),
-                                             pVertexShaderBuffer->GetBufferSize(), &g_pLayout11 ) );
-    DXUT_SetDebugName( g_pLayout11, "Primary" );
-
-    // No longer need the shader blobs
-    SAFE_RELEASE( pVertexShaderBuffer );
-    SAFE_RELEASE( pPixelShaderBuffer );
-
-    // Create state objects
-    D3D11_SAMPLER_DESC samDesc;
-    ZeroMemory( &samDesc, sizeof(samDesc) );
-    samDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samDesc.AddressU = samDesc.AddressV = samDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    samDesc.MaxAnisotropy = 1;
-    samDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-    samDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    V_RETURN( pd3dDevice->CreateSamplerState( &samDesc, &g_pSamLinear ) );
-    DXUT_SetDebugName( g_pSamLinear, "Linear" );
-
-    // Create constant buffers
-    D3D11_BUFFER_DESC cbDesc;
-    ZeroMemory( &cbDesc, sizeof(cbDesc) );
-    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-    cbDesc.ByteWidth = sizeof( CB_VS_PER_OBJECT );
-    V_RETURN( pd3dDevice->CreateBuffer( &cbDesc, nullptr, &g_pcbVSPerObject11 ) );
-    DXUT_SetDebugName( g_pcbVSPerObject11, "CB_VS_PER_OBJECT" );
-
-    cbDesc.ByteWidth = sizeof( CB_VS_PER_FRAME );
-    V_RETURN( pd3dDevice->CreateBuffer( &cbDesc, nullptr, &g_pcbVSPerFrame11 ) );
-    DXUT_SetDebugName( g_pcbVSPerFrame11, "CB_VS_PER_FRAME" );
-
     // Create other render resources here
-    wrHairLoader loader;
-    g_pHair = loader.loadFile(L"../../models/straight.hair");
-
-    wrHairTransformer::scale(*g_pHair, 0.01f);
-    wrHairTransformer::mirror(*g_pHair, false, true, false);
-    g_HairRenderer.init(*g_pHair);
-    g_Simulator.init(g_pHair);
+    g_SceneMngr.setCamera(&g_Camera);
+    g_SceneMngr.init();
 
     // Setup the camera's view parameters
     static const XMVECTORF32 s_vecEye = { 1.0f, 1.0f, -2.0f, 0.f };
@@ -344,57 +234,19 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     }       
 
     auto pRTV = DXUTGetD3D11RenderTargetView();
-    pd3dImmediateContext->ClearRenderTargetView( pRTV, Colors::MidnightBlue );
+    float bgColor[] = { 0.0f, 0.125f, 0.3f, 1.0f };
+    pd3dImmediateContext->ClearRenderTargetView(pRTV, bgColor);
 
     // Clear the depth stencil
     auto pDSV = DXUTGetD3D11DepthStencilView();
     pd3dImmediateContext->ClearDepthStencilView( pDSV, D3D11_CLEAR_DEPTH, 1.0, 0 );
 
-    // Get the projection & view matrix from the camera class
-    XMMATRIX mWorld = g_Camera.GetWorldMatrix();
-    XMMATRIX mView = g_Camera.GetViewMatrix();
-    XMMATRIX mProj = g_Camera.GetProjMatrix();
-
-    //XMFLOAT4X4 world;
-    //XMStoreFloat4x4(&world, mWorld);
-
-    //for (int i = 0; i < 4; i++)
-    //    for (int j = 0; j < 4; j++)
-    //        std::cout << world.m[i][j] << '\t';
-    //std::cout << std::endl;
-
-    XMMATRIX mWorldViewProjection = mWorld * mView * mProj;
-
-    // Set the constant buffers
-    HRESULT hr;
-    D3D11_MAPPED_SUBRESOURCE MappedResource;
-    V( pd3dImmediateContext->Map( g_pcbVSPerFrame11, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource ) );
-    auto pVSPerFrame = reinterpret_cast<CB_VS_PER_FRAME*>( MappedResource.pData );
-    pVSPerFrame->m_vLightDir = XMFLOAT3( 0,0.707f,-0.707f );
-    pVSPerFrame->m_fTime = (float)fTime;
-    pVSPerFrame->m_LightDiffuse = XMFLOAT4( 1.f, 1.f, 1.f, 1.f );
-    pd3dImmediateContext->Unmap( g_pcbVSPerFrame11, 0 );
-    pd3dImmediateContext->VSSetConstantBuffers( 1, 1, &g_pcbVSPerFrame11 );
-
-    V( pd3dImmediateContext->Map( g_pcbVSPerObject11, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource ) );
-    auto pVSPerObject = reinterpret_cast<CB_VS_PER_OBJECT*>( MappedResource.pData );
-    XMStoreFloat4x4( &pVSPerObject->m_mWorldViewProjection, XMMatrixTranspose( mWorldViewProjection ) );
-    XMStoreFloat4x4( &pVSPerObject->m_mWorld,  XMMatrixTranspose( mWorld ) );
-    pVSPerObject->m_MaterialAmbientColor = XMFLOAT4( 0.3f, 0.3f, 0.3f, 1.0f );
-    pVSPerObject->m_MaterialDiffuseColor = XMFLOAT4( 0.7f, 0.7f, 0.7f, 1.0f );
-    pd3dImmediateContext->Unmap( g_pcbVSPerObject11, 0 );
-    pd3dImmediateContext->VSSetConstantBuffers( 0, 1, &g_pcbVSPerObject11 );
-
-    // Set render resources
-    pd3dImmediateContext->IASetInputLayout( g_pLayout11 );
-    pd3dImmediateContext->VSSetShader( g_pVertexShader11, nullptr, 0 );
-    pd3dImmediateContext->PSSetShader( g_pPixelShader11, nullptr, 0 );
-    pd3dImmediateContext->PSSetSamplers( 0, 1, &g_pSamLinear );
-
     // Render objects here...
-    g_HairRenderer.render(*g_pHair);
+    DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR2, L"HUD / Stats");
+    g_SceneMngr.render(fTime, fElapsedTime);
+    DXUT_EndPerfEvent();
 
-    DXUT_BeginPerfEvent( DXUT_PERFEVENTCOLOR, L"HUD / Stats" );
+    DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"HUD / Stats");
     g_HUD.OnRender( fElapsedTime );
     g_SampleUI.OnRender( fElapsedTime );
     RenderText();
@@ -429,18 +281,8 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     DXUTGetGlobalResourceCache().OnDestroyDevice();
     SAFE_DELETE( g_pTxtHelper );
 
-    SAFE_RELEASE( g_pVertexShader11 );
-    SAFE_RELEASE( g_pPixelShader11 );
-    SAFE_RELEASE( g_pLayout11 );
-    SAFE_RELEASE( g_pSamLinear );
-
     // Delete additional render resources here...
-
-    SAFE_RELEASE( g_pcbVSPerObject11 );
-    SAFE_RELEASE( g_pcbVSPerFrame11 );
-
-    g_HairRenderer.release();
-    SAFE_DELETE(g_pHair);
+    g_SceneMngr.release();
 }
 
 
@@ -460,7 +302,7 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
 {
     // Update the camera's position based on user input 
     g_Camera.FrameMove( fElapsedTime );
-    g_Simulator.onFrame(g_pHair, static_cast<float>(fTime), fElapsedTime);
+    g_SceneMngr.onFrame(fTime, fElapsedTime);
 }
 
 

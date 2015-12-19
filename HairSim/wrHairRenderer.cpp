@@ -7,29 +7,29 @@
 
 using namespace DirectX;
 
-wrHairRenderer::wrHairRenderer(){}
+wrHairRenderer::wrHairRenderer(const wrHair& hair):
+pHair(&hair){}
 
 wrHairRenderer::~wrHairRenderer(){}
 
-bool wrHairRenderer::init(const wrHair& hair)
+bool wrHairRenderer::init()
 {
     HRESULT hr; 
 
     pd3dDevice = DXUTGetD3D11Device();
     pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
-    int n_particles = hair.n_strands() *  N_PARTICLES_PER_STRAND;
+    int n_particles = pHair->n_strands() *  N_PARTICLES_PER_STRAND;
 
     // assign random color
     vInputs = new XMFLOAT3[n_particles];
-    for (int i = 0; i < hair.n_strands(); i++)
+    for (int i = 0; i < pHair->n_strands(); i++)
     {
         vec3 color;
         wrColorGenerator::genRandSaturatedColor(color);
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
            memcpy(&vInputs[N_PARTICLES_PER_STRAND*i + j], color, sizeof(vec3));
     }
-
 
     D3D11_SUBRESOURCE_DATA subRes;
     //ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
@@ -120,7 +120,7 @@ void wrHairRenderer::release()
     SAFE_DELETE_ARRAY(vInputs);
 }
 
-void wrHairRenderer::render(const wrHair& hair)
+void wrHairRenderer::render(double fTime, float fTimeElapsed)
 {
     if (!pVB) WR_LOG_ERROR << "No pVB available.\n";
 
@@ -129,11 +129,11 @@ void wrHairRenderer::render(const wrHair& hair)
     V(pd3dImmediateContext->Map(pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
 
     auto pData = reinterpret_cast<wrHairVertexInput*>(MappedResource.pData);
-    int n_strands = hair.n_strands();
+    int n_strands = pHair->n_strands();
     for (int i = 0; i < n_strands; i++)
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
         {
-            memcpy(&pData[25 * i + j].pos, hair.getStrand(i).getParticles()[j].position, sizeof(vec3));
+            memcpy(&pData[25 * i + j].pos, pHair->getStrand(i).getParticles()[j].position, sizeof(vec3));
             memcpy(&pData[25 * i + j].color, &vInputs[25 * i + j], sizeof(vec3));
         }
 

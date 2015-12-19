@@ -9,7 +9,7 @@
 #define COMPRESS
 
 #ifdef COMPRESS
-const int COMPRESS_RATIO = 200;
+const int COMPRESS_RATIO = 100;
 #endif
 
 wrHair* wrHairLoader::loadFile(wchar_t* path)

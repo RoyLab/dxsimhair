@@ -1,5 +1,6 @@
 #pragma once
 #include "wrHair.h"
+#include "wrSceneManager.h"
 
 
 struct wrHairVertexInput
@@ -9,15 +10,17 @@ struct wrHairVertexInput
 };
 
 
-class wrHairRenderer
+class wrHairRenderer:
+    public wrRendererInterface
 {
 public:
-	wrHairRenderer();
+    wrHairRenderer(const wrHair& hair);
 	~wrHairRenderer();
 
-    bool init(const wrHair&);
+    bool init();
 	void release();
-	void render(const wrHair&);
+    void onFrame(double, float){}
+    void render(double, float);
 
 private:
     ID3D11Device*           pd3dDevice = nullptr;
@@ -30,4 +33,6 @@ private:
     ID3D11InputLayout*      pLayout = nullptr;
 
     DirectX::XMFLOAT3*      vInputs = nullptr;
+
+    wrHair const*           pHair;
 };

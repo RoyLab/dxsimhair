@@ -202,6 +202,5 @@ void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
         << "acc1: " << sampler.acc1[0] << " " << sampler.acc1[1] << " " << sampler.acc1[2] << std::endl
         << "acc2: " << sampler.acc2[0] << " " << sampler.acc2[1] << " " << sampler.acc2[2] << std::endl;
 
-    WR_LOG_TRACE << "heihei";
 #endif
 }
