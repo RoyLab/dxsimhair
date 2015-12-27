@@ -1,6 +1,6 @@
 cbuffer cbPerObject : register(b0)
 {
-    matrix  g_mWorldViewProjection  : packoffset(c0);
+    matrix  g_mViewProjection  : packoffset(c0);
     matrix  g_mWorld                : packoffset(c4);
 }
 
@@ -25,7 +25,7 @@ VS_OUTPUT VS(VS_INPUT input)
     VS_OUTPUT Output;
 
     // Transform the position from object space to homogeneous projection space
-    Output.Position = mul(input.Position, g_mWorldViewProjection);
+    Output.Position = mul(input.Position, g_mViewProjection);
 
     // Calc color    
     Output.Color = float4(input.Color, 0.0);

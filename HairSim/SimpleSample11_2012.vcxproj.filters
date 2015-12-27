@@ -28,9 +28,6 @@
     <None Include="Line.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="wrMesh.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wrColorGenerator.cpp">
@@ -71,6 +68,12 @@
     </ClCompile>
     <ClCompile Include="CFBXLoader.cpp">
       <Filter>FBX</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrTetrahedron.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +135,9 @@
     </ClInclude>
     <ClInclude Include="CFBXLoader.h">
       <Filter>FBX</Filter>
+    </ClInclude>
+    <ClInclude Include="wrTetrahedron.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

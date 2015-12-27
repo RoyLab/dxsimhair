@@ -16,7 +16,7 @@ using namespace DirectX;
 
 struct CB_VS_PER_FRAME
 {
-    XMFLOAT4X4  mWorldViewProjection;
+    XMFLOAT4X4  mViewProjection;
     XMFLOAT4X4  mWorld;
 
     float       time;
@@ -67,7 +67,7 @@ bool wrSceneManager::init()
 
 void wrSceneManager::onFrame(double fTime, float fElapsedTime)
 {
-    pSimulator->onFrame(pHair, static_cast<float>(fTime), fElapsedTime);
+    pSimulator->onFrame(pHair, pCamera->GetWorldMatrix(), static_cast<float>(fTime), fElapsedTime);
     pHairRenderer->onFrame(fTime, fElapsedTime);
     pMeshRenderer->onFrame(fTime, fElapsedTime);
 }
@@ -103,7 +103,7 @@ void wrSceneManager::setPerFrameConstantBuffer(double fTime, float fElapsedTime)
     XMMATRIX mView = pCamera->GetViewMatrix();
     XMMATRIX mProj = pCamera->GetProjMatrix();
 
-    XMMATRIX mWorldViewProjection = mWorld * mView * mProj;
+    XMMATRIX mViewProjection = mView * mProj;
 
     //XMFLOAT4X4 world;
     //XMStoreFloat4x4(&world, mWorld);
@@ -119,7 +119,7 @@ void wrSceneManager::setPerFrameConstantBuffer(double fTime, float fElapsedTime)
     V(pd3dImmediateContext->Map(pcbVSPerFrame, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
     auto pVSPerFrame = reinterpret_cast<CB_VS_PER_FRAME*>(MappedResource.pData);
 
-    XMStoreFloat4x4(&pVSPerFrame->mWorldViewProjection, XMMatrixTranspose(mWorldViewProjection));
+    XMStoreFloat4x4(&pVSPerFrame->mViewProjection, XMMatrixTranspose(mViewProjection));
     XMStoreFloat4x4(&pVSPerFrame->mWorld, XMMatrixTranspose(mWorld));
 
     pVSPerFrame->time = (float)fTime;

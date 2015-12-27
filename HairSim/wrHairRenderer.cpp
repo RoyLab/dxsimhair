@@ -131,12 +131,15 @@ void wrHairRenderer::render(double fTime, float fTimeElapsed)
     auto pData = reinterpret_cast<wrHairVertexInput*>(MappedResource.pData);
     int n_strands = pHair->n_strands();
     for (int i = 0; i < n_strands; i++)
+    {
+        auto ps = pHair->getStrand(i).pRealParticles;
+        
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
         {
-            memcpy(&pData[25 * i + j].pos, pHair->getStrand(i).getParticles()[j].position, sizeof(vec3));
+            memcpy(&pData[25 * i + j].pos, ps[j]->position, sizeof(vec3));
             memcpy(&pData[25 * i + j].color, &vInputs[25 * i + j], sizeof(vec3));
         }
-
+    }
     pd3dImmediateContext->Unmap(pVB, 0);
 
     UINT strides[1] = { sizeof(wrHairVertexInput) }, offsets[1] = { 0 };

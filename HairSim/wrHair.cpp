@@ -14,15 +14,40 @@ wrHair::~wrHair()
     SAFE_DELETE_ARRAY(strands);
 }
 
+bool wrHair::initSimulation()
+{
+    bool hr;
+    for (int i = 0; i < nStrands; i++)
+        V_RETURN(strands[i].initSimulation());
+
+    return true;
+}
+
+
+void wrHair::updateReference()
+{
+    for (int i = 0; i < nStrands; i++)
+        strands[i].updateReference();
+}
+
+
 void wrHairTransformer::scale(wrHair& hair, float scale)
 {
     int n_strands = hair.n_strands();
     for (int i = 0; i < n_strands; i++)
     {
-        auto particles = hair.getStrand(i).getParticles();
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+        auto particles = hair.getStrand(i).particles;
+        int np = hair.getStrand(i).nParticles;
+        for (int j = 0; j < np; j++)
             vec3_scale(particles[j].position, particles[j].position, scale);
+
+        auto springs = hair.getStrand(i).springs;
+        int ns = hair.getStrand(i).nSprings;
+        for (int j = 0; j < ns; j++)
+            springs[j].coef /= scale;
     }
+
+    hair.updateReference();
 }
 
 void wrHairTransformer::mirror(wrHair& hair, bool x, bool y, bool z)
@@ -33,9 +58,12 @@ void wrHairTransformer::mirror(wrHair& hair, bool x, bool y, bool z)
 
     for (int i = 0; i < n_strands; i++)
     {
-        auto particles = hair.getStrand(i).getParticles();
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+        auto particles = hair.getStrand(i).particles;
+        int np = hair.getStrand(i).nParticles;
+        for (int j = 0; j < np; j++)
             for (int k = 0; k < 3; k++)
                 particles[j].position[k] *= c[k];
     }
+
+    hair.updateReference();
 }

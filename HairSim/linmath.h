@@ -45,7 +45,7 @@ static inline void vec##n##_copy(vec##n t, const float*  s) \
 { \
 	memcpy(t, s, sizeof(vec##n)); \
 }\
-static inline void vec##n##_rz(vec##n t) \
+static inline void vec##n##_zero(vec##n t) \
 { \
 	memset(t, 0, sizeof(vec##n)); \
 }

@@ -11,11 +11,12 @@ public:
     virtual ~wrHair();
     
     wrStrand* getStrands() { return strands; }
-
     wrStrand& getStrand(int idx) { return strands[idx]; }
     const wrStrand& getStrand(int idx) const { return strands[idx]; }
-
     int n_strands() const { return nStrands; }
+
+    void updateReference();
+    bool initSimulation();
 
 protected:
 	wrStrand* strands;

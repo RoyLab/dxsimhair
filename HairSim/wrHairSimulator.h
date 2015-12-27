@@ -1,6 +1,7 @@
 #pragma once
 #include "wrHair.h"
 
+
 class wrHairSimulator
 {
 public:
@@ -8,9 +9,9 @@ public:
     ~wrHairSimulator();
     
     bool init(wrHair* hair);
-    void onFrame(wrHair* hair, float fTime, float fTimeElapsed);
+    void onFrame(wrHair* hair, const DirectX::XMMATRIX& mWorld, float fTime, float fTimeElapsed);
 
 protected:
-    void step(wrHair* hair, float fTime, float fTimeElapsed);
+    void step(wrHair* hair, DirectX::XMMATRIX& mWorld, float fTime, float fTimeElapsed);
 };
 

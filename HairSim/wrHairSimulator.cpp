@@ -1,13 +1,38 @@
 #include "precompiled.h"
 #include "wrHairSimulator.h"
 #include "wrLogger.h"
+#include <Eigen\Dense>
+
+#include <fstream>
+#include <iomanip>
+
+using namespace Eigen;
+using namespace DirectX;
 
 namespace
 {
-    const float MAX_TIME_STEP = 5.0e-3f;
-    const float K_SPRINGS[N_SPRING_USED] = { 2.0e-4f };
-    const vec3 GRAVITY = { 0.0f, -10.0f, 0.0f };
-    const int MAX_PASS_NUMBER = 2;
+    const float         MAX_TIME_STEP =             30.0e-3f;
+    const int           MAX_PASS_NUMBER =           1;
+
+    const vec3          GRAVITY =                   { 0.0f, -10.0f, 0.0f };
+
+    const int           N_STRAND_MATRIX_DIM =       3 * N_PARTICLES_PER_STRAND;
+    wrHair*             g_pHair;
+
+    typedef Matrix<float, N_STRAND_MATRIX_DIM, N_STRAND_MATRIX_DIM>     MatrixStrand;
+    typedef Matrix<float, N_STRAND_MATRIX_DIM, 1>                       VectorStrand;
+
+    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+    void write(char* fileName, Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& mat, int width)
+    {
+        std::ofstream f(fileName);
+        f.precision(2);
+        for (int i = 0; i < mat.cols(); i++)
+            f << std::setw(width) << i + 2 << " ";
+        f << std::endl;
+        f << mat;
+        f.close();
+    }
 }
 
 
@@ -23,30 +48,15 @@ wrHairSimulator::~wrHairSimulator()
 
 bool wrHairSimulator::init(wrHair* hair)
 {
-    auto pStrands = hair->getStrands();
-    int n_strands = hair->n_strands();
-    for (int i = 0; i < n_strands; i++)
-    {
-        auto& strand = pStrands[i];
-        auto particles = strand.getParticles();
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-        {
-            if (j + 1 < N_PARTICLES_PER_STRAND)
-            {
-                auto n1 = particles + j + 1;
-                particles[j].siblings[0] = n1;
-                vec3_sub(particles[j].diffs[0], n1->position, particles[j].position);
-                particles[j].springLens[0] = vec3_len(particles[j].diffs[0]);
-            }
-        }
-    }
-
-    return false;
+    hair->initSimulation();
+    return true;
 }
 
 
-void wrHairSimulator::onFrame(wrHair* hair, float fTime, float fTimeElapsed)
+void wrHairSimulator::onFrame(wrHair* hair, const XMMATRIX& mWorld, float fTime, float fTimeElapsed)
 {
+    static XMMATRIX lastmWorld = XMMatrixIdentity();
+
     float tStep = fTimeElapsed;
     int nPass = 1;
     if (fTimeElapsed > MAX_TIME_STEP)
@@ -58,9 +68,11 @@ void wrHairSimulator::onFrame(wrHair* hair, float fTime, float fTimeElapsed)
     if (nPass > MAX_PASS_NUMBER) nPass = MAX_PASS_NUMBER;
 
     float start = fTime - fTimeElapsed;
+    auto matStep = (mWorld - lastmWorld) / nPass;
     for (int i = 0; i < nPass; i++)
     {
-        step(hair, (start += tStep), tStep);
+        lastmWorld += matStep;
+        step(hair, lastmWorld, (start += tStep), tStep);
         //Sleep(500);
     }
 
@@ -68,124 +80,42 @@ void wrHairSimulator::onFrame(wrHair* hair, float fTime, float fTimeElapsed)
 }
 
 
-void wrHairSimulator::step(wrHair* hair, float fTime, float fTimeElapsed)
+void wrHairSimulator::step(wrHair* hair, XMMATRIX& mWorld, float fTime, float fTimeElapsed)
 {
     auto pStrands = hair->getStrands();
     int n_strands = hair->n_strands();
 
+    mat4x4 mWorld2;
+    XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mWorld2), mWorld);
+
     for (int i = 0; i < n_strands; i++)
     {
         auto &strand = pStrands[i];
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-            vec3_rz(strand.getParticles()[j].force);
 
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-        {
-            auto &particle = strand.getParticles()[j];
+        // move the fixed vertices
+        for (int j = 0; j < 3; j++)
+            mat4x4_mul_vec3(strand.particles[j].position, mWorld2, strand.particles[j].reference);
+        
+        MatrixXf K, B, C;
+        size_t nDim = strand.computeMatrices(K, B, C);
 
-            // apply springs
-            for (int k = 0; k < N_SPRING_USED; k++)
-            {
-                auto sibling = particle.siblings[k];
-                if (sibling)
-                {
-                    vec3 diff;
-                    vec3_sub(diff, sibling->position, particle.position);
+        MatrixXf M_1 = MatrixXf::Identity(nDim, nDim);
+        M_1 *= strand.particles[5].mass_1;
 
-                    float cLen = vec3_len(diff);
-#ifdef NUMERICAL_TRACE
-                    particle.cLen = cLen;
-#endif
-                    float fScalar = K_SPRINGS[k] * (cLen - particle.springLens[k]) / particle.springLens[k];
-                    vec3 force;
-                    vec3_norm(force, diff);
-                    vec3_scale(force, force, fScalar);
-                    
-                    vec3_add(particle.force, particle.force, force);
-                    vec3_sub(sibling->force, sibling->force, force);
-                }
-            }
-        } // per strand end
+        MatrixXf Xn, Vn;
+        strand.assignVectors(Xn, Vn);
 
-        // compute v[n+1/2]
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-        {
-            auto &particle = strand.getParticles()[j];
+        MatrixXf tmp, Vnp1, DIV;
+        tmp = Vn + fTimeElapsed * (M_1 * (-K * Xn - C));
+        DIV = MatrixXf::Identity(nDim, nDim) + fTimeElapsed / 2.0f * M_1 * B +
+            fTimeElapsed * fTimeElapsed * M_1 * K;
+        Vnp1 = DIV.inverse() * tmp;
+        
+        // compute Xn
+        MatrixXf Xnp1;
+        Xnp1 = Xn + fTimeElapsed * Vnp1;
 
-            vec3 acc;
-            vec3_scale(acc, particle.force, particle.mass_1);
-            vec3_add(acc, acc, GRAVITY); 
-#ifdef NUMERICAL_TRACE
-            vec3_copy(particle.acc1, acc);
-#endif
-
-            vec3 dv;
-            vec3_scale(dv, acc, fTimeElapsed / 2.0f);
-            vec3_add(particle.v_middle, particle.velocity, dv);
-        }
-
-        // apply constrain
-        vec3_rz(strand.getParticles()[0].v_middle);
-
-        // compute x[n+1]
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-        {
-            auto &particle = strand.getParticles()[j];
-            vec3 dx;
-            vec3_scale(dx, particle.v_middle, fTimeElapsed / 2.0f);
-            vec3_add(particle.pos_middle, particle.position, dx);
-            vec3_add(particle.position, particle.pos_middle, dx);
-        }
-
-        // discard v, recomputing
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-            vec3_rz(strand.getParticles()[j].force);
-
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-        {
-            auto &particle = strand.getParticles()[j];
-
-            // apply springs
-            for (int k = 0; k < N_SPRING_USED; k++)
-            {
-                auto sibling = particle.siblings[k];
-                if (sibling)
-                {
-                    vec3 diff;
-                    vec3_sub(diff, sibling->pos_middle, particle.pos_middle);
-
-                    float cLen = vec3_len(diff);
-                    float fScalar = K_SPRINGS[k] * (cLen - particle.springLens[k]) / particle.springLens[k];
-                    vec3 force;
-                    vec3_norm(force, diff);
-                    vec3_scale(force, force, fScalar);
-
-                    vec3_add(particle.force, particle.force, force);
-                    vec3_sub(sibling->force, sibling->force, force);
-                }
-            }
-        } // per strand end
-
-        // compute v[n+1/2]
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-        {
-            auto &particle = strand.getParticles()[j];
-
-            vec3 acc;
-            vec3_scale(acc, particle.force, particle.mass_1);
-            vec3_add(acc, acc, GRAVITY);
-#ifdef NUMERICAL_TRACE
-            vec3_copy(particle.acc2, acc);
-#endif
-
-            vec3 dv;
-            vec3_scale(dv, acc, fTimeElapsed / 2.0f);
-            vec3_add(particle.v_middle, particle.velocity, dv);
-
-            vec3 v2;
-            vec3_scale(v2, particle.v_middle, 2.0f);
-            vec3_sub(particle.velocity, v2, particle.velocity);
-        }
+        strand.assignBackVectors(Xnp1, Vnp1);
 
     } // total hair
 

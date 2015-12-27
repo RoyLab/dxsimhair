@@ -390,6 +390,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="test.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />
     <ClCompile Include="wrSceneManager.cpp" />
     <ClCompile Include="wrLogger.cpp" />
@@ -399,6 +400,7 @@
     <ClCompile Include="wrHairRenderer.cpp" />
     <ClCompile Include="wrHairSimulator.cpp" />
     <ClCompile Include="wrStrand.cpp" />
+    <ClCompile Include="wrTetrahedron.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl" />
@@ -421,6 +423,7 @@
     <ClInclude Include="wrMath.h" />
     <ClInclude Include="wrStrand.h" />
     <CLInclude Include="resource.h" />
+    <ClInclude Include="wrTetrahedron.h" />
     <ResourceCompile Include="SimpleSample.rc" />
   </ItemGroup>
   <ItemGroup>
@@ -454,11 +457,6 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="wrMesh.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

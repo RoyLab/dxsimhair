@@ -1,6 +1,6 @@
 #pragma once
 
-//#define USE_BOOST_LOGGER
+#define USE_BOOST_LOGGER
 
 #ifdef USE_BOOST_LOGGER
 
