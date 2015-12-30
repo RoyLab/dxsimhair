@@ -75,6 +75,9 @@
     <ClCompile Include="wrTetrahedron.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wrLevelsetOctree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -137,6 +140,9 @@
       <Filter>FBX</Filter>
     </ClInclude>
     <ClInclude Include="wrTetrahedron.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrLevelsetOctree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
