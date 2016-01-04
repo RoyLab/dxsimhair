@@ -93,7 +93,7 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <ExecutablePath>..\3rdparty\dll;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>C:\Program Files\boost_1_55_0\lib32-msvc-12.0\;..\3rdparty\dll;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <LinkIncremental>true</LinkIncremental>
@@ -104,7 +104,7 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <ExecutablePath>..\3rdparty\dll;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>C:\Program Files\boost_1_55_0\lib32-msvc-12.0\;..\3rdparty\dll;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
     <LinkIncremental>false</LinkIncremental>
@@ -115,7 +115,7 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <ExecutablePath>..\3rdparty\dll;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>C:\Program Files\boost_1_55_0\lib32-msvc-12.0\;..\3rdparty\dll;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|X64'">
     <LinkIncremental>false</LinkIncremental>
