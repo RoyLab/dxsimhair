@@ -78,6 +78,9 @@
     <ClCompile Include="wrLevelsetOctree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wrGeo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -143,6 +146,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wrLevelsetOctree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrGeo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
