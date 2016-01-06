@@ -62,7 +62,7 @@ bool wrLevelsetOctree::construct(Polyhedron_3& geom, size_t maxLvl)
 
 		auto ffItr = tItr->facet_begin();
 		Point_3 vP[3];
-		for (size_t i = 0; i < 3; i++)
+		for (size_t i = 0; i < 3; i++, ffItr++)
 			vP[i] = ffItr->vertex()->point();
 
 		triList[count] = Triangle_3(vP[0], vP[1], vP[2]);
@@ -71,10 +71,10 @@ bool wrLevelsetOctree::construct(Polyhedron_3& geom, size_t maxLvl)
 		triList[count].initInfo();
 	}
 
-	Node *root = createRootNode(geom);
+	pRoot = createRootNode(geom);
 
-	constructChildren(root);
-	computeGradient();
+	constructChildren(pRoot);
+	///computeGradient();
 
 	return true;
 }
@@ -141,7 +141,7 @@ void wrLevelsetOctree::constructChildren(Node* root)
 		}
 
 		// if has elements and not max level, split
-		if (!child->eList.empty() || child->level >= nMaxLevel)
+		if (!child->eList.empty() && child->level < nMaxLevel)
 			constructChildren(child);
 		else computeMinDistance(child);
 
@@ -172,11 +172,29 @@ void wrLevelsetOctree::releaseExceptDt()
 
 void wrLevelsetOctree::computeGradient()
 {
-	assert(0);
+	Vector_3 step[3];
+	auto& bbox = pRoot->bbox;
+	std::cout << bbox << std::endl;
+	float coef = pow(0.5f, nMaxLevel);
+	step[0] = Vector_3(coef * (bbox.xmax() - bbox.xmin()), 0, 0);
+	step[1] = Vector_3(0, coef * (bbox.ymax() - bbox.ymin()), 0);
+	step[2] = Vector_3(0, 0, coef * (bbox.zmax() - bbox.zmin()));
+
+	for (auto vItr = dt.finite_vertices_begin(); vItr != dt.finite_vertices_end(); vItr++)
+	{
+		auto &pos = vItr->point();
+		for (size_t i = 0; i < 3; i++)
+		{
+			auto dist1 = queryDistance(pos + step[i]);
+			auto dist2 = queryDistance(pos - step[i]);
+			vItr->info().gradient[i] = (dist2 - dist1) / (2 * step[i][i]);
+		}
+	}
 }
 
 void wrLevelsetOctree::computeMinDistance(Node* node)
 {
+	static int count = 0;
 	for (size_t i = 0; i < 8; i++)
 	{
 		auto& vh = node->vertices[i];
@@ -187,23 +205,22 @@ void wrLevelsetOctree::computeMinDistance(Node* node)
 		size_t triIdx = 0;
 		Node* curNode = node;
 		Vector_3 diff;
+		double tmpSquaredDist, distLimit;
 
 		while (true)
 		{
-			if (!curNode) assert(0);
-
 			if (!curNode->eList.empty())
 			{
-				double tmpDist = minDist(vh->point(), curNode->eList.cbegin(), curNode->eList.cend(), &diff, &triIdx, &type);
-				double distLimit = minDist(curNode->bbox, vh->point());
+				tmpSquaredDist = minSquaredDist(vh->point(), curNode->eList.cbegin(), curNode->eList.cend(), &diff, &triIdx, &type);
+				distLimit = minDist(curNode->triple, vh->point());
 
-				if (tmpDist < distLimit)
+				if (tmpSquaredDist < distLimit * distLimit || !curNode->pParent)
 				{
-					dist = tmpDist;
+					dist = sqrt(tmpSquaredDist);
 					break;
 				}
 			}
-			curNode = node->pParent;
+			curNode = curNode->pParent;
 		}
 
 		// determine the sign
@@ -233,6 +250,11 @@ void wrLevelsetOctree::computeMinDistance(Node* node)
 		default:
 			throw std::exception("unexpected type.");
 		}
+
+		vh->info().idx = type;
+		////******************************************************
+		//std::cout << count++ << ": " << vh->point() << '\t';
+		//std::cout << ": " << dist << std::endl;
 	}
 }
 
@@ -272,7 +294,7 @@ int wrLevelsetOctree::detSignOnVertex(const Point_3& p, const Vector_3& diff, si
 
 // begin != end !!!
 template <class Iterator>
-double wrLevelsetOctree::minDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff, size_t* pTriIdx, int* pType)
+double wrLevelsetOctree::minSquaredDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff, size_t* pTriIdx, int* pType) const
 {
 	assert(begin != end);
 
@@ -282,7 +304,7 @@ double wrLevelsetOctree::minDist(const Point_3& p, Iterator begin, Iterator end,
 	double s;
 	double t;
 
-	for (auto eItr = begin; eItr != begin; eItr++)
+	for (auto eItr = begin; eItr != end; eItr++)
 	{
 		WRG::PointTriangleDistResult<K::FT> res;
 		auto &tri = triList[*eItr];
@@ -328,7 +350,7 @@ wrLevelsetOctree::Node* wrLevelsetOctree::createRootNode(const Polyhedron_3& geo
 	Node* node = createNode();
 
 	Cube bbox = CGAL::bounding_box(geom.points_begin(), geom.points_end());
-	WRG::enlarge(bbox, 1.5); // 不希望贴的太紧
+	WRG::enlarge(bbox, 1.13); // 不希望贴的太紧
 	node->vertices[0] = dt.insert(Point_3(bbox.xmin(), bbox.ymin(), bbox.zmax()));
 	node->vertices[1] = dt.insert(Point_3(bbox.xmin(), bbox.ymax(), bbox.zmax()));
 	node->vertices[2] = dt.insert(Point_3(bbox.xmax(), bbox.ymax(), bbox.zmax()));
@@ -365,14 +387,23 @@ wrLevelsetOctree::Node* wrLevelsetOctree::createNode()
 	return node;
 }
 
+float wrLevelsetOctree::queryExactDistance(const Point_3& p) const
+{
+	return sqrt(minSquaredDist(p, pRoot->eList.begin(), pRoot->eList.end()));
+}
 
 float wrLevelsetOctree::queryDistance(const Point_3& p) const
 {
 	if (!dt.number_of_cells()) return -1.0f;
 
-	if (pRoot->bbox.bounded_side(p) != CGAL::ON_BOUNDED_SIDE)
+	if (pRoot->bbox.bounded_side(p) == CGAL::ON_UNBOUNDED_SIDE)
 	{
 		// do nothing
+		DT_3::Cell_handle ch = dt.locate(p);
+		Point_3 v[4];
+		for (size_t i = 0; i < 4; i++)
+			std::cout << ch->vertex(i)->point() << std::endl;
+
 		return 1.e9;
 	}
 	else
@@ -395,6 +426,7 @@ float wrLevelsetOctree::queryDistance(const Point_3& p) const
 		for (size_t i = 0; i < 4; i++)
 		{
 			sum += vol[i];
+			//WR_LOG_DEBUG << ch->vertex(i)->info().minDist << " idx: " << ch->vertex(i)->info().idx << " point: " << ch->vertex(i)->point();
 			numer += vol[i] * ch->vertex(i)->info().minDist;
 		}
 

@@ -8,7 +8,7 @@ using namespace Eigen;
 
 namespace
 {
-    const float K_SPRINGS[4] = { 0.0f /*null*/, 20.0e-3f, 10.0e-3f, 10.0e-3f };
+    const float K_SPRINGS[4] = { 0.0f /*null*/, 20.0e-3f, 2.0e-3f, 1.0e-3f };
     const float PARTICLE_MASS = 5.0e-7f;  // kg
     const float DAMPING_COEF = 1.0e-5f;
     const float WIND_DAMPING_COEF = 1.e-5f;

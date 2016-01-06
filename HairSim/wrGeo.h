@@ -8,9 +8,10 @@
 namespace WRG
 {
 	template <class R_, class FT_>
-	static inline void enlarge(CGAL::Iso_cuboid_3<R_>& bbox, FT_ scalar)
+	static inline void enlarge(CGAL::Iso_cuboid_3<R_>& bbox, FT_ offset)
 	{
-		bbox = bbox.transform(CGAL::Aff_transformation_3<R_>(CGAL::SCALING, scalar));
+		bbox = CGAL::Iso_cuboid_3<R_>(bbox.min() + CGAL::Vector_3<R_>(-offset, -offset, -offset), 
+			bbox.max() + CGAL::Vector_3<R_>(offset, offset, offset));
 	}
 
 	template <class T>
@@ -86,21 +87,21 @@ namespace WRG
 	template <class T>
 	static inline void _e5(PointTriangleDistResult<T>& res, const PointTriangleDistInfo<T>& infos)
 	{
-		res.s = 0;
-		if (infos.e >= 0)
+		res.t = 0;
+		if (infos.d >= 0)
 		{
-			res.t = 0;
+			res.s = 0;
 			res.type = 4;
 		}
-		else if (-infos.e >= infos.c)
+		else if (-infos.d >= infos.a)
 		{
-			res.t = 1;
-			res.type = 2;
+			res.s = 1;
+			res.type = 6;
 		}
 		else
 		{
-			res.t = -infos.e / infos.c;
-			res.type = 3;
+			res.s = -infos.d / infos.a;
+			res.type = 5;
 		}
 	}
 

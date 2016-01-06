@@ -88,6 +88,9 @@ public:
 	{
 		float	minDist = 1.0e9f;
 		vec3		gradient;
+
+		//***********************************
+		int		idx;
 	};
 
 	typedef CGAL::Triangulation_vertex_base_with_info_3<VInfo, K>						Vb;
@@ -131,6 +134,7 @@ public:
 
 	bool construct(Polyhedron_3& geom, size_t maxLvl);
 	float queryDistance(const Point_3& p) const;
+	float queryExactDistance(const Point_3& p) const;
 
 private:
 
@@ -139,7 +143,7 @@ private:
 	void computeMinDistance(Node*);
 
 	template <class Iterator>
-	double minDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff = nullptr, size_t* tri = nullptr, int* type = nullptr);
+	double minSquaredDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff = nullptr, size_t* tri = nullptr, int* type = nullptr) const;
 
 	double minDist(const Cube& bbox, const Point_3& p);
 	void computeGradient();
