@@ -5,12 +5,6 @@
 
 namespace
 {
-	//const unsigned EPAIR[12][2] = {
-	//	{ 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 },
-	//	{ 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 },
-	//	{ 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 }
-	//};
-
 	const unsigned EIDX[12][3] = {
 		{ 0, 1, 2 }, { 1, 2, 2 }, { 2, 1, 2 }, { 1, 0, 2 },
 		{ 0, 0, 1 }, { 0, 2, 1 }, { 2, 2, 1 }, { 2, 0, 1 },
@@ -21,18 +15,6 @@ namespace
 		{ 1, 1, 2 }, { 0, 1, 1 }, { 1, 2, 1 },
 		{ 2, 1, 1 }, { 1, 0, 1 }, { 1, 1, 0 }
 	};
-
-	//const unsigned BIDX[8][2][3] = {
-	//	{ { 0, 0, 1 }, { 1, 1, 2 } },
-	//	{ { 0, 1, 1 }, { 1, 2, 2 } },
-	//	{ { 1, 1, 1 }, { 2, 2, 2 } },
-	//	{ { 1, 0, 1 }, { 2, 1, 2 } },
-
-	//	{ { 0, 0, 0 }, { 1, 1, 1 } },
-	//	{ { 0, 1, 0 }, { 1, 2, 1 } },
-	//	{ { 1, 1, 0 }, { 2, 2, 1 } },
-	//	{ { 1, 0, 0 }, { 2, 1, 1 } }
-	//};
 
 	const unsigned BIDX[8][2] = {
 		{ 12, 20 }, { 21, 9 }, { 26, 2 }, { 24, 10 },
@@ -51,9 +33,9 @@ namespace
 	};
 }
 
+
 wrLevelsetOctree::wrLevelsetOctree()
 {
-
 }
 
 
@@ -63,7 +45,7 @@ wrLevelsetOctree::~wrLevelsetOctree()
 }
 
 
-bool wrLevelsetOctree::construct(const Polyhedron_3& geom, size_t maxLvl)
+bool wrLevelsetOctree::construct(Polyhedron_3& geom, size_t maxLvl)
 {
 	release();
 	nMaxLevel = maxLvl;
@@ -84,6 +66,8 @@ bool wrLevelsetOctree::construct(const Polyhedron_3& geom, size_t maxLvl)
 			vP[i] = ffItr->vertex()->point();
 
 		triList[count] = Triangle_3(vP[0], vP[1], vP[2]);
+		triList[count].fh = tItr;
+		tItr->idx = count;
 		triList[count].initInfo();
 	}
 
@@ -129,13 +113,13 @@ void wrLevelsetOctree::constructChildren(Node* root)
 
 	const unsigned OE = 8;
 	for (size_t i = 0; i < 12; i++)
-		v[i + OE] = dt.insert(Point_3(coords[0][EIDX[i][0]], coords[1][EIDX[i][1]], coords[2][EIDX[i][2]]));
+		v[i + OE] = dt.insert(Point_3(coords[0][EIDX[i][0]], coords[1][EIDX[i][1]], coords[2][EIDX[i][2]]), root->vertices[0]);
 	
 	const unsigned OF = 20;
 	for (size_t i = 0; i < 6; i++)
-		v[i + OF] = dt.insert(Point_3(coords[0][FIDX[i][0]], coords[1][FIDX[i][1]], coords[2][FIDX[i][2]]));
+		v[i + OF] = dt.insert(Point_3(coords[0][FIDX[i][0]], coords[1][FIDX[i][1]], coords[2][FIDX[i][2]]), root->vertices[0]);
 
-	v[26] = dt.insert(Point_3(coords[0][1], coords[1][1], coords[2][1]));
+	v[26] = dt.insert(Point_3(coords[0][1], coords[1][1], coords[2][1]), root->vertices[0]);
 
 	// deploy chidren
 	for (size_t i =  0; i < 8; i++)
@@ -168,6 +152,12 @@ void wrLevelsetOctree::constructChildren(Node* root)
 
 void wrLevelsetOctree::release()
 {
+	releaseExceptDt();
+	dt.clear();
+}
+
+void wrLevelsetOctree::releaseExceptDt()
+{
 	size_t n = cellList.size();
 	for (size_t i = 0; i < n; i++)
 		delete cellList[i];
@@ -178,9 +168,12 @@ void wrLevelsetOctree::release()
 	pRoot = nullptr;
 	nMaxLevel = 0;
 	cellList.clear();
-	dt.clear();
 }
 
+void wrLevelsetOctree::computeGradient()
+{
+	assert(0);
+}
 
 void wrLevelsetOctree::computeMinDistance(Node* node)
 {
@@ -190,23 +183,152 @@ void wrLevelsetOctree::computeMinDistance(Node* node)
 		auto& dist = vh->info().minDist;
 		if (dist < 1.0e8) continue;
 
-		for (auto eItr = node->eList.begin(); eItr != node->eList.end(); eItr++)
+		int type = -1;
+		size_t triIdx = 0;
+		Node* curNode = node;
+		Vector_3 diff;
+
+		while (true)
 		{
-			WRG::PointTriangleDistResult<K::FT> res;
-			auto &tri = triList[*eItr];
-			tri.computeInfo(vh->point());
-			WRG::distance(vh->point(), tri, tri.infos, res);
+			if (!curNode) assert(0);
+
+			if (!curNode->eList.empty())
+			{
+				double tmpDist = minDist(vh->point(), curNode->eList.cbegin(), curNode->eList.cend(), &diff, &triIdx, &type);
+				double distLimit = minDist(curNode->bbox, vh->point());
+
+				if (tmpDist < distLimit)
+				{
+					dist = tmpDist;
+					break;
+				}
+			}
+			curNode = node->pParent;
+		}
+
+		// determine the sign
+		switch (type)
+		{
+		case 0:
+			dist *= detSignOnFace(vh->point(), diff, triIdx);
+			break;
+		case 1:
+			dist *= detSignOnEdge(vh->point(), diff, triIdx, 2);
+			break;
+		case 3:
+			dist *= detSignOnEdge(vh->point(), diff, triIdx, 0);
+			break;
+		case 5:
+			dist *= detSignOnEdge(vh->point(), diff, triIdx, 2);
+			break;
+		case 2:
+			dist *= detSignOnVertex(vh->point(), diff, triIdx, 2);
+			break;
+		case 4:
+			dist *= detSignOnVertex(vh->point(), diff, triIdx, 0);
+			break;
+		case 6:
+			dist *= detSignOnVertex(vh->point(), diff, triIdx, 1);
+			break;
+		default:
+			throw std::exception("unexpected type.");
 		}
 	}
 }
 
+int wrLevelsetOctree::detSignOnFace(const Point_3& p, const Vector_3& diff, size_t triIdx)
+{
+	if (diff * triList[triIdx].normal > 0.0) return 1;
+	else return -1;
+}
+
+int wrLevelsetOctree::detSignOnEdge(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq)
+{
+	auto edge = triList[triIdx].fh->facet_begin();
+	for (size_t i = 0; i < seq; i++, edge++);
+
+	Vector_3 normal = (triList[edge->facet()->idx].normal + triList[triIdx].normal) / 2.0;
+	if (diff * normal > 0.0) return 1;
+	else return -1;
+}
+
+int wrLevelsetOctree::detSignOnVertex(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq)
+{
+	auto edge = triList[triIdx].fh->facet_begin();
+	for (size_t i = 0; i < seq; i++, edge++);
+
+	auto vh = edge->vertex();
+	const size_t dim = vh->degree();
+	auto vc = vh->vertex_begin();
+	Vector_3 normal(0, 0, 0);
+	for (size_t i = 0; i < dim; i++, vc++)
+		normal = normal + triList[vc->face()->idx].normal;
+
+	normal = normal / dim;
+	if (diff * normal > 0.0) return 1;
+	else return -1;
+}
+
+
+// begin != end !!!
+template <class Iterator>
+double wrLevelsetOctree::minDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff, size_t* pTriIdx, int* pType)
+{
+	assert(begin != end);
+
+	double dist = 1.e8;
+	size_t triIdx = 0;
+	int type = 0;
+	double s;
+	double t;
+
+	for (auto eItr = begin; eItr != begin; eItr++)
+	{
+		WRG::PointTriangleDistResult<K::FT> res;
+		auto &tri = triList[*eItr];
+		tri.computeInfo(p);
+		WRG::distance(p, tri, tri.infos, res);
+		if (dist > res.dist)
+		{
+			dist = res.dist;
+			type = res.type;
+			s = res.s;
+			t = res.t;
+			triIdx = *eItr;
+		}
+	}
+	if (diff)
+		*diff = p - (triList[triIdx].vertex(0) + s * triList[triIdx].E0 + t * triList[triIdx].E1);
+
+	if (pTriIdx) *pTriIdx = triIdx;
+	if (pType) *pType = type;
+	return dist;
+}
+
+double wrLevelsetOctree::minDist(const Cube& bbox, const Point_3& p)
+{
+	double dist = 1.e9;
+
+#define MIN_TEST(d, d0)\
+	{if ((d) < (d0))\
+		(d0) = (d);}
+
+	MIN_TEST(fabs(bbox.xmax() - p.x()), dist);
+	MIN_TEST(fabs(bbox.xmin() - p.x()), dist);
+	MIN_TEST(fabs(bbox.ymax() - p.y()), dist);
+	MIN_TEST(fabs(bbox.ymin() - p.y()), dist);
+	MIN_TEST(fabs(bbox.zmax() - p.z()), dist);
+	MIN_TEST(fabs(bbox.zmin() - p.z()), dist);
+
+	return dist;
+}
 
 wrLevelsetOctree::Node* wrLevelsetOctree::createRootNode(const Polyhedron_3& geom)
 {
 	Node* node = createNode();
 
 	Cube bbox = CGAL::bounding_box(geom.points_begin(), geom.points_end());
-
+	WRG::enlarge(bbox, 1.5); // 不希望贴的太紧
 	node->vertices[0] = dt.insert(Point_3(bbox.xmin(), bbox.ymin(), bbox.zmax()));
 	node->vertices[1] = dt.insert(Point_3(bbox.xmin(), bbox.ymax(), bbox.zmax()));
 	node->vertices[2] = dt.insert(Point_3(bbox.xmax(), bbox.ymax(), bbox.zmax()));
@@ -228,7 +350,7 @@ wrLevelsetOctree::Node* wrLevelsetOctree::createRootNode(const Polyhedron_3& geo
 	return node;
 }
 
-void wrLevelsetOctree::computeTripleFromBbox(Cube& triple, const Cube& bbox)
+void wrLevelsetOctree::computeTripleFromBbox(Cube& triple, const Cube& bbox) const
 {
 	K::Vector_3 radius = (bbox.max() - bbox.min()) / 2.0f;
 	Point_3 center = bbox.min() + radius / 2.0f;
@@ -241,4 +363,41 @@ wrLevelsetOctree::Node* wrLevelsetOctree::createNode()
 	memset(node->children, 0, sizeof(node->children));
 	cellList.push_back(node);
 	return node;
+}
+
+
+float wrLevelsetOctree::queryDistance(const Point_3& p) const
+{
+	if (!dt.number_of_cells()) return -1.0f;
+
+	if (pRoot->bbox.bounded_side(p) != CGAL::ON_BOUNDED_SIDE)
+	{
+		// do nothing
+		return 1.e9;
+	}
+	else
+	{
+		DT_3::Cell_handle ch = dt.locate(p);
+
+		Point_3 v[4];
+		for (size_t i = 0; i < 4; i++)
+			v[i] = ch->vertex(i)->point();
+
+		assert(CGAL::volume(v[0], v[1], v[2], v[3]) > 0);
+		float vol[4];
+		vol[0] = CGAL::volume(v[1], v[3], v[2], p);
+		vol[1] = CGAL::volume(v[2], v[3], v[0], p);
+		vol[2] = CGAL::volume(v[0], v[3], v[1], p);
+		vol[3] = CGAL::volume(v[0], v[1], v[2], p);
+
+		float sum = 0.f;
+		float numer = 0.0f;
+		for (size_t i = 0; i < 4; i++)
+		{
+			sum += vol[i];
+			numer += vol[i] * ch->vertex(i)->info().minDist;
+		}
+
+		return numer / sum;
+	}
 }

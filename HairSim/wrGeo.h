@@ -2,9 +2,17 @@
 #include <CGAL\Point_3.h>
 #include <CGAL\Triangle_3.h>
 #include <CGAL\Vector_3.h>
+#include <CGAL\Iso_cuboid_3.h>
+#include <CGAL\Aff_transformation_3.h>
 
 namespace WRG
 {
+	template <class R_, class FT_>
+	static inline void enlarge(CGAL::Iso_cuboid_3<R_>& bbox, FT_ scalar)
+	{
+		bbox = bbox.transform(CGAL::Aff_transformation_3<R_>(CGAL::SCALING, scalar));
+	}
+
 	template <class T>
 	struct PointTriangleDistInfo
 	{
