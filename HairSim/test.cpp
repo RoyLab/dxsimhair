@@ -31,29 +31,28 @@
 //	return h;
 //}
 //typedef Polyhedron_3::Halfedge_handle        Halfedge_handle;
+void testDistanceQuery();
 
 
 void test()
 {
 #ifdef _TEST
-	Polyhedron_3 *P = new Polyhedron_3;
-	auto p0 = Point_3(-2, 0, 0);
-	auto p1 = Point_3(2, 0, 0);
-	auto p2 = Point_3(0, 2, 0);
-	auto p3 = Point_3(0, 0, 2);
-	P->make_tetrahedron(p0, p1, p2, p3);
-
-	wrLevelsetOctree* pTree = new wrLevelsetOctree;
-	pTree->construct(*P, 1);
-	std::cout << "result as follows:\n";
-
-	Point_3 a = Point_3(9,9,9);
-	pTree->queryDistance(a);
+	testDistanceQuery();
 
 	system("pause");
 	//Sleep(5000);
 	exit(0);
 #endif
+}
+
+int sign(const Point_3& a)
+{
+	double sum = a[0] + a[1] + a[2];
+	double sum1 = -a[0] + a[1] + a[2];
+
+	if (sum1 < 2 && a[1] > 0 && a[2] > 0 && sum < 2)
+		return 1;
+	return -1;
 }
 
 #ifdef _TEST
@@ -65,10 +64,11 @@ void testDistanceQuery()
 	auto p2 = Point_3(0, 2, 0);
 	auto p3 = Point_3(0, 0, 2);
 	P->make_tetrahedron(p0, p1, p2, p3);
-
+	//P->inside_out();
 
 	wrLevelsetOctree* pTree = new wrLevelsetOctree;
-	pTree->construct(*P, 4);
+	pTree->testSign = &sign;
+	pTree->construct(*P, 3);
 	std::cout << "result as follows:\n";
 
 	Point_3 a;
@@ -76,15 +76,19 @@ void testDistanceQuery()
 	while (n--)
 	{
 		//std::cin >> a;
-		a = Point_3(0.7425, 0.2275, 1);
-		a = Point_3(randf(), randf(), randf());
-		double sum = a[0] + a[1] + a[2];
-		double sum1 = -a[0] + a[1] + a[2];
-		int s = 1;
-		if (sum1 < 2 && a[1] > 0 && a[2] > 0 && sum < 2)
-			s = -1;
-		std::cout << std::setprecision(2) << s * pTree->queryExactDistance(a) + pTree->queryDistance(a) << "\t " << a << " sum: " << sum << "*****************************\n";
+		a = Point_3(4, 4, 4);
+		a = Point_3(3 * randf(), 3 * randf(), 3 * randf());
 
+		double distestimate = -pTree->queryDistance(a);
+		double dist = sign(a) * pTree->queryExactDistance(a);
+
+		std::cout
+			<< std::setprecision(2)
+			<< std::setiosflags(std::ios::fixed)
+			<< std::setw(10) << distestimate - dist
+			<< std::setw(10) << distestimate
+			<< std::setw(10) << dist << '\t'
+			<< a << std::endl;
 	}
 	delete P;
 	delete pTree;

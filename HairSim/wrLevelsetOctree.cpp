@@ -223,58 +223,57 @@ void wrLevelsetOctree::computeMinDistance(Node* node)
 			curNode = curNode->pParent;
 		}
 
-		// determine the sign
-		switch (type)
-		{
-		case 0:
-			dist *= detSignOnFace(vh->point(), diff, triIdx);
-			break;
-		case 1:
-			dist *= detSignOnEdge(vh->point(), diff, triIdx, 2);
-			break;
-		case 3:
-			dist *= detSignOnEdge(vh->point(), diff, triIdx, 0);
-			break;
-		case 5:
-			dist *= detSignOnEdge(vh->point(), diff, triIdx, 2);
-			break;
-		case 2:
-			dist *= detSignOnVertex(vh->point(), diff, triIdx, 2);
-			break;
-		case 4:
-			dist *= detSignOnVertex(vh->point(), diff, triIdx, 0);
-			break;
-		case 6:
-			dist *= detSignOnVertex(vh->point(), diff, triIdx, 1);
-			break;
-		default:
-			throw std::exception("unexpected type.");
-		}
+		int sign = determineSign(type, vh->point(), diff, triIdx);
+		assert(sign == testSign(vh->point()));
 
-		vh->info().idx = type;
+		vh->info().idx = count++;
 		////******************************************************
 		//std::cout << count++ << ": " << vh->point() << '\t';
 		//std::cout << ": " << dist << std::endl;
 	}
 }
 
-int wrLevelsetOctree::detSignOnFace(const Point_3& p, const Vector_3& diff, size_t triIdx)
+int wrLevelsetOctree::determineSign(int type, const Point_3& p, const Vector_3& diff, size_t triIdx) const
+{
+	switch (type)
+	{
+	case 0:
+		return detSignOnFace(p, diff, triIdx);
+	case 1:
+		return detSignOnEdge(p, diff, triIdx, 2);
+	case 3:
+		return detSignOnEdge(p, diff, triIdx, 0);
+	case 5:
+		return detSignOnEdge(p, diff, triIdx, 1);
+	case 2:
+		return detSignOnVertex(p, diff, triIdx, 2);
+	case 4:
+		return detSignOnVertex(p, diff, triIdx, 0);
+	case 6:
+		return detSignOnVertex(p, diff, triIdx, 1);
+	default:
+		throw std::exception("unexpected type.");
+	}
+}
+
+
+int wrLevelsetOctree::detSignOnFace(const Point_3& p, const Vector_3& diff, size_t triIdx) const
 {
 	if (diff * triList[triIdx].normal > 0.0) return 1;
 	else return -1;
 }
 
-int wrLevelsetOctree::detSignOnEdge(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq)
+int wrLevelsetOctree::detSignOnEdge(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq) const
 {
 	auto edge = triList[triIdx].fh->facet_begin();
 	for (size_t i = 0; i < seq; i++, edge++);
 
-	Vector_3 normal = (triList[edge->facet()->idx].normal + triList[triIdx].normal) / 2.0;
+	Vector_3 normal = (triList[edge->opposite()->facet()->idx].normal + triList[triIdx].normal) / 2.0;
 	if (diff * normal > 0.0) return 1;
 	else return -1;
 }
 
-int wrLevelsetOctree::detSignOnVertex(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq)
+int wrLevelsetOctree::detSignOnVertex(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq) const
 {
 	auto edge = triList[triIdx].fh->facet_begin();
 	for (size_t i = 0; i < seq; i++, edge++);
@@ -309,7 +308,7 @@ double wrLevelsetOctree::minSquaredDist(const Point_3& p, Iterator begin, Iterat
 		WRG::PointTriangleDistResult<K::FT> res;
 		auto &tri = triList[*eItr];
 		tri.computeInfo(p);
-		WRG::distance(p, tri, tri.infos, res);
+		WRG::squaredDistance(p, tri, tri.infos, res);
 		if (dist > res.dist)
 		{
 			dist = res.dist;
@@ -396,24 +395,48 @@ float wrLevelsetOctree::queryDistance(const Point_3& p) const
 {
 	if (!dt.number_of_cells()) return -1.0f;
 
-	if (pRoot->bbox.bounded_side(p) == CGAL::ON_UNBOUNDED_SIDE)
-	{
-		// do nothing
-		DT_3::Cell_handle ch = dt.locate(p);
-		Point_3 v[4];
-		for (size_t i = 0; i < 4; i++)
-			std::cout << ch->vertex(i)->point() << std::endl;
+	DT_3::Cell_handle ch = dt.locate(p);
 
-		return 1.e9;
+	Point_3 v[4];
+	bool isInfinite = false;
+	int infiniteId = -1;
+	for (size_t i = 0; i < 4; i++)
+	{
+		if (ch->vertex(i) == dt.infinite_vertex())
+		{
+			assert(infiniteId == -1);
+			isInfinite = true;
+			infiniteId = i;
+		}
+		else v[i] = ch->vertex(i)->point();
+	}
+
+	if (isInfinite)
+	{
+		std::cout << "this is out." << std::endl;
+		// do nothing
+		Triangle_3 tri(v[(infiniteId + 1) % 4], v[(infiniteId + 2) % 4], v[(infiniteId + 3) % 4]);
+		tri.initInfo();
+		tri.computeInfo(p);
+		WRG::PointTriangleDistResult<K::FT> res;
+		WRG::squaredDistance(p, tri, tri.infos, res);
+		
+		Point_3 touch = tri.vertex(0) + res.s * tri.E0 + res.t * tri.E1;
+		double a[3];
+		a[2] = WRG::squaredArea(tri.vertex(0), tri.vertex(1), touch);
+		a[0] = WRG::squaredArea(tri.vertex(1), tri.vertex(2), touch);
+		a[1] = WRG::squaredArea(tri.vertex(2), tri.vertex(0), touch);
+
+		double dist = (a[0] * ch->vertex((infiniteId + 1) % 4)->info().minDist  + 
+			(a[1] * ch->vertex((infiniteId + 2) % 4)->info().minDist) + 
+			(a[2] * ch->vertex((infiniteId + 3) % 4)->info().minDist)) /
+			(a[0] + a[1] + a[2]);
+
+		dist += sqrt(res.dist);
+		return dist;
 	}
 	else
 	{
-		DT_3::Cell_handle ch = dt.locate(p);
-
-		Point_3 v[4];
-		for (size_t i = 0; i < 4; i++)
-			v[i] = ch->vertex(i)->point();
-
 		assert(CGAL::volume(v[0], v[1], v[2], v[3]) > 0);
 		float vol[4];
 		vol[0] = CGAL::volume(v[1], v[3], v[2], p);
@@ -426,7 +449,7 @@ float wrLevelsetOctree::queryDistance(const Point_3& p) const
 		for (size_t i = 0; i < 4; i++)
 		{
 			sum += vol[i];
-			//WR_LOG_DEBUG << ch->vertex(i)->info().minDist << " idx: " << ch->vertex(i)->info().idx << " point: " << ch->vertex(i)->point();
+			WR_LOG_DEBUG << ch->vertex(i)->info().minDist << " idx: " << ch->vertex(i)->info().idx << " point: " << ch->vertex(i)->point();
 			numer += vol[i] * ch->vertex(i)->info().minDist;
 		}
 

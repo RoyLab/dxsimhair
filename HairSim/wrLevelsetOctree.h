@@ -62,6 +62,7 @@ public:
 		infos.c = E1 * E1;
 
 		normal = CGAL::normal(vertex(0), vertex(1), vertex(2));
+		normal = normal / sqrt(normal.squared_length());
 	}
 
 	void computeInfo(const Point_3& p)
@@ -89,7 +90,7 @@ public:
 		float	minDist = 1.0e9f;
 		vec3		gradient;
 
-		//***********************************
+		// for dubug
 		int		idx;
 	};
 
@@ -136,11 +137,15 @@ public:
 	float queryDistance(const Point_3& p) const;
 	float queryExactDistance(const Point_3& p) const;
 
+public: // for debug
+	int(*testSign)(const Point_3&);
+
 private:
 
 	void constructChildren(Node*);
 	Node* createRootNode(const Polyhedron_3&);
 	void computeMinDistance(Node*);
+	int determineSign(int type, const Point_3& p, const Vector_3& diff, size_t triIdx) const;
 
 	template <class Iterator>
 	double minSquaredDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff = nullptr, size_t* tri = nullptr, int* type = nullptr) const;
@@ -148,9 +153,9 @@ private:
 	double minDist(const Cube& bbox, const Point_3& p);
 	void computeGradient();
 
-	int detSignOnFace(const Point_3& p, const Vector_3& diff, size_t triIdx);
-	int detSignOnEdge(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq);
-	int detSignOnVertex(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq);
+	int detSignOnFace(const Point_3& p, const Vector_3& diff, size_t triIdx) const;
+	int detSignOnEdge(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq) const;
+	int detSignOnVertex(const Point_3& p, const Vector_3& diff, size_t triIdx, int seq) const;
 
 	void release();
 	Node* createNode();

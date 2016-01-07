@@ -14,6 +14,17 @@ namespace WRG
 			bbox.max() + CGAL::Vector_3<R_>(offset, offset, offset));
 	}
 
+	template < class K >
+	inline
+		typename K::FT
+		squaredArea(const CGAL::Point_3<K> &p, const CGAL::Point_3<K> &q, const CGAL::Point_3<K> &r)
+	{
+		auto e1 = q - p;
+		auto e2 = r - p;
+
+		return CGAL::cross_product(e1, e2).squared_length();
+	}
+
 	template <class T>
 	struct PointTriangleDistInfo
 	{
@@ -109,7 +120,7 @@ namespace WRG
 	// 这里的返回结果不完全是图中标示的意思
 	// 0表示在内部，135表示在边上，246表示在顶点
 	template <class K, class T>
-	static inline void distance(const CGAL::Point_3<K> & plane,
+	static inline void squaredDistance(const CGAL::Point_3<K> & plane,
 		const CGAL::Triangle_3<K> & seg, const PointTriangleDistInfo<T>& infos,
 		PointTriangleDistResult<T>& res)
 	{
