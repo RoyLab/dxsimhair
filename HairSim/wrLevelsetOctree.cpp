@@ -74,7 +74,7 @@ bool wrLevelsetOctree::construct(Polyhedron_3& geom, size_t maxLvl)
 	pRoot = createRootNode(geom);
 
 	constructChildren(pRoot);
-	///computeGradient();
+	computeGradient();
 
 	return true;
 }
@@ -174,12 +174,12 @@ void wrLevelsetOctree::computeGradient()
 {
 	Vector_3 step[3];
 	auto& bbox = pRoot->bbox;
-	std::cout << bbox << std::endl;
 	float coef = pow(0.5f, nMaxLevel);
 	step[0] = Vector_3(coef * (bbox.xmax() - bbox.xmin()), 0, 0);
 	step[1] = Vector_3(0, coef * (bbox.ymax() - bbox.ymin()), 0);
 	step[2] = Vector_3(0, 0, coef * (bbox.zmax() - bbox.zmin()));
 
+	vec3 v;
 	for (auto vItr = dt.finite_vertices_begin(); vItr != dt.finite_vertices_end(); vItr++)
 	{
 		auto &pos = vItr->point();
@@ -187,8 +187,9 @@ void wrLevelsetOctree::computeGradient()
 		{
 			auto dist1 = queryDistance(pos + step[i]);
 			auto dist2 = queryDistance(pos - step[i]);
-			vItr->info().gradient[i] = (dist2 - dist1) / (2 * step[i][i]);
+			v[i] = (dist2 - dist1) / (2 * step[i][i]);
 		}
+		vItr->info().gradient = Vector_3(v[0], v[1], v[2]);
 	}
 }
 
@@ -415,7 +416,7 @@ float wrLevelsetOctree::queryDistance(const Point_3& p) const
 
 	if (isInfinite)
 	{
-		std::cout << "this is out." << std::endl;
+		//std::cout << "this is out." << std::endl;
 		// do nothing
 		Triangle_3 tri(v[(infiniteId + 1) % 4], v[(infiniteId + 2) % 4], v[(infiniteId + 3) % 4]);
 		tri.initInfo();
@@ -456,5 +457,73 @@ float wrLevelsetOctree::queryDistance(const Point_3& p) const
 		}
 
 		return numer / sum;
+	}
+}
+
+
+bool wrLevelsetOctree::queryGradient(const Point_3& p, Vector_3& grad) const
+{
+	if (!dt.number_of_cells()) return false;
+
+	grad = Vector_3(0, 0, 0);
+
+	DT_3::Cell_handle ch = dt.locate(p);
+
+	Point_3 v[4];
+	bool isInfinite = false;
+	int infiniteId = -1;
+	for (size_t i = 0; i < 4; i++)
+	{
+		if (ch->vertex(i) == dt.infinite_vertex())
+		{
+			assert(infiniteId == -1);
+			isInfinite = true;
+			infiniteId = i;
+		}
+		else v[i] = ch->vertex(i)->point();
+	}
+
+	if (isInfinite)
+	{
+		//std::cout << "this is out." << std::endl;
+		// do nothing
+		Triangle_3 tri(v[(infiniteId + 1) % 4], v[(infiniteId + 2) % 4], v[(infiniteId + 3) % 4]);
+		tri.initInfo();
+		tri.computeInfo(p);
+		WRG::PointTriangleDistResult<K::FT> res;
+		WRG::squaredDistance(p, tri, tri.infos, res);
+
+		Point_3 touch = tri.vertex(0) + res.s * tri.E0 + res.t * tri.E1;
+		double a[3];
+		a[2] = WRG::squaredArea(tri.vertex(0), tri.vertex(1), touch);
+		a[0] = WRG::squaredArea(tri.vertex(1), tri.vertex(2), touch);
+		a[1] = WRG::squaredArea(tri.vertex(2), tri.vertex(0), touch);
+
+		// 不进行外推
+		grad = (a[0] * ch->vertex((infiniteId + 1) % 4)->info().gradient +
+			(a[1] * ch->vertex((infiniteId + 2) % 4)->info().gradient) +
+			(a[2] * ch->vertex((infiniteId + 3) % 4)->info().gradient)) /
+			(a[0] + a[1] + a[2]);
+
+		return true;
+	}
+	else
+	{
+		assert(CGAL::volume(v[0], v[1], v[2], v[3]) > 0);
+		float vol[4];
+		vol[0] = CGAL::volume(v[1], v[3], v[2], p);
+		vol[1] = CGAL::volume(v[2], v[3], v[0], p);
+		vol[2] = CGAL::volume(v[0], v[3], v[1], p);
+		vol[3] = CGAL::volume(v[0], v[1], v[2], p);
+
+		float sum = 0.f;
+		for (size_t i = 0; i < 4; i++)
+		{
+			sum += vol[i];
+			//WR_LOG_DEBUG << ch->vertex(i)->info().minDist << " idx: " << ch->vertex(i)->info().idx << " point: " << ch->vertex(i)->point();
+			grad = grad + vol[i] * ch->vertex(i)->info().gradient;
+		}
+		grad = grad / sum;
+		return true;
 	}
 }

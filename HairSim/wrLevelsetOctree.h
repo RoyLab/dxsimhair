@@ -87,8 +87,8 @@ public:
 
 	struct VInfo
 	{
-		float	minDist = 1.0e9f;
-		vec3		gradient;
+		float		minDist = 1.0e9f;
+		Vector_3		gradient;
 
 		// for dubug
 		int		idx;
@@ -135,6 +135,7 @@ public:
 
 	bool construct(Polyhedron_3& geom, size_t maxLvl);
 	float queryDistance(const Point_3& p) const;
+	bool queryGradient(const Point_3& p, Vector_3& grad) const;
 	float queryExactDistance(const Point_3& p) const;
 
 public: // for debug

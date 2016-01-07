@@ -2,7 +2,8 @@
 #include <iostream>
 #include "wrLevelsetOctree.h"
 #include "wrMath.h"
-
+#include <fstream>
+#include <CGAL/IO/Polyhedron_iostream.h>
 #define _TEST
 
 //template <class Poly>
@@ -56,7 +57,8 @@ int sign(const Point_3& a)
 }
 
 #ifdef _TEST
-void testDistanceQuery()
+
+Polyhedron_3* createSimpleTetrahedron()
 {
 	Polyhedron_3 *P = new Polyhedron_3;
 	auto p0 = Point_3(-2, 0, 0);
@@ -64,11 +66,26 @@ void testDistanceQuery()
 	auto p2 = Point_3(0, 2, 0);
 	auto p3 = Point_3(0, 0, 2);
 	P->make_tetrahedron(p0, p1, p2, p3);
-	//P->inside_out();
+	return P;
+}
+
+Polyhedron_3* readFile(const char* fileName)
+{
+	Polyhedron_3 *P = new Polyhedron_3;
+	std::ifstream f(fileName);
+	f >> (*P);
+	f.close();
+	return P;
+}
+
+void testDistanceQuery()
+{
+	Polyhedron_3 *P = readFile("../../models/head.off");
+	std::cout << P->size_of_vertices() << std::endl;
 
 	wrLevelsetOctree* pTree = new wrLevelsetOctree;
 	pTree->testSign = &sign;
-	pTree->construct(*P, 5);
+	pTree->construct(*P, 4);
 	std::cout << "result as follows:\n";
 
 	Point_3 a;
@@ -85,7 +102,7 @@ void testDistanceQuery()
 		std::cout
 			<< std::setprecision(2)
 			<< std::setiosflags(std::ios::fixed)
-			<< std::setw(10) << distestimate - dist
+			<< std::setw(10) << fabs(distestimate) - fabs(dist)
 			<< std::setw(10) << distestimate
 			<< std::setw(10) << dist << '\t'
 			<< a << std::endl;
