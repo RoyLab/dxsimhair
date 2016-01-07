@@ -51,8 +51,8 @@ int sign(const Point_3& a)
 	double sum1 = -a[0] + a[1] + a[2];
 
 	if (sum1 < 2 && a[1] > 0 && a[2] > 0 && sum < 2)
-		return 1;
-	return -1;
+		return -1;
+	return 1;
 }
 
 #ifdef _TEST
@@ -68,7 +68,7 @@ void testDistanceQuery()
 
 	wrLevelsetOctree* pTree = new wrLevelsetOctree;
 	pTree->testSign = &sign;
-	pTree->construct(*P, 3);
+	pTree->construct(*P, 5);
 	std::cout << "result as follows:\n";
 
 	Point_3 a;
@@ -76,10 +76,10 @@ void testDistanceQuery()
 	while (n--)
 	{
 		//std::cin >> a;
-		a = Point_3(4, 4, 4);
-		a = Point_3(3 * randf(), 3 * randf(), 3 * randf());
+		//a = Point_3(4, 4, 4);
+		a = Point_3(2 * randSignedFloat(), 2 * randSignedFloat(), 2 * randSignedFloat());
 
-		double distestimate = -pTree->queryDistance(a);
+		double distestimate = pTree->queryDistance(a);
 		double dist = sign(a) * pTree->queryExactDistance(a);
 
 		std::cout

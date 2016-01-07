@@ -224,7 +224,7 @@ void wrLevelsetOctree::computeMinDistance(Node* node)
 		}
 
 		int sign = determineSign(type, vh->point(), diff, triIdx);
-		assert(sign == testSign(vh->point()));
+		//assert(sign == testSign(vh->point()));
 
 		vh->info().idx = count++;
 		////******************************************************
@@ -259,7 +259,7 @@ int wrLevelsetOctree::determineSign(int type, const Point_3& p, const Vector_3& 
 
 int wrLevelsetOctree::detSignOnFace(const Point_3& p, const Vector_3& diff, size_t triIdx) const
 {
-	if (diff * triList[triIdx].normal > 0.0) return 1;
+	if (diff * triList[triIdx].normal < 0.0) return 1;
 	else return -1;
 }
 
@@ -269,7 +269,7 @@ int wrLevelsetOctree::detSignOnEdge(const Point_3& p, const Vector_3& diff, size
 	for (size_t i = 0; i < seq; i++, edge++);
 
 	Vector_3 normal = (triList[edge->opposite()->facet()->idx].normal + triList[triIdx].normal) / 2.0;
-	if (diff * normal > 0.0) return 1;
+	if (diff * normal < 0.0) return 1;
 	else return -1;
 }
 
@@ -281,12 +281,14 @@ int wrLevelsetOctree::detSignOnVertex(const Point_3& p, const Vector_3& diff, si
 	auto vh = edge->vertex();
 	const size_t dim = vh->degree();
 	auto vc = vh->vertex_begin();
-	Vector_3 normal(0, 0, 0);
+	Vector_3 dir(0, 0, 0);
+	//WR_LOG_DEBUG << "debug";
 	for (size_t i = 0; i < dim; i++, vc++)
-		normal = normal + triList[vc->face()->idx].normal;
-
-	normal = normal / dim;
-	if (diff * normal > 0.0) return 1;
+	{
+		//std::cout << vc->opposite()->vertex()->point() << std::endl;
+		dir = dir + (vc->opposite()->vertex()->point() - vh->point());
+	}
+	if (diff * dir < 0.0) return 1;
 	else return -1;
 }
 
@@ -449,7 +451,7 @@ float wrLevelsetOctree::queryDistance(const Point_3& p) const
 		for (size_t i = 0; i < 4; i++)
 		{
 			sum += vol[i];
-			WR_LOG_DEBUG << ch->vertex(i)->info().minDist << " idx: " << ch->vertex(i)->info().idx << " point: " << ch->vertex(i)->point();
+			//WR_LOG_DEBUG << ch->vertex(i)->info().minDist << " idx: " << ch->vertex(i)->info().idx << " point: " << ch->vertex(i)->point();
 			numer += vol[i] * ch->vertex(i)->info().minDist;
 		}
 
