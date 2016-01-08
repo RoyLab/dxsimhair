@@ -8,7 +8,7 @@ using namespace Eigen;
 
 namespace
 {
-    const float K_SPRINGS[4] = { 0.0f /*null*/, 20.0e-3f, 2.0e-3f, 1.0e-3f };
+    const float K_SPRINGS[4] = { 0.0f /*null*/, 2.0e-3f, 20.0e-5f, 10.0e-5f };
     const float PARTICLE_MASS = 5.0e-7f;  // kg
     const float DAMPING_COEF = 1.0e-5f;
     const float WIND_DAMPING_COEF = 1.e-5f;
@@ -308,8 +308,11 @@ size_t wrStrand::computeMatrices(MatrixXf& K, MatrixXf& B, MatrixXf& C)
     // for wind damping
     for (size_t i = 3; i < nParticles; i++)
     {
-        for (int j = 0; j < 3; j++)
+		C(3 * (i + offset) + 1, 0) += 10.0 * PARTICLE_MASS;
+		for (int j = 0; j < 3; j++)
+		{
             B(3 * (i + offset) + j, 3 * (i + offset) + j) += WIND_DAMPING_COEF;
+		}
     }
 
     // add altitude spring

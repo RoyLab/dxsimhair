@@ -1,6 +1,7 @@
 #pragma once
 #include "wrHair.h"
 
+class wrLevelsetOctree;
 
 class wrHairSimulator
 {
@@ -13,5 +14,7 @@ public:
 
 protected:
     void step(wrHair* hair, DirectX::XMMATRIX& mWorld, float fTime, float fTimeElapsed);
+
+	wrLevelsetOctree*			pLVTree = nullptr;
 };
 

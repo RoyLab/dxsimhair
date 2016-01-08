@@ -27,7 +27,7 @@ namespace
         3, 2, 1, 0
     };
 
-    const float K_ALTITUDE_SPRING = 1.e-6f;
+    const float K_ALTITUDE_SPRING = 0.e-6f;
 
 }
 

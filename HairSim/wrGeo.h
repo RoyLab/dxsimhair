@@ -4,9 +4,22 @@
 #include <CGAL\Vector_3.h>
 #include <CGAL\Iso_cuboid_3.h>
 #include <CGAL\Aff_transformation_3.h>
+#include <fstream>
+#include <CGAL/IO/Polyhedron_iostream.h>
 
 namespace WRG
 {
+	template <class Polyhedron_3>
+	Polyhedron_3* readFile(const char* fileName)
+	{
+		Polyhedron_3 *P = new Polyhedron_3;
+		std::ifstream f(fileName);
+		f >> (*P);
+		f.close();
+		WR_LOG_INFO << "Read off file: " << fileName << " nVertices: " << P->size_of_vertices() << std::endl;
+		return P;
+	}
+
 	template <class R_, class FT_>
 	static inline void enlarge(CGAL::Iso_cuboid_3<R_>& bbox, FT_ offset)
 	{

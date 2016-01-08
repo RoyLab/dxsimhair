@@ -7,6 +7,8 @@
 #include <GeometricPrimitive.h>
 #include <DXUTcamera.h>
 
+
+
 using namespace DirectX;
 
 //--------------------------------------------------------------------------------------
@@ -60,6 +62,7 @@ bool wrSceneManager::init()
     pMeshRenderer = new wrMeshRenderer;
     pMeshRenderer->setCamera(pCamera);
     V_RETURN(pMeshRenderer->init());
+
 
     return true;
 }
