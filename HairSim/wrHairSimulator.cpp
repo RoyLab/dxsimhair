@@ -3,6 +3,7 @@
 #include "wrLogger.h"
 #include <Eigen\Dense>
 #include "wrLevelsetOctree.h"
+#include <CGAL\Aff_transformation_3.h>
 
 #include <fstream>
 #include <iomanip>
@@ -44,6 +45,7 @@ wrHairSimulator::wrHairSimulator()
 
 wrHairSimulator::~wrHairSimulator()
 {
+    SAFE_DELETE(pLSTree);
 }
 
 
@@ -54,8 +56,8 @@ bool wrHairSimulator::init(wrHair* hair)
 	HRESULT hr;
 
 	Polyhedron_3 *P = WRG::readFile<Polyhedron_3>("../../models/head.off");
-	pLVTree = new wrLevelsetOctree;
-	V_RETURN(pLVTree->construct(*P, 4));
+    pLSTree = new wrLevelsetOctree;
+    V_RETURN(pLSTree->construct(*P, 4));
 	SAFE_DELETE(P);
 
     return true;
@@ -96,6 +98,11 @@ void wrHairSimulator::step(wrHair* hair, XMMATRIX& mWorld, float fTime, float fT
 
     mat4x4 mWorld2, mInvWorld;
     XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mWorld2), mWorld);
+    CGAL::Aff_transformation_3<K> aff(mWorld2[0][0], mWorld2[0][1], mWorld2[0][2], mWorld2[0][3],
+        mWorld2[1][0], mWorld2[1][1], mWorld2[1][2], mWorld2[1][3],
+        mWorld2[2][0], mWorld2[2][1], mWorld2[2][2], mWorld2[2][3]);
+
+    auto invAff = aff.inverse();
 	auto invMat = DirectX::XMMatrixInverse(nullptr, mWorld);
 	XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mInvWorld), invMat);
 
@@ -126,23 +133,33 @@ void wrHairSimulator::step(wrHair* hair, XMMATRIX& mWorld, float fTime, float fT
         MatrixXf Xnp1;
         Xnp1 = Xn + fTimeElapsed * Vnp1;
 
-		for (size_t i = 0; i < nDim; i++)
+		for (size_t i = 0; i < nDim /3; i++)
 		{
-			vec3 p{ Xnp1(nDim * i, 0), Xnp1(nDim * i + 1, 0), Xnp1(nDim * i + 2, 0) }, p0;
-			mat4x4_mul_vec3(p0, mInvWorld, p);
+			Point_3 p( Xnp1(3 * i, 0), Xnp1(3 * i + 1, 0), Xnp1(3 * i + 2, 0) ), p0;
+			p0 = p.transform(invAff);
 
-			auto dist = pLVTree->queryDistance(Point_3(p0[0], p0[1], p0[2]));
+			auto dist = pLSTree->queryExactDistance(Point_3(p0[0], p0[1], p0[2]));
+#ifdef _DEBUG
+            WR_LOG_TRACE << "point: " << Point_3(p0[0], p0[1], p0[2]);
+            WR_LOG_TRACE << "distance: " << dist;
+#endif
 			if (dist < 0)
 			{
 				Vector_3 grad;
-				pLVTree->queryGradient(Point_3(p0[0], p0[1], p0[2]), grad);
+                //auto dir = (p0 - pLSTree->center());
+                //auto dire = dir / sqrt(dir.squared_length());
+                //p0 = pLSTree->center() + dire * pLSTree->radius();
+                pLSTree->queryGradient(Point_3(p0[0], p0[1], p0[2]), grad);
+
 				Vector_3 delta = (dist / grad.squared_length()) * grad;
-				p0[0] += delta.x();
-				p0[1] += delta.y();
-				p0[2] += delta.z();
-				mat4x4_mul_vec3(p, mWorld2, p0);
-				for (size_t j = 0; j < 3; j++)
-					Xnp1(nDim* i + j, 0) = p[i];
+                p0 = p0 + delta;
+                
+                p = p0.transform(aff);
+                for (size_t j = 0; j < 3; j++)
+                {
+					Xnp1(3* i + j, 0) = p[j];
+                    Vnp1(3 * i + j, 0) = 0;
+                }
 			}
 		}
 

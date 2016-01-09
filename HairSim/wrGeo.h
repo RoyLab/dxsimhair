@@ -5,10 +5,54 @@
 #include <CGAL\Iso_cuboid_3.h>
 #include <CGAL\Aff_transformation_3.h>
 #include <fstream>
-#include <CGAL/IO/Polyhedron_iostream.h>
-
+#include <CGAL\IO\Polyhedron_iostream.h>
+//#include <CGAL/Polyhedron_3.h>
+//#include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
+//#include <CGAL\AABB_tree.h>
+//#include <CGAL\AABB_traits.h>
+//#include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
+//#include <CGAL/AABB_face_graph_triangle_primitive.h>
 namespace WRG
 {
+    //void main()
+    //{
+    //    Point p(1.0, 0.0, 0.0);
+    //    Point q(0.0, 1.0, 0.0);
+    //    Point r(0.0, 0.0, 1.0);
+    //    Point s(0.0, 0.0, 0.0);
+    //    Polyhedron polyhedron;
+    //    polyhedron.make_tetrahedron(p, q, r, s);
+    //    // constructs AABB tree and computes internal KD-tree 
+    //    // data structure to accelerate distance queries
+    //    Tree tree(polyhedron.facets_begin(), polyhedron.facets_end(), polyhedron);
+    //    tree.accelerate_distance_queries();
+    //    // query point
+    //    Point query(0.0, 0.0, 3.0);
+    //    // computes squared distance from query
+    //    FT sqd = tree.squared_distance(query);
+    //    std::cout << "squared distance: " << sqd << std::endl;
+    //    // computes closest point
+    //    Point closest = tree.closest_point(query);
+    //    std::cout << "closest point: " << closest << std::endl;
+    //    // computes closest point and primitive id
+    //    Point_and_primitive_id pp = tree.closest_point_and_primitive(query);
+    //    Point closest_point = pp.first;
+    //    Polyhedron::Face_handle f = pp.second; // closest primitive id
+    //    std::cout << "closest point: " << closest_point << std::endl;
+    //    std::cout << "closest triangle: ( "
+    //        << f->halfedge()->vertex()->point() << " , "
+    //        << f->halfedge()->next()->vertex()->point() << " , "
+    //        << f->halfedge()->next()->next()->vertex()->point()
+    //        << " )" << std::endl;
+    //}
+
+    //template <class K>
+    //inline typename K::FT distance(const CGAL::AABB_tree<CGAL::AABB_traits<K, CGAL::AABB_face_graph_triangle_primitive<CGAL::Polyhedron_3<K>>>>& tree, const CGAL::Point_3<K>& query)
+    //{
+    //    return tree.squared_distance(query);
+    //}
+
+
 	template <class Polyhedron_3>
 	Polyhedron_3* readFile(const char* fileName)
 	{
@@ -16,7 +60,7 @@ namespace WRG
 		std::ifstream f(fileName);
 		f >> (*P);
 		f.close();
-		WR_LOG_INFO << "Read off file: " << fileName << " nVertices: " << P->size_of_vertices() << std::endl;
+		WR_LOG_INFO << "Read off file: " << fileName << " nVertices: " << P->size_of_vertices();
 		return P;
 	}
 

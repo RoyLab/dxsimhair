@@ -136,7 +136,12 @@ public:
 	bool construct(Polyhedron_3& geom, size_t maxLvl);
 	float queryDistance(const Point_3& p) const;
 	bool queryGradient(const Point_3& p, Vector_3& grad) const;
-	float queryExactDistance(const Point_3& p) const;
+    float queryExactDistance(const Point_3& p) const;
+    float queryInexactDistance(const Point_3& p) const { return sqrt((p - center()).squared_length()) - radius(); }
+
+    CGAL::Bbox_3 bbox() const { return box; };
+    Point_3 center() const { return Point_3((box.xmax() + box.xmin()) / 2, (box.ymax() + box.ymin()) / 2, (box.zmax() + box.zmin()) / 2); }
+    float radius() const { return sqrt(Vector_3((box.xmax() - box.xmin()) / 2, (box.ymax() - box.ymin()) / 2, (box.zmax() - box.zmin()) / 2).squared_length())/1.4; }
 
 public: // for debug
 	int(*testSign)(const Point_3&);
@@ -169,5 +174,6 @@ private:
 	std::vector<Node*>			cellList;
 	Triangle_3*					triList = nullptr;
 	size_t						nTriangles = 0;
+    CGAL::Bbox_3                box;
 };
 

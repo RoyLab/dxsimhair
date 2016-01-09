@@ -352,6 +352,9 @@ wrLevelsetOctree::Node* wrLevelsetOctree::createRootNode(const Polyhedron_3& geo
 	Node* node = createNode();
 
 	Cube bbox = CGAL::bounding_box(geom.points_begin(), geom.points_end());
+    box = bbox.bbox();
+    WR_LOG_INFO << "Bbox size: " << bbox;
+
 	WRG::enlarge(bbox, 1.13); // 不希望贴的太紧
 	node->vertices[0] = dt.insert(Point_3(bbox.xmin(), bbox.ymin(), bbox.zmax()));
 	node->vertices[1] = dt.insert(Point_3(bbox.xmin(), bbox.ymax(), bbox.zmax()));
