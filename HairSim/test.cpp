@@ -2,7 +2,7 @@
 #include "wrMath.h"
 
 
-#define _TEST
+//#define _TEST
 
 #ifdef _TEST
 
@@ -11,6 +11,15 @@
 #include <CGAL/AABB_traits.h>
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
+#include <CGAL/IO/Polyhedron_iostream.h>
+#include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
+#include <CGAL/point_generators_3.h>
+#include <CGAL/Side_of_triangle_mesh.h>
+#include <vector>
+#include <fstream>
+#include <limits>
+#include <boost/foreach.hpp>
+
 typedef K::FT FT;
 typedef K::Point_3 Point;
 typedef K::Segment_3 Segment;
@@ -31,6 +40,17 @@ int sign(const Point_3& a)
 }
 
 
+
+template <class K>
+int sign(CGAL::Side_of_triangle_mesh<const CGAL::Polyhedron_3<K>, K>& inside, const CGAL::Point_3<K>& query)
+{
+	auto res = inside(query);
+	if (res == CGAL::ON_BOUNDED_SIDE) return 1;
+	if (res == CGAL::ON_BOUNDARY) return 0;
+	else return -1;
+}
+
+
 template <class Poly>
 Poly* readFile(const char* fileName)
 {
@@ -47,7 +67,6 @@ void testDistanceQuery()
 	std::cout << P->size_of_vertices() << std::endl;
 
 	wrLevelsetOctree* pTree = new wrLevelsetOctree;
-	pTree->testSign = &sign;
 	pTree->construct(*P, 4);
 	std::cout << "result as follows:\n";
 
@@ -90,19 +109,28 @@ void test()
 	// query point
 	Point query(0.0, 0.0, 0.0);
 	// computes squared distance from query
-
+	CGAL::Side_of_triangle_mesh<Polyhedron_3, K> inside(polyhedron);
 	wrLevelsetOctree* pTree = new wrLevelsetOctree;
-	pTree->construct(*P, 4);
+	pTree->construct(*P, 8);
 	std::cout << "result as follows:\n";
 
-	int n = 20;
+	int n = 50;
+	int size = 1;
 	while (n--)
 	{
-		//query = Point(1 * randSignedFloat(), 1 * randSignedFloat(), 1 * randSignedFloat());
+
+		int s;
+		auto res = inside(query);
+		std::cout << "haha: " << res <<" fafasd " << query << std::endl;
+		if (res == CGAL::ON_BOUNDED_SIDE) s = -1;
+		else if (res == CGAL::ON_BOUNDARY) s= 0;
+		else s = 1;
+		query = Point(size * randSignedFloat(), size * randSignedFloat(), size * randSignedFloat());
+
 		FT sqd = tree.squared_distance(query);
 		std::cout << "haha: " << sqrt(sqd) << std::endl;
 		double distestimate = pTree->queryDistance(query);
-		double dist = pTree->queryExactDistance(query);
+		double dist = s * pTree->queryExactDistance(query);
 		std::cout << "haha1: " << distestimate << std::endl;
 		std::cout << "haha2: " << dist << std::endl << std::endl;
 	}
