@@ -3,9 +3,9 @@
  * Copyright (c) 1995-2004 Exact Computation Project
  * All rights reserved.
  *
- * This file is part of CORE (http://cs.nyu.edu/exact/core/).
+ * This file is part of CGAL (www.cgal.org).
  * You can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation,
+ * Lesser General Public License as published by the Free Software Foundation,
  * either version 3 of the License, or (at your option) any later version.
  *
  * Licensees holding a valid commercial license may use this file in
@@ -60,6 +60,7 @@
 #include <CGAL/CORE/BigFloat.h>
 #include <CGAL/CORE/Promote.h>
 #include <vector>
+#include <CGAL/assertions.h>
 
 namespace CORE { 
 using namespace std;
@@ -412,7 +413,7 @@ template < class NT >
 CORE_INLINE
 const NT& Polynomial<NT>::getCoeff(int i) const {
   //if (i > degree) return NULL;
-  assert(i <= degree);
+  CGAL_assertion(i <= degree);
   return coeff[i];
 }
 // set functions

@@ -35,6 +35,7 @@
 
 
 #include <CGAL/basic.h>
+#include <CGAL/assertions.h>
 #include <CGAL/Cache.h>
 #include <CGAL/function_objects.h>
 #include <CGAL/Handle_with_policy.h>
@@ -586,7 +587,7 @@ public:
     /*! \brief Returns whether the curve has a valid defining polynomial
      */
     bool has_defining_polynomial() const {
-        return this->ptr()->f;
+        return bool(this->ptr()->f);
     }
         
 public:
@@ -651,7 +652,7 @@ public:
 
     //! Returns the defining polynomial
     Polynomial_2 polynomial_2() const {
-        CGAL_precondition(this->ptr()->f);
+        CGAL_precondition(bool(this->ptr()->f));
         return this->ptr()->f.get();
     }
 
@@ -664,7 +665,7 @@ public:
      * the curve's defining equation is returned.
      */
     size_type number_of_status_lines_with_event() const {
-        CGAL_precondition(this->ptr()->f);
+        CGAL_precondition(bool(this->ptr()->f));
 #if CGAL_ACK_USE_SPECIAL_TREATMENT_FOR_CONIX
         if(CGAL::degree(polynomial_2(),1)==2) {
             return this->conic_number_of_status_lines_with_event();
@@ -904,7 +905,7 @@ private:
                 break;
             }
             default:{
-              assert(false); // !!! Never reached
+              CGAL_assertion(false); // !!! Never reached
             }
             }
         }
@@ -1739,7 +1740,7 @@ private:
         if(! this->ptr()->intermediate_values) {
             // This is created during event_coordiantes()
             event_coordinates();
-            CGAL_assertion(this->ptr()->intermediate_values);
+            CGAL_assertion(bool(this->ptr()->intermediate_values));
         }
         return this->ptr()->intermediate_values.get();
     }

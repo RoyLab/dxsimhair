@@ -39,7 +39,6 @@ template <class R_>
 class Point_3 : public R_::Kernel_base::Point_3
 {
   typedef typename R_::RT                    RT;
-  typedef typename R_::FT                    FT;
   typedef typename R_::Vector_3              Vector_3;
   typedef typename R_::Aff_transformation_3  Aff_transformation_3;
 
@@ -246,7 +245,7 @@ extract(std::istream& is, Point_3<R>& p, const Cartesian_tag&)
     typename R::FT x, y, z;
     switch(is.iword(IO::mode)) {
     case IO::ASCII :
-        is >> x >> y >> z;
+        is >> iformat(x) >> iformat(y) >> iformat(z);
         break;
     case IO::BINARY :
         read(is, x);

@@ -22,7 +22,7 @@
 #define CGAL_INTERSECTION_OF_POLYHEDRA_3_REFINEMENT_VISITOR_H
 
 #include <CGAL/intersection_of_Polyhedra_3.h>
-#include <CGAL/internal/corefinement/Polyhedron_subset_extraction.h>
+#include <CGAL/Polygon_mesh_processing/connected_components.h>
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
@@ -30,7 +30,7 @@
 
 #include <CGAL/internal/corefinement/Combinatorial_map_for_corefinement.h> 
 
-#include <CGAL/Point_inside_polyhedron_3.h>
+#include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/property_map.h>
 #include <boost/optional.hpp>
 #include <boost/next_prior.hpp>
@@ -576,7 +576,7 @@ void sew_3_marked_darts( Combinatorial_map_3& final_map,
     darts_to_remove.insert(not_top);   darts_to_remove.insert(not_top->beta(1)); darts_to_remove.insert(not_top->beta(1)->beta(1));
     darts_to_remove.insert(not_top->beta(3));   darts_to_remove.insert(not_top->beta(3)->beta(1)); darts_to_remove.insert(not_top->beta(3)->beta(1)->beta(1));
     O_Dart_handle current_1=next_marked_dart_around_target_vertex(final_map,not_top,mark_index);
-    CGAL_precondition(current_1);
+    CGAL_precondition(bool(current_1));
     not_top=*current_1;
   }
   while(not_top!=start);
@@ -1373,6 +1373,7 @@ public:
   void add_filtered_intersection(Halfedge_handle eh,Halfedge_handle fh,Polyhedron& Pe,Polyhedron& Pf){
     //use the representant halfedge of the facet as key
     //--set polyhedron for the two facets incident to the edge
+    CGAL_assertion(!eh->is_border());
     hedge_to_polyhedron.insert(std::make_pair(eh->facet()->halfedge(),&Pe));
     if ( !eh->opposite()->is_border() )
       hedge_to_polyhedron.insert(std::make_pair(eh->opposite()->facet()->halfedge(),&Pe));
@@ -1508,14 +1509,10 @@ public:
             {
               //get the corresponding halfedge with vertex corresponding to node_id_of_first
               Halfedge_handle hedge=it_node_2_hedge->second;
-              #ifndef NDEBUG
-              Halfedge_handle start=hedge;
-              #endif
+              CGAL_assertion_code(Halfedge_handle start=hedge;)
               while ( hedge->opposite()->vertex()!=it_node_2_hedge_two->second->vertex() ){
                 hedge=hedge->next()->opposite();
-                #ifndef NDEBUG
                 CGAL_assertion(hedge!=start);
-                #endif
               }
               std::pair<int,int> edge_pair(*it_id,node_id_of_first);
               border_halfedges.insert( std::make_pair(hedge,edge_pair) );
@@ -1571,9 +1568,7 @@ public:
       //a map to identify the vertex in the polyhedron corresponding to an intersection point
       Node_to_polyhedron_vertex_map& node_to_polyhedron_vertex=it_map->second; 
             
-      #ifndef NDEBUG
-      Vertex_handle original_vertex=hedge->opposite()->vertex();
-      #endif
+      CGAL_assertion_code(Vertex_handle original_vertex=hedge->opposite()->vertex();)
       
       //We need an edge incident to the source vertex of hedge. This is the first opposite edge created.      
       bool first=true; Halfedge_handle hedge_incident_to_src;
@@ -1588,10 +1583,8 @@ public:
         }
       }
       
-      #ifndef NDEBUG
       CGAL_assertion(hedge_incident_to_src->vertex()==original_vertex);
       CGAL_assertion(hedge_incident_to_src->face()==hedge->opposite()->face());
-      #endif
 
       //save original face and nodes for face of hedge->opposite (2)
       if ( !hedge->opposite()->is_border() ){
@@ -1893,8 +1886,8 @@ public:
       typedef typename Polyhedron::Facet_const_handle Facet_const_handle;
       typedef ::CGAL::Union_find<Facet_const_handle> UF;
       typedef typename UF::handle UF_handle;
-      typedef std::map<Facet_const_handle,std::list<Facet_const_handle>,internal::Compare_handle_ptr<Polyhedron> > Result;
-      typedef std::map<Facet_const_handle,UF_handle,internal::Compare_handle_ptr<Polyhedron> > Facet_to_handle_map;
+      typedef std::map<Facet_const_handle,std::list<Facet_const_handle>,internal::corefinement::Compare_handle_ptr<Polyhedron> > Result;
+      typedef std::map<Facet_const_handle,UF_handle,internal::corefinement::Compare_handle_ptr<Polyhedron> > Facet_to_handle_map;
       
       UF uf;
       Facet_to_handle_map map_f2h;
@@ -1909,7 +1902,7 @@ public:
       output_debug << *current_poly;
       #endif
       
-      extract_connected_components(*(static_cast<Polyhedron const *> (current_poly) ),criterium,uf,map_f2h,result);
+      internal::corefinement::extract_connected_components(*(static_cast<Polyhedron const *> (current_poly) ),criterium,uf,map_f2h,result);
 
       
       //add each connected component in the map with 2 volumes per component.
@@ -2138,13 +2131,15 @@ public:
     //this happens when one polyhedron has a connected component
     //that do not intersect the other polyhedron
 
-    typedef Point_inside_polyhedron_3<Polyhedron, Kernel> Inside_poly_test;
+    typedef Side_of_triangle_mesh<Polyhedron, Kernel> Inside_poly_test;
 
     CGAL_precondition(polyhedron_to_map_node_to_polyhedron_vertex.size()==2);
     Polyhedron* Poly_A = polyhedron_to_map_node_to_polyhedron_vertex.begin()->first;
     Polyhedron* Poly_B = boost::next(polyhedron_to_map_node_to_polyhedron_vertex.begin())->first;
     Inside_poly_test* inside_A_test_ptr=NULL;
     Inside_poly_test* inside_B_test_ptr=NULL;
+    bool Poly_A_is_closed = Poly_A->is_closed();
+    bool Poly_B_is_closed = Poly_B->is_closed();
 
     #ifdef CGAL_COREFINEMENT_DEBUG
     final_map().display_characteristics(std::cout); std::cout << "\n";
@@ -2170,12 +2165,22 @@ public:
         Inside_poly_test* inside_test_ptr;
         if ( current_poly==Poly_A)
         {
+          // is the polyhedron is not closed, we set Poly_A to be outside by default
+          if (!Poly_B_is_closed){
+            info.outside.insert(Poly_B);
+            continue;
+          }
           test_poly=Poly_B;
           if (inside_B_test_ptr == NULL) inside_B_test_ptr=new Inside_poly_test(*Poly_B);
           inside_test_ptr=inside_B_test_ptr;
         }
         else
         {
+          // is the polyhedron is not closed, we set Poly_B to be outside by default
+          if (!Poly_A_is_closed){
+            info.outside.insert(Poly_A);
+            continue;
+          }
           test_poly=Poly_A;
           if (inside_A_test_ptr == NULL) inside_A_test_ptr=new Inside_poly_test(*Poly_A);
           inside_test_ptr=inside_A_test_ptr;

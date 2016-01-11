@@ -3,9 +3,9 @@
  * Copyright (c) 1995-2004 Exact Computation Project
  * All rights reserved.
  *
- * This file is part of CORE (http://cs.nyu.edu/exact/core/).
+ * This file is part of CGAL (www.cgal.org).
  * You can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation,
+ * Lesser General Public License as published by the Free Software Foundation,
  * either version 3 of the License, or (at your option) any later version.
  *
  * Licensees holding a valid commercial license may use this file in
@@ -40,6 +40,7 @@
 #define _CORE_EXPR_H_
 
 #include <CGAL/CORE/ExprRep.h>
+#include <CGAL/assertions.h>
 
 namespace CORE { 
 
@@ -534,7 +535,7 @@ inline Expr rootOf(const Polynomial<NT>& p, int x, int y) {
  * */
 template <class NT>
 inline Expr radical(const NT& n, int m) {
-  assert(n>=0 && m>=1);
+  CGAL_assertion(n>=0 && m>=1);
   if (n == 0 || n == 1 || m == 1)
     return Expr(n);
   Polynomial<NT> Q(m);

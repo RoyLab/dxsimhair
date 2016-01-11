@@ -41,8 +41,12 @@
 #include <CGAL/Nef_2/debug.h>
 
 #ifndef CGAL_USE_LEDA
-#define LEDA_MEMORY(t) 
+#define LEDA_MEMORY(t)
+#else
+#include <LEDA/system/memory.h>
 #endif
+
+#include <CGAL/use.h>
 
 namespace CGAL {
 
@@ -112,7 +116,11 @@ struct SMO_from_segs {
   }
 
   void assert_equal_marks(Vertex_handle v1, Vertex_handle v2) const 
-  { CGAL_assertion(v1->mark()==v2->mark()); }
+  { 
+    CGAL_USE(v1);
+    CGAL_USE(v2);
+    CGAL_assertion(v1->mark()==v2->mark());
+  }
 
   void discard_info(Vertex_handle v) const 
   { 
@@ -124,7 +132,11 @@ struct SMO_from_segs {
   }
 
   void assert_equal_marks(Halfedge_handle e1, Halfedge_handle e2) const
-  { CGAL_assertion(e1->mark()==e2->mark()); }
+  {
+    CGAL_USE(e1);
+    CGAL_USE(e2);
+    CGAL_assertion(e1->mark()==e2->mark());
+  }
 
   void discard_info(Halfedge_handle ) const {}
 
@@ -279,7 +291,10 @@ Halfedge_handle halfedge_below(Vertex_handle v) const
 { return G.halfedge_below(v); }
 
 void assert_equal_marks(Vertex_handle v1, Vertex_handle v2) const 
-{ CGAL_NEF_TRACEV(G.mark(v1,0));CGAL_NEF_TRACEV(G.mark(v1,1));
+{
+  CGAL_USE(v1);
+  CGAL_USE(v2);
+  CGAL_NEF_TRACEV(G.mark(v1,0));CGAL_NEF_TRACEV(G.mark(v1,1));
   CGAL_NEF_TRACEV(G.mark(v2,0));CGAL_NEF_TRACEV(G.mark(v2,1));
   CGAL_assertion(G.mark(v1,0)==G.mark(v2,0)&&
 		 G.mark(v1,1)==G.mark(v2,1)); }
@@ -287,8 +302,12 @@ void discard_info(Vertex_handle v) const
 { G.discard_info(v); }
 
 void assert_equal_marks(Halfedge_handle e1, Halfedge_handle e2) const
-{ CGAL_assertion(G.mark(e1,0)==G.mark(e2,0) && 
-		 G.mark(e1,1)==G.mark(e2,1)); }
+{ 
+  CGAL_USE(e1);
+  CGAL_USE(e2);
+  CGAL_assertion(G.mark(e1,0)==G.mark(e2,0) && 
+		 G.mark(e1,1)==G.mark(e2,1)); 
+}
 
 void discard_info(Halfedge_handle e) const 
 { G.discard_info(e); }

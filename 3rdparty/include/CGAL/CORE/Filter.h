@@ -3,9 +3,9 @@
  * Copyright (c) 1995-2004 Exact Computation Project
  * All rights reserved.
  *
- * This file is part of CORE (http://cs.nyu.edu/exact/core/).
+ * This file is part of CGAL (www.cgal.org).
  * You can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation,
+ * Lesser General Public License as published by the Free Software Foundation,
  * either version 3 of the License, or (at your option) any later version.
  *
  * Licensees holding a valid commercial license may use this file in
@@ -39,6 +39,7 @@
 #define _CORE_FILTER_H_
 
 #include <CGAL/config.h>
+#include <CGAL/assertions.h>
 #include <CGAL/CORE/Real.h>
 #include <cmath>
 
@@ -111,7 +112,7 @@ public:
       before call this function.) */
   int sign() const {
 #ifdef CORE_DEBUG
-    assert(isOK());
+    CGAL_assertion(isOK());
 #endif
     if (fpVal == 0.0)
       return 0;

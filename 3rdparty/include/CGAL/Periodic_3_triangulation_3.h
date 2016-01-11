@@ -53,6 +53,11 @@
 #include <CGAL/internal/Exact_type_selector.h>
 #include <CGAL/NT_converter.h>
 
+#ifndef CGAL_NO_STRUCTURAL_FILTERING
+#include <CGAL/Triangulation_structural_filtering_traits.h>
+#include <CGAL/determinant.h>
+#endif // no CGAL_NO_STRUCTURAL_FILTERING
+
 namespace CGAL {
 
 template < class GT, class TDS > class Periodic_3_triangulation_3;
@@ -61,6 +66,28 @@ template < class GT, class TDS > std::istream& operator>>
     (std::istream& is, Periodic_3_triangulation_3<GT,TDS> &tr);
 template < class GT, class TDS > std::ostream& operator<< 
     (std::ostream& os, const Periodic_3_triangulation_3<GT,TDS> &tr);
+
+#ifndef CGAL_NO_STRUCTURAL_FILTERING
+namespace internal {
+// structural filtering is performed only for EPIC
+struct Periodic_structural_filtering_3_tag {};
+struct No_periodic_structural_filtering_3_tag {};
+
+template <bool filter>
+struct Periodic_structural_filtering_selector_3 {
+#ifdef FORCE_STRUCTURAL_FILTERING
+  typedef Periodic_structural_filtering_3_tag  Tag;
+#else
+  typedef No_periodic_structural_filtering_3_tag  Tag;
+#endif
+};
+
+template <>
+struct Periodic_structural_filtering_selector_3<true> {
+  typedef Periodic_structural_filtering_3_tag  Tag;
+};
+}
+#endif // no CGAL_NO_STRUCTURAL_FILTERING
 
 /**\class Periodic_3_triangulation_3
  * 
@@ -766,11 +793,121 @@ public:
     return _tds.are_equal(f.first, f.second, n, j);
   }
   //@}
-  
+
+#ifdef CGAL_NO_STRUCTURAL_FILTERING
+  Cell_handle
+  periodic_locate(const Point & p, const Offset &o_p,
+	 Locate_type & lt, int & li, int & lj,
+	 Cell_handle start = Cell_handle()) const;
+#else // no CGAL_NO_STRUCTURAL_FILTERING
+#  ifndef CGAL_PT3_STRUCTURAL_FILTERING_MAX_VISITED_CELLS
+#    define CGAL_PT3_STRUCTURAL_FILTERING_MAX_VISITED_CELLS 2500
+#  endif // no CGAL_PT3_STRUCTURAL_FILTERING_MAX_VISITED_CELLS
+
+public:
+  Cell_handle
+  inexact_periodic_locate(const Point& p, const Offset &o_p,
+                 Cell_handle start = Cell_handle(),
+                 int max_num_cells = CGAL_PT3_STRUCTURAL_FILTERING_MAX_VISITED_CELLS) const;
+protected:
+  Cell_handle
+  exact_periodic_locate(const Point& p, const Offset &o_p,
+               Locate_type& lt,
+               int& li, int & lj,
+               Cell_handle start) const;
+
+  Cell_handle
+  generic_periodic_locate(const Point& p, const Offset &o_p,
+                 Locate_type& lt,
+                 int& li, int & lj,
+                 Cell_handle start,
+                 internal::Periodic_structural_filtering_3_tag) const {
+    return exact_periodic_locate(p, o_p, lt, li, lj, inexact_periodic_locate(p, o_p, start));
+  }
+
+  Cell_handle
+  generic_periodic_locate(const Point& p, const Offset &o_p,
+                 Locate_type& lt,
+                 int& li, int & lj,
+                 Cell_handle start,
+                 internal::No_periodic_structural_filtering_3_tag) const {
+    return exact_periodic_locate(p, o_p, lt, li, lj, start);
+  }
+
+  Orientation
+  inexact_orientation(const Point &p, const Point &q,
+                      const Point &r, const Point &s) const
+  {
+    const double px = to_double(p.x());
+    const double py = to_double(p.y());
+    const double pz = to_double(p.z());
+    const double qx = to_double(q.x());
+    const double qy = to_double(q.y());
+    const double qz = to_double(q.z());
+    const double rx = to_double(r.x());
+    const double ry = to_double(r.y());
+    const double rz = to_double(r.z());
+    const double sx = to_double(s.x());
+    const double sy = to_double(s.y());
+    const double sz = to_double(s.z());
+
+    const double pqx = qx - px;
+    const double pqy = qy - py;
+    const double pqz = qz - pz;
+    const double prx = rx - px;
+    const double pry = ry - py;
+    const double prz = rz - pz;
+    const double psx = sx - px;
+    const double psy = sy - py;
+    const double psz = sz - pz;
+
+    const double det = determinant(pqx, pqy, pqz,
+                                   prx, pry, prz,
+                                   psx, psy, psz);
+    if (det > 0) return POSITIVE;
+    if (det < 0) return NEGATIVE;
+    return ZERO;
+  }
+
+  Orientation
+  inexact_orientation(const Point &p, const Point &q,
+                      const Point &r, const Point &s,
+                      const Offset& o_p, const Offset& o_q,
+                      const Offset& o_r, const Offset& o_s) const
+  {
+    return inexact_orientation(construct_point(p, o_p),
+        construct_point(q, o_q),
+        construct_point(r, o_r),
+        construct_point(s, o_s));
+  }
+
+public:
+
+  Cell_handle
+  periodic_locate(const Point & p, const Offset &o_p,
+         Locate_type & lt, int & li, int & lj,
+         Cell_handle start = Cell_handle()) const
+  {
+    typedef Triangulation_structural_filtering_traits<Geometric_traits> TSFT;
+    typedef typename internal::Periodic_structural_filtering_selector_3<
+      TSFT::Use_structural_filtering_tag::value >::Tag Should_filter_tag;
+
+    return generic_periodic_locate(p, o_p, lt, li, lj, start, Should_filter_tag());
+  }
+
+  Cell_handle
+  inexact_locate(const Point& p,
+                 Cell_handle start = Cell_handle(),
+                 int max_num_cells = CGAL_PT3_STRUCTURAL_FILTERING_MAX_VISITED_CELLS) const
+  {
+	  return inexact_periodic_locate(p, Offset(), start, max_num_cells);
+  }
+#endif // no CGAL_NO_STRUCTURAL_FILTERING
+
 protected:
   /** @name Location helpers */ //@{
-  Cell_handle periodic_locate(const Point & p, const Offset &o_p,
-    Locate_type & lt, int & li, int & lj, Cell_handle start) const;
+//  Cell_handle periodic_locate(const Point & p, const Offset &o_p,
+//    Locate_type & lt, int & li, int & lj, Cell_handle start) const;
 
   Bounded_side side_of_cell(const Point & p, const Offset &off,
       Cell_handle c, Locate_type & lt, int & i, int & j) const;
@@ -1266,7 +1403,7 @@ public:
 	return point(periodic_point(cells[i],cells[i]->index(canonic_vh[idx])));
     }
     CGAL_assertion(false);
-  
+  return Point();
   }
 };
 
@@ -1500,9 +1637,14 @@ periodic_triangle(const Cell_handle c, int i) const
   * returns a vertex (Cell_handle,li) if lt == VERTEX
   */
 template < class GT, class TDS >
-typename Periodic_3_triangulation_3<GT,TDS>::Cell_handle
-Periodic_3_triangulation_3<GT,TDS>::periodic_locate(
-    const Point & p, const Offset &o_p,
+inline typename Periodic_3_triangulation_3<GT,TDS>::Cell_handle
+Periodic_3_triangulation_3<GT,TDS>::
+#ifdef CGAL_NO_STRUCTURAL_FILTERING
+periodic_locate
+#else
+exact_periodic_locate
+#endif
+(const Point & p, const Offset &o_p,
     Locate_type & lt, int & li, int & lj, Cell_handle start) const {
   int cumm_off = 0;
   Offset off_query = o_p;
@@ -1671,6 +1813,130 @@ try_next_cell:
   }
   return c;
 }
+
+
+#ifndef CGAL_NO_STRUCTURAL_FILTERING
+template < class GT, class TDS >
+typename Periodic_3_triangulation_3<GT,TDS>::Cell_handle
+Periodic_3_triangulation_3<GT,TDS>::
+inexact_periodic_locate(const Point& p, const Offset& o_p,
+               Cell_handle start,
+               int n_of_turns) const
+{
+	int cumm_off = 0;
+	Offset off_query = o_p;
+	if (number_of_vertices() == 0) {
+		return Cell_handle();
+	}
+	CGAL_triangulation_assertion(number_of_vertices() != 0);
+
+	if (start == Cell_handle()) {
+		start = cells_begin();
+	}
+
+	cumm_off = start->offset(0) | start->offset(1)
+	    		| start->offset(2) | start->offset(3);
+	if (is_1_cover() && cumm_off != 0) {
+		if (((cumm_off & 4) == 4) && (FT(2)*p.x()<(_domain.xmax()+_domain.xmin())))
+			off_query += Offset(1,0,0);
+		if (((cumm_off & 2) == 2) && (FT(2)*p.y()<(_domain.ymax()+_domain.ymin())))
+			off_query += Offset(0,1,0);
+		if (((cumm_off & 1) == 1) && (FT(2)*p.z()<(_domain.zmax()+_domain.zmin())))
+			off_query += Offset(0,0,1);
+	}
+
+	CGAL_triangulation_postcondition(start!=Cell_handle());
+	CGAL_triangulation_assertion(start->neighbor(0)->neighbor(
+			start->neighbor(0)->index(start))==start);
+	CGAL_triangulation_assertion(start->neighbor(1)->neighbor(
+			start->neighbor(1)->index(start))==start);
+	CGAL_triangulation_assertion(start->neighbor(2)->neighbor(
+			start->neighbor(2)->index(start))==start);
+	CGAL_triangulation_assertion(start->neighbor(3)->neighbor(
+			start->neighbor(3)->index(start))==start);
+
+	// We implement the remembering visibility/stochastic walk.
+
+	// Remembers the previous cell to avoid useless orientation tests.
+	Cell_handle previous = Cell_handle();
+	Cell_handle c = start;
+
+	// Now treat the cell c.
+try_next_cell:
+  --n_of_turns;
+	cumm_off =
+			c->offset(0) | c->offset(1) | c->offset(2) | c->offset(3);
+
+	bool simplicity_criterion = (cumm_off == 0) && (off_query.is_null());
+
+	// We know that the 4 vertices of c are positively oriented.
+	// So, in order to test if p is seen outside from one of c's facets,
+	// we just replace the corresponding point by p in the orientation
+	// test.  We do this using the arrays below.
+
+	Offset off[4];
+	const Point* pts[4] = { &(c->vertex(0)->point()),
+			&(c->vertex(1)->point()),
+			&(c->vertex(2)->point()),
+			&(c->vertex(3)->point()) };
+
+	if (!simplicity_criterion && is_1_cover() ) {
+		for (int i=0; i<4; i++) {
+			off[i] = int_to_off(c->offset(i));
+		}
+	}
+
+	if (!is_1_cover()) {
+		// Just fetch the vertices of c as points with offsets
+		for (int i=0; i<4; i++) {
+			pts[i] = &(c->vertex(i)->point());
+			off[i] = get_offset(c,i);
+		}
+	}
+
+	for (int i=0; i != 4; ++i) {
+		Cell_handle next = c->neighbor(i);
+		if (previous == next) {
+			continue;
+		}
+
+		// We temporarily put p at i's place in pts.
+		const Point* backup = pts[i];
+		pts[i] = &p;
+
+		if (simplicity_criterion && is_1_cover() ) {
+			if ( inexact_orientation(*pts[0], *pts[1], *pts[2], *pts[3]) != NEGATIVE ) {
+				pts[i] = backup;
+				continue;
+			}
+		}
+		else {
+			Offset backup_off;
+
+			backup_off = off[i];
+			off[i] = off_query;
+
+			if ( inexact_orientation(*pts[0], *pts[1], *pts[2], *pts[3],
+					off[0], off[1], off[2], off[3]) != NEGATIVE ) {
+				pts[i] = backup;
+				off[i] = backup_off;
+				continue;
+			}
+		}
+
+		// Test whether we need to adapt the offset of the query point.
+		// This means, if we get out of the current cover.
+		off_query = combine_offsets(off_query, get_neighbor_offset(c,i,next));
+		previous = c;
+		c = next;
+		if (n_of_turns)
+		  goto try_next_cell;
+	}
+
+	return c;
+}
+#endif
+
 
 /**
  * returns
@@ -1909,6 +2175,7 @@ Periodic_3_triangulation_3<GT,TDS>::periodic_insert(
 
   // This only holds for Delaunay
   CGAL_triangulation_assertion(lt != VERTEX);
+  CGAL_USE(lt);
 
   // Choose the periodic copy of tester.point() that is inside c.
   Offset current_off = get_location_offset(tester, c);
@@ -3653,30 +3920,21 @@ operator<< (std::ostream& os,const Periodic_3_triangulation_3<GT,TDS> &tr)
 namespace internal {
 
   /// Internal function used by operator==.
+  // This function tests and registers the 4 neighbors of c1/c2,
+  // and performs a bfs traversal
+  // Returns false if an inequality has been found.
   //TODO: introduce offsets
   template <class GT, class TDS1, class TDS2>
   bool
   test_next(const Periodic_3_triangulation_3<GT, TDS1> &t1,
-      const Periodic_3_triangulation_3<GT, TDS2> &t2,
-      typename Periodic_3_triangulation_3<GT, TDS1>::Cell_handle c1,
-      typename Periodic_3_triangulation_3<GT, TDS2>::Cell_handle c2,
-      std::map<typename Periodic_3_triangulation_3<GT, TDS1>::Cell_handle,
-          typename Periodic_3_triangulation_3<GT, TDS2>::Cell_handle> &Cmap,
-      std::map<typename Periodic_3_triangulation_3<GT, TDS1>::Vertex_handle,
-          typename Periodic_3_triangulation_3<GT, TDS2>::Vertex_handle> &Vmap)
-  {
-    // This function tests and registers the 4 neighbors of c1/c2,
-    // and recursively calls itself over them.
-    // Returns false if an inequality has been found.
-
-    // Precondition: c1, c2 have been registered as well as their 4 vertices.
-    CGAL_triangulation_precondition(t1.number_of_vertices() != 0);
-    CGAL_triangulation_precondition(Cmap[c1] == c2);
-    CGAL_triangulation_precondition(Vmap.find(c1->vertex(0)) != Vmap.end());
-    CGAL_triangulation_precondition(Vmap.find(c1->vertex(1)) != Vmap.end());
-    CGAL_triangulation_precondition(Vmap.find(c1->vertex(2)) != Vmap.end());
-    CGAL_triangulation_precondition(Vmap.find(c1->vertex(3)) != Vmap.end());
-
+            const Periodic_3_triangulation_3<GT, TDS2> & /* needed_for_deducing_TDS2 */,
+            typename Periodic_3_triangulation_3<GT, TDS1>::Cell_handle c1,
+            typename Periodic_3_triangulation_3<GT, TDS2>::Cell_handle c2,
+            std::map<typename Periodic_3_triangulation_3<GT, TDS1>::Cell_handle,
+            typename Periodic_3_triangulation_3<GT, TDS2>::Cell_handle> &Cmap,
+            std::map<typename Periodic_3_triangulation_3<GT, TDS1>::Vertex_handle,
+            typename Periodic_3_triangulation_3<GT, TDS2>::Vertex_handle> &Vmap)
+  {  
     typedef Periodic_3_triangulation_3<GT, TDS1> Tr1;
     typedef Periodic_3_triangulation_3<GT, TDS2> Tr2;
     typedef typename Tr1::Vertex_handle  Vertex_handle1;
@@ -3684,48 +3942,61 @@ namespace internal {
     typedef typename Tr2::Vertex_handle  Vertex_handle2;
     typedef typename Tr2::Cell_handle    Cell_handle2;
     typedef typename std::map<Cell_handle1, Cell_handle2>::const_iterator  Cit;
-    typedef typename std::map<Vertex_handle1,
-      Vertex_handle2>::const_iterator Vit;
+    typedef typename std::map<Vertex_handle1, Vertex_handle2>::const_iterator Vit;
 
-    for (int i=0; i <= 3; ++i) {
-      Cell_handle1 n1 = c1->neighbor(i);
-      Cit cit = Cmap.find(n1);
-      Vertex_handle1 v1 = c1->vertex(i);
-      Vertex_handle2 v2 = Vmap[v1];
-      Cell_handle2 n2 = c2->neighbor(c2->index(v2));
-      if (cit != Cmap.end()) {
-        // n1 was already registered.
-        if (cit->second != n2)
-          return false;
-        continue;
-      }
-      // n1 has not yet been registered.
-      // We check that the new vertices match geometrically.
-      // And we register them.
-      Vertex_handle1 vn1 = n1->vertex(n1->index(c1));
-      Vertex_handle2 vn2 = n2->vertex(n2->index(c2));
-      Vit vit = Vmap.find(vn1);
-      if (vit != Vmap.end()) {
-        // vn1 already registered
-        if (vit->second != vn2)
-          return false;
-      }
-      else {
-        if (t1.geom_traits().compare_xyz_3_object()(vn1->point(),
-		vn2->point()) != 0)
-          return false;
+    std::vector<std::pair<Cell_handle1, Cell_handle2> > queue;
+    queue.push_back(std::make_pair(c1,c2));
+    
+    while(! queue.empty()){
+      boost::tie(c1,c2) = queue.back();
+      queue.pop_back();
+  
+      // Precondition: c1, c2 have been registered as well as their 4 vertices.
+      CGAL_triangulation_precondition(t1.number_of_vertices() != 0);
+      CGAL_triangulation_precondition(Cmap[c1] == c2);
+      CGAL_triangulation_precondition(Vmap.find(c1->vertex(0)) != Vmap.end());
+      CGAL_triangulation_precondition(Vmap.find(c1->vertex(1)) != Vmap.end());
+      CGAL_triangulation_precondition(Vmap.find(c1->vertex(2)) != Vmap.end());
+      CGAL_triangulation_precondition(Vmap.find(c1->vertex(3)) != Vmap.end());
+      
 
-        // We register vn1/vn2.
-        Vmap.insert(std::make_pair(vn1, vn2));
+      for (int i=0; i <= 3; ++i) {
+        Cell_handle1 n1 = c1->neighbor(i);
+        Cit cit = Cmap.find(n1);
+        Vertex_handle1 v1 = c1->vertex(i);
+        Vertex_handle2 v2 = Vmap[v1];
+        Cell_handle2 n2 = c2->neighbor(c2->index(v2));
+        if (cit != Cmap.end()) {
+          // n1 was already registered.
+          if (cit->second != n2)
+            return false;
+          continue;
+        }
+        // n1 has not yet been registered.
+        // We check that the new vertices match geometrically.
+        // And we register them.
+        Vertex_handle1 vn1 = n1->vertex(n1->index(c1));
+        Vertex_handle2 vn2 = n2->vertex(n2->index(c2));
+        Vit vit = Vmap.find(vn1);
+        if (vit != Vmap.end()) {
+          // vn1 already registered
+          if (vit->second != vn2)
+            return false;
+        }
+        else {
+          if (t1.geom_traits().compare_xyz_3_object()(vn1->point(),
+                                                      vn2->point()) != 0)
+            return false;
+          
+          // We register vn1/vn2.
+          Vmap.insert(std::make_pair(vn1, vn2));
+        }
+        
+        // We register n1/n2.
+        Cmap.insert(std::make_pair(n1, n2));
+        queue.push_back(std::make_pair(n1, n2));
       }
-
-      // We register n1/n2.
-      Cmap.insert(std::make_pair(n1, n2));
-      // We recurse on n1/n2.
-      if (!test_next(t1, t2, n1, n2, Cmap, Vmap))
-    return false;
     }
-
     return true;
   }
 
@@ -3852,9 +4123,8 @@ operator==(const Periodic_3_triangulation_3<GT,TDS1> &t1,
   if (Cmap.size() == 0)
     return false;
 
-  // We now have one cell, we need to propagate recursively.
-  return internal::test_next(t1, t2,
-      Cmap.begin()->first, Cmap.begin()->second, Cmap, Vmap);
+  // We now have one cell, we need to compare in a bfs graph traversal
+  return internal::test_next(t1, t2, Cmap.begin()->first, Cmap.begin()->second, Cmap, Vmap);
 }
 
 template < class GT, class TDS1, class TDS2 >

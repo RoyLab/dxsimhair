@@ -171,7 +171,7 @@ create_offset_polygons_2 ( FT const& aOffset, Skeleton const& aSs, K const& /*k*
 template<class Skeleton>
 Skeleton const& dereference ( boost::shared_ptr<Skeleton> const& ss )
 {
-  CGAL_precondition(ss!= NULL);
+  CGAL_precondition(ss.get() != 0);
   return *ss;
 }
 
@@ -200,17 +200,7 @@ create_offset_polygons_2 ( FT const& aOffset, Skeleton const& aSs, K const& k )
   return create_offset_polygons_2<Polygon>(aOffset, aSs, k ) ;
 }
 
-#if !defined(_MSC_VER) || ( _MSC_VER >= 1500 )
-template<class FT, class Skeleton>
-std::vector< boost::shared_ptr< Polygon_2< typename Skeleton::Traits::Kernel > > > 
-inline
-create_offset_polygons_2 ( FT const& aOffset, Skeleton const& aSs )
-{
-  typedef typename Skeleton::Traits::Kernel K ;
-  
-  return create_offset_polygons_2(aOffset, aSs, K() ) ;
-}
-#endif
+
 
 template<class Polygon, class FT, class Skeleton>
 std::vector< boost::shared_ptr<Polygon> > 

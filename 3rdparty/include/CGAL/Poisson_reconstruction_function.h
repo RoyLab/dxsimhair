@@ -38,9 +38,6 @@
 #ifdef CGAL_EIGEN3_ENABLED
 #include <CGAL/Eigen_solver_traits.h>
 #else
-#ifdef CGAL_TAUCS_ENABLED
-#include <CGAL/Taucs_solver_traits.h>
-#endif
 #endif
 #include <CGAL/centroid.h>
 #include <CGAL/property_map.h>
@@ -335,7 +332,7 @@ public:
     InputIterator beyond, ///< past-the-end iterator over the input points.
     NormalPMap normal_pmap, ///< property map: `value_type of InputIterator` -> `Vector` (the *oriented* normal of an input point).
     typename boost::enable_if<
-      boost::is_convertible<typename InputIterator::value_type, Point>
+      boost::is_convertible<typename std::iterator_traits<InputIterator>::value_type, Point>
     >::type* = 0
   )
   : m_tr(new Triangulation), m_Bary(new std::vector<boost::array<double,9> > )
@@ -532,7 +529,7 @@ public:
     else
       return compute_implicit_function<SparseLinearAlgebraTraits_d,Poisson_visitor>(solver,Poisson_visitor());
   }
-  
+
   /// \cond SKIP_IN_MANUAL
 #ifdef CGAL_EIGEN3_ENABLED
   // This variant provides the default sparse linear traits class = Eigen_solver_traits.
@@ -541,17 +538,8 @@ public:
     typedef Eigen_solver_traits<Eigen::ConjugateGradient<Eigen_sparse_symmetric_matrix<double>::EigenType> > Solver;
     return compute_implicit_function<Solver>(Solver(), smoother_hole_filling);
   }
-#else
-  #ifdef CGAL_TAUCS_ENABLED
-  // This variant provides the default sparse linear traits class = Taucs_symmetric_solver_traits.
-  bool compute_implicit_function(bool smoother_hole_filling = false)
-  {
-    typedef  Taucs_symmetric_solver_traits<double> Solver;
-    return compute_implicit_function<Solver>(Solver(), smoother_hole_filling);
-  }
-  #endif
 #endif
- 
+
   boost::tuple<FT, Cell_handle, bool> special_func(const Point& p) const
   {
     m_hint = m_tr->locate(p  ,m_hint  ); // no hint when we use hierarchy

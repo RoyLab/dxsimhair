@@ -60,3 +60,5 @@
 
 #define CGAL_USE_CORE 1
 
+#define CGAL_HAS_IMAGEIO 1
+

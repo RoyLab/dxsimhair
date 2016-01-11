@@ -225,6 +225,7 @@ void wrLevelsetOctree::computeMinDistance(Node* node)
 		}
 
 		int sign = determineSign(type, vh->point(), diff, triIdx);
+		dist *= sign;
 		//assert(sign == testSign(vh->point()));
 
 		vh->info().idx = count++;

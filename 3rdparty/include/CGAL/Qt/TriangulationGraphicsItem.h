@@ -57,7 +57,16 @@ public:
     return vertices_pen;
   }
 
+  QPen& verticesPen()
+  {
+    return vertices_pen;
+  }
   const QPen& edgesPen() const
+  {
+    return edges_pen;
+  }
+
+  QPen& edgesPen()
   {
     return edges_pen;
   }
@@ -124,7 +133,8 @@ TriangulationGraphicsItem<T>::TriangulationGraphicsItem(T * t_)
      bb(0,0,0,0), bb_initialized(false),
      visible_edges(true), visible_vertices(true)
 {
-  setVerticesPen(QPen(::Qt::red, 3.));
+  setVerticesPen(QPen(::Qt::red, 4.));
+  setEdgesPen(QPen(::Qt::black, 0, ::Qt::SolidLine, ::Qt::RoundCap, ::Qt::RoundJoin));
   if(t->number_of_vertices() == 0){
     this->hide();
   }

@@ -112,6 +112,7 @@ public:
 
   typedef typename Tds::Face_iterator          All_faces_iterator;
   typedef typename Tds::Edge_iterator          All_edges_iterator;
+  typedef typename Tds::Halfedge_iterator      All_halfedges_iterator;
   typedef typename Tds::Vertex_iterator        All_vertices_iterator;
  
 
@@ -444,6 +445,8 @@ public:
   All_vertices_iterator all_vertices_end() const;
   All_edges_iterator all_edges_begin() const;
   All_edges_iterator all_edges_end() const; 
+  All_halfedges_iterator all_halfedges_begin() const;
+  All_halfedges_iterator all_halfedges_end() const; 
 
   //for compatibility with previous versions
   Face_iterator faces_begin() const {return finite_faces_begin();}
@@ -557,6 +560,11 @@ public:
   Face_handle create_face(Face_handle); //calls copy constructor of Face
   void delete_face(Face_handle f);
   void delete_vertex(Vertex_handle v);
+
+  Vertex_handle collapse_edge(Edge e)
+  {
+    return _tds.collapse_edge(e);
+  }
 
   Vertex_handle file_input(std::istream& is);
   void file_output(std::ostream& os) const;
@@ -1776,14 +1784,13 @@ fill_hole_delaunay(std::list<Edge> & first_hole)
   Face_handle  f, ff, fn;
   int i, ii, in;
   Hole_list hole_list;
-  Hole hole;
         
   hole_list.push_front(first_hole);
   
   while( ! hole_list.empty())
     {
-      hole = hole_list.front();
-      hole_list.pop_front();
+      Hole& hole = hole_list.front();
+     
       typename Hole::iterator hit = hole.begin();
   
       // if the hole has only three edges, create the triangle
@@ -1793,6 +1800,7 @@ fill_hole_delaunay(std::list<Edge> & first_hole)
 	ff = (* ++hit).first;    ii = (*hit).second;
 	fn = (* ++hit).first;    in = (*hit).second;
 	create_face(f,i,ff,ii,fn,in);
+        hole_list.pop_front();
 	continue;
       }
   
@@ -1871,7 +1879,6 @@ fill_hole_delaunay(std::list<Edge> & first_hole)
 	newf = create_face(ff,ii,fn,in);
 	hole.pop_front();
 	hole.push_front(Edge( newf,1));
-	hole_list.push_front(hole);
       }
       else{
 	fn = (hole.back()).first;
@@ -1880,7 +1887,6 @@ fill_hole_delaunay(std::list<Edge> & first_hole)
 	  newf = create_face(fn,in,ff,ii);
 	  hole.pop_back();
 	  hole.push_back(Edge(newf,1));
-	  hole_list.push_front(hole);
 	}
 	else{
 	  // split the hole in two holes
@@ -1895,7 +1901,6 @@ fill_hole_delaunay(std::list<Edge> & first_hole)
   
 	  hole.push_front(Edge( newf,1));
 	  new_hole.push_front(Edge( newf,0));
-	  hole_list.push_front(hole);
 	  hole_list.push_front(new_hole);
 	}
       }
@@ -1920,13 +1925,10 @@ fill_hole_delaunay(std::list<Edge> & first_hole, OutputItFaces fit)
   Face_handle  f, ff, fn;
   int i, ii, in;
   Hole_list hole_list;
-  Hole hole;
-      
   hole_list.push_front(first_hole);
 
   while(!hole_list.empty()) {
-    hole = hole_list.front();
-    hole_list.pop_front();
+    Hole& hole = hole_list.front();
     typename Hole::iterator hit = hole.begin();
 
     if (hole.size() == 3) {
@@ -1936,6 +1938,7 @@ fill_hole_delaunay(std::list<Edge> & first_hole, OutputItFaces fit)
       fn = (* ++hit).first;    in = (*hit).second;
       Face_handle newf = create_face(f,i,ff,ii,fn,in);
       *fit++ = newf;
+      hole_list.pop_front();
       continue;
     }
 
@@ -1993,7 +1996,6 @@ fill_hole_delaunay(std::list<Edge> & first_hole, OutputItFaces fit)
       newf = create_face(ff,ii,fn,in);
       hole.pop_front();
       hole.push_front(Edge( newf,1));
-      hole_list.push_front(hole);
     } else {
       fn = (hole.back()).first;
       in = (hole.back()).second;
@@ -2001,7 +2003,6 @@ fill_hole_delaunay(std::list<Edge> & first_hole, OutputItFaces fit)
         newf = create_face(fn,in,ff,ii);
         hole.pop_back();
         hole.push_back(Edge(newf,1));
-        hole_list.push_front(hole);
       } else {
   newf = create_face(ff,ii,v2);
   Hole new_hole;
@@ -2012,7 +2013,6 @@ fill_hole_delaunay(std::list<Edge> & first_hole, OutputItFaces fit)
         }
         hole.push_front(Edge(newf, 1));
         new_hole.push_front(Edge(newf, 0));
-        hole_list.push_front(hole);
         hole_list.push_front(new_hole);
       }
     }
@@ -3153,6 +3153,22 @@ Triangulation_2<Gt, Tds>::
 all_edges_end() const
 {
   return _tds.edges_end();
+}
+
+template <class Gt, class Tds >
+typename Triangulation_2<Gt, Tds>::All_halfedges_iterator
+Triangulation_2<Gt, Tds>::
+all_halfedges_begin() const
+{
+  return _tds.halfedges_begin();
+}
+
+template <class Gt, class Tds >
+typename Triangulation_2<Gt, Tds>::All_halfedges_iterator
+Triangulation_2<Gt, Tds>::
+all_halfedges_end() const
+{
+  return _tds.halfedges_end();
 }
 
 template <class Gt, class Tds >

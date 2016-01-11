@@ -57,7 +57,8 @@ class Triangulation_data_structure_2
   typedef typename Vb::template Rebind_TDS<Tds>::Other  Vertex_base;
   typedef typename Fb::template Rebind_TDS<Tds>::Other  Face_base;
 
-  friend class Triangulation_ds_edge_iterator_2<Tds>;
+  friend class Triangulation_ds_edge_iterator_2<Tds,false>;
+  friend class Triangulation_ds_edge_iterator_2<Tds,true>;
   friend class Triangulation_ds_face_circulator_2<Tds>;
   friend class Triangulation_ds_edge_circulator_2<Tds>;
   friend class Triangulation_ds_vertex_circulator_2<Tds>;
@@ -87,6 +88,7 @@ public:
   typedef typename Vertex_range::iterator            Vertex_iterator;
 
   typedef Triangulation_ds_edge_iterator_2<Tds>      Edge_iterator;
+  typedef Triangulation_ds_edge_iterator_2<Tds,false> Halfedge_iterator;
 
   typedef Triangulation_ds_face_circulator_2<Tds>    Face_circulator;
   typedef Triangulation_ds_vertex_circulator_2<Tds>  Vertex_circulator;
@@ -95,7 +97,8 @@ public:
   typedef Vertex_iterator                            Vertex_handle;
   typedef Face_iterator                              Face_handle;
 
-  typedef std::pair<Face_handle, int>                Edge;
+  typedef std::pair<Face_handle,int> Edge;
+
   typedef std::list<Edge> List_edges;
 
 protected:
@@ -179,6 +182,14 @@ public:
 
   Edge_iterator edges_end() const {
     return Edge_iterator(this,1);
+  }
+  
+  Halfedge_iterator halfedges_begin() const {
+    return Halfedge_iterator(this);
+  }
+
+  Halfedge_iterator halfedges_end() const {
+    return Halfedge_iterator(this,1);
   }
   
   Face_circulator incident_faces(Vertex_handle v, 
@@ -301,7 +312,9 @@ public:
 			  Face_handle f1, 
 			  Face_handle f2, 
 			  Face_handle f3);
+
   void set_adjacency(Face_handle f0, int i0, Face_handle f1, int i1) const;
+
   void delete_face(Face_handle);
   void delete_vertex(Vertex_handle);
 
@@ -342,10 +355,12 @@ public:
   // HELPING
 private:
   typedef std::pair<Vertex_handle,Vertex_handle> Vh_pair;
+public:
   void  set_adjacency(Face_handle fh, 
 		      int ih, 
 		      std::map< Vh_pair, Edge>& edge_map);
   void reorient_faces();
+private:
   bool dim_down_precondition(Face_handle f, int i);
 
 public:
@@ -362,6 +377,41 @@ public:
 
   template <class TDS_src,class ConvertVertex,class ConvertFace>
   Vertex_handle copy_tds(const TDS_src&, typename TDS_src::Vertex_handle,const ConvertVertex&,const ConvertFace&);
+
+  Vertex_handle collapse_edge(Edge e)
+  {
+    std::cout << "before collapse"<<std::endl;
+    Face_handle fh = e.first;
+    int i = e.second;
+    Vertex_handle vh = fh->vertex(cw(i));
+    Vertex_handle wh = fh->vertex(ccw(i));
+    Face_handle left = fh->neighbor(cw(i));
+    Face_handle right = fh->neighbor(ccw(i));
+    Face_handle nh = fh->neighbor(i);
+    int li = left->index(fh);
+    int ri = right->index(fh);
+    int ni = nh->index(fh);
+    left->set_neighbor(li, right);
+    right->set_neighbor(ri,left);
+    left->set_vertex(ccw(li), vh);
+    vh->set_face(right);
+    right->vertex(ccw(ri))->set_face(right);
+
+    left = nh->neighbor(ccw(ni));
+    right = nh->neighbor(cw(ni));
+    li = left->index(nh);
+    ri = right->index(nh);
+    left->set_neighbor(li, right);
+    right->set_neighbor(ri,left);
+    left->set_vertex(cw(li), vh);
+    right->vertex(cw(ri))->set_face(right);
+    delete_face(fh);
+    delete_face(nh);
+    delete_vertex(wh);
+    std::cout << "after collapse"<<std::endl;
+    return vh;
+  }
+
 
   // I/O
   Vertex_handle file_input(std::istream& is, bool skip_first=false);
@@ -2224,24 +2274,24 @@ reorient_faces()
   std::set<Face_handle> oriented_set;
   std::stack<Face_handle>  st;
   Face_iterator fit = faces_begin();
-  int nf  = std::distance(faces_begin(),faces_end());
+  std::ptrdiff_t nf  = std::distance(faces_begin(),faces_end());
 
-  while (static_cast<int>(oriented_set.size()) != nf) {
-    while ( oriented_set.find(fit) != oriented_set.end()){
+  while (0 != nf) {
+    while ( !oriented_set.insert(fit).second ){
       ++fit; // find a germ for  non oriented components 
     }
     // orient component
-    oriented_set.insert(fit);
+    --nf;
     st.push(fit);
     while ( ! st.empty()) {
       Face_handle fh = st.top();
       st.pop();
       for(int ih = 0 ; ih < 3 ; ++ih){
 	Face_handle fn = fh->neighbor(ih);
-	if (oriented_set.find(fn) == oriented_set.end()){
+	if (oriented_set.insert(fn).second){
 	  int in = fn->index(fh);
 	  if (fn->vertex(cw(in)) != fh->vertex(ccw(ih))) fn->reorient();
-	  oriented_set.insert(fn);
+          --nf;
 	  st.push(fn);
 	}
       }

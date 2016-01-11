@@ -3,9 +3,9 @@
  * Copyright (c) 1995-2004 Exact Computation Project
  * All rights reserved.
  *
- * This file is part of CORE (http://cs.nyu.edu/exact/core/).
+ * This file is part of CGAL (www.cgal.org);
  * You can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation,
+ * Lesser General Public License as published by the Free Software Foundation,
  * either version 3 of the License, or (at your option) any later version.
  *
  * Licensees holding a valid commercial license may use this file in
@@ -36,6 +36,7 @@
 #define _CORE_BIGFLOAT_H_
 
 #include <CGAL/CORE/BigFloatRep.h>
+#include <CGAL/assertions.h>
 
 namespace CORE { 
 
@@ -246,7 +247,7 @@ public:
   /** \note This is only the sign of the mantissa, it can be taken to be
       the sign of the BigFloat only if !(isZeroIn()). */
   int sign() const {
-    assert((err() == 0 && m() == 0) || !(isZeroIn()));
+    CGAL_assertion((err() == 0 && m() == 0) || !(isZeroIn()));
     return rep->signM();
   }
   /// check whether contains zero
@@ -553,7 +554,7 @@ inline bool isDivisible(double x, double y) {
 // normalizing it then we get zero.
 inline BigFloat div_exact(const BigFloat& x, const BigFloat& y) {
   BigInt z;
-  assert (isDivisible(x,y));
+  CGAL_assertion (isDivisible(x,y));
   unsigned long bin_x = getBinExpo(x.m());
   unsigned long bin_y = getBinExpo(y.m());
 
