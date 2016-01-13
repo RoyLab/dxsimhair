@@ -7,6 +7,7 @@
 
 //#define NUMERICAL_TRACE
 class wrTetrahedron;
+class wrISpring;
 
 struct wrParticle
 {
@@ -16,28 +17,26 @@ struct wrParticle
 	float       mass_1;
 
     bool        isVirtual;
-    size_t      idx;
-
-    //float       springLens      [N_SPRING_USED];
-    //float       springStrength  [N_SPRING_USED];
-    //wrParticle* siblings        [N_SPRING_USED];
+	size_t      idx, gId = getGlobalId();
 
 #ifdef NUMERICAL_TRACE
     //vec3        diffs[N_SPRING_USED];
     float       cLen;
     vec3        acc1, acc2;
 #endif
-};
 
-struct wrSpring
-{
-    float       strength;
-    float       coef;
-    wrParticle* nodes[2];  // 0 big index, 1 small index
-
-    // for dynamically change the spring strength, 1 edge, 2 blend, 3 torsion
-    int         type;
+	static size_t getGlobalId(){ static size_t gId = 0; return gId++; }
 };
+//
+//struct wrSpring
+//{
+//    float       strength;
+//    float       coef;
+//    wrParticle* nodes[2];  // 0 big index, 1 small index
+//
+//    // for dynamically change the spring strength, 1 edge, 2 blend, 3 torsion
+//    int         type;
+//};
 
 struct wrStrand
 {
@@ -45,7 +44,7 @@ struct wrStrand
     wrParticle*     particles;
     size_t          nParticles;
 
-    wrSpring*       springs;
+    wrISpring**     springs;
     size_t          nSprings;
 
     wrParticle*     pRealParticles[N_PARTICLES_PER_STRAND]; // pointers to the real particles

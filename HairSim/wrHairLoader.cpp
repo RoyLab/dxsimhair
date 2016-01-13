@@ -5,12 +5,7 @@
 #include <string>
 #include "wrHairSimulator.h"
 #include "wrMath.h"
-
-#define COMPRESS
-
-#ifdef COMPRESS
-const int COMPRESS_RATIO = 1000;
-#endif
+#include "Parameter.h"
 
 wrHair* wrHairLoader::loadFile(wchar_t* path)
 {

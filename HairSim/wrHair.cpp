@@ -40,11 +40,6 @@ void wrHairTransformer::scale(wrHair& hair, float scale)
         int np = hair.getStrand(i).nParticles;
         for (int j = 0; j < np; j++)
             vec3_scale(particles[j].position, particles[j].position, scale);
-
-        auto springs = hair.getStrand(i).springs;
-        int ns = hair.getStrand(i).nSprings;
-        for (int j = 0; j < ns; j++)
-            springs[j].coef /= scale;
     }
 
     hair.updateReference();

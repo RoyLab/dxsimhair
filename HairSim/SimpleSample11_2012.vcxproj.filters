@@ -81,6 +81,9 @@
     <ClCompile Include="wrGeo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wrISpring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -149,6 +152,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wrGeo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrISpring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Parameter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

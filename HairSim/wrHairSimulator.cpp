@@ -55,10 +55,10 @@ bool wrHairSimulator::init(wrHair* hair)
 
 	HRESULT hr;
 
-	Polyhedron_3 *P = WRG::readFile<Polyhedron_3>("../../models/head.off");
-    pLSTree = new wrLevelsetOctree;
-    V_RETURN(pLSTree->construct(*P, 4));
-	SAFE_DELETE(P);
+	//Polyhedron_3 *P = WRG::readFile<Polyhedron_3>("../../models/head.off");
+ //   pLSTree = new wrLevelsetOctree;
+ //   V_RETURN(pLSTree->construct(*P, 4));
+	//SAFE_DELETE(P);
 
     return true;
 }
@@ -115,55 +115,55 @@ void wrHairSimulator::step(wrHair* hair, XMMATRIX& mWorld, float fTime, float fT
             mat4x4_mul_vec3(strand.particles[j].position, mWorld2, strand.particles[j].reference);
         
         MatrixXf K, B, C;
-        size_t nDim = strand.computeMatrices(K, B, C);
-
-        MatrixXf M_1 = MatrixXf::Identity(nDim, nDim);
-        M_1 *= strand.particles[5].mass_1;
-
-        MatrixXf Xn, Vn;
-        strand.assignVectors(Xn, Vn);
-
-        MatrixXf tmp, Vnp1, DIV;
-        tmp = Vn + fTimeElapsed * (M_1 * (-K * Xn - C));
-        DIV = MatrixXf::Identity(nDim, nDim) + fTimeElapsed / 2.0f * M_1 * B +
-            fTimeElapsed * fTimeElapsed * M_1 * K;
-        Vnp1 = DIV.inverse() * tmp;
-        
-        // compute Xn
-        MatrixXf Xnp1;
-        Xnp1 = Xn + fTimeElapsed * Vnp1;
-
-		for (size_t i = 0; i < nDim /3; i++)
-		{
-			Point_3 p( Xnp1(3 * i, 0), Xnp1(3 * i + 1, 0), Xnp1(3 * i + 2, 0) ), p0;
-			p0 = p.transform(invAff);
-
-			auto dist = pLSTree->queryExactDistance(Point_3(p0[0], p0[1], p0[2]));
-#ifdef _DEBUG
-            WR_LOG_TRACE << "point: " << Point_3(p0[0], p0[1], p0[2]);
-            WR_LOG_TRACE << "distance: " << dist;
-#endif
-			if (dist < 0)
-			{
-				Vector_3 grad;
-                //auto dir = (p0 - pLSTree->center());
-                //auto dire = dir / sqrt(dir.squared_length());
-                //p0 = pLSTree->center() + dire * pLSTree->radius();
-                pLSTree->queryGradient(Point_3(p0[0], p0[1], p0[2]), grad);
-
-				Vector_3 delta = (dist / grad.squared_length()) * grad;
-                p0 = p0 + delta;
-                
-                p = p0.transform(aff);
-                for (size_t j = 0; j < 3; j++)
-                {
-					Xnp1(3* i + j, 0) = p[j];
-                    Vnp1(3 * i + j, 0) = 0;
-                }
-			}
-		}
-
-        strand.assignBackVectors(Xnp1, Vnp1);
+//        size_t nDim = strand.computeMatrices(K, B, C);
+//
+//        MatrixXf M_1 = MatrixXf::Identity(nDim, nDim);
+//        M_1 *= strand.particles[5].mass_1;
+//
+//        MatrixXf Xn, Vn;
+//        strand.assignVectors(Xn, Vn);
+//
+//        MatrixXf tmp, Vnp1, DIV;
+//        tmp = Vn + fTimeElapsed * (M_1 * (-K * Xn - C));
+//        DIV = MatrixXf::Identity(nDim, nDim) + fTimeElapsed / 2.0f * M_1 * B +
+//            fTimeElapsed * fTimeElapsed * M_1 * K;
+//        Vnp1 = DIV.inverse() * tmp;
+//        
+//        // compute Xn
+//        MatrixXf Xnp1;
+//        Xnp1 = Xn + fTimeElapsed * Vnp1;
+//
+//		for (size_t i = 0; i < nDim /3; i++)
+//		{
+//			Point_3 p( Xnp1(3 * i, 0), Xnp1(3 * i + 1, 0), Xnp1(3 * i + 2, 0) ), p0;
+//			p0 = p.transform(invAff);
+//
+//			auto dist = pLSTree->queryExactDistance(Point_3(p0[0], p0[1], p0[2]));
+//#ifdef _DEBUG
+//            WR_LOG_TRACE << "point: " << Point_3(p0[0], p0[1], p0[2]);
+//            WR_LOG_TRACE << "distance: " << dist;
+//#endif
+//			if (dist < 0)
+//			{
+//				Vector_3 grad;
+//                //auto dir = (p0 - pLSTree->center());
+//                //auto dire = dir / sqrt(dir.squared_length());
+//                //p0 = pLSTree->center() + dire * pLSTree->radius();
+//                pLSTree->queryGradient(Point_3(p0[0], p0[1], p0[2]), grad);
+//
+//				Vector_3 delta = (dist / grad.squared_length()) * grad;
+//                p0 = p0 + delta;
+//                
+//                p = p0.transform(aff);
+//                for (size_t j = 0; j < 3; j++)
+//                {
+//					Xnp1(3* i + j, 0) = p[j];
+//                    Vnp1(3 * i + j, 0) = 0;
+//                }
+//			}
+//		}
+//
+//        strand.assignBackVectors(Xnp1, Vnp1);
 
     } // total hair
 

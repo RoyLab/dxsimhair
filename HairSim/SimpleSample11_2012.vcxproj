@@ -395,6 +395,7 @@
     </ClCompile>
     <ClCompile Include="test.cpp" />
     <ClCompile Include="wrGeo.cpp" />
+    <ClCompile Include="wrISpring.cpp" />
     <ClCompile Include="wrLevelsetOctree.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />
     <ClCompile Include="wrSceneManager.cpp" />
@@ -416,6 +417,7 @@
     <ClInclude Include="CFBXRendererDX11.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="linmath.h" />
+    <ClInclude Include="Parameter.h" />
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="wrColorGenerator.h" />
     <ClInclude Include="wrGeo.h" />
@@ -423,6 +425,7 @@
     <ClInclude Include="wrHairLoader.h" />
     <ClInclude Include="wrHairRenderer.h" />
     <ClInclude Include="wrHairSimulator.h" />
+    <ClInclude Include="wrISpring.h" />
     <ClInclude Include="wrLevelsetOctree.h" />
     <ClInclude Include="wrMeshRenderer.h" />
     <ClInclude Include="wrSceneManager.h" />

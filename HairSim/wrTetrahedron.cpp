@@ -1,5 +1,6 @@
 #include "precompiled.h"
 #include "wrTetrahedron.h"
+#include "Parameter.h"
 
 namespace
 {
@@ -26,9 +27,6 @@ namespace
     const unsigned fp_out[4] = {
         3, 2, 1, 0
     };
-
-    const float K_ALTITUDE_SPRING = 0.e-6f;
-
 }
 
 static inline void computeWeightForPointFaceSpring(vec3& r, const vec3& p, const vec3& a, const vec3& b, const vec3&c)
