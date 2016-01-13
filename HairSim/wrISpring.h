@@ -26,7 +26,7 @@ public:
 	void setSpring(int type, wrParticle* p0, wrParticle* p1, float K);
 	void setCoef(float k, float l);
 
-protected:
+//protected:
 	float		KdivL0;
 	wrParticle* nodes[2];  // id 0 > id 1
 	int			stride;

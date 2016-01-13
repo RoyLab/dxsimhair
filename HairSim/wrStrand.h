@@ -14,10 +14,11 @@ struct wrParticle
     vec3        position, reference;
     vec3        velocity;
 	vec3        force;
-	float       mass_1;
+	float       mass_1 = 0;
 
-    bool        isVirtual;
-	size_t      idx, gId = getGlobalId();
+    bool        isVirtual = false; // mark only the swing nodes, NOT the root ones.
+	bool			isFixed = false;
+	size_t      idx = 0, gId = getGlobalId();
 
 #ifdef NUMERICAL_TRACE
     //vec3        diffs[N_SPRING_USED];
@@ -25,7 +26,12 @@ struct wrParticle
     vec3        acc1, acc2;
 #endif
 
-	static size_t getGlobalId(){ static size_t gId = 0; return gId++; }
+	static size_t getGlobalId(){ return gCount++; }
+	static size_t n_particles() { return gCount; }
+
+protected:
+
+	static size_t gCount;
 };
 //
 //struct wrSpring
