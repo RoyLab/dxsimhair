@@ -18,6 +18,7 @@ namespace WR
 	class HairParticle
 	{
 		COMMON_PROPERTY(float, mass_1);
+		COMMON_PROPERTY(Vec3, ref);
 
 		friend class Hair;
 	public:
@@ -30,17 +31,12 @@ namespace WR
 		bool isFixedPos() const { return mb_fixedPos; }
 
 		template <class Matrix>
-		Vec3 transposeFromReference(const Matrix& mat)
+		Vec3 transposeFromReference(const Matrix& mat) const
 		{
-			Vec3 v = Vec3::Zero();
-			for (size_t i = 0; i < 3; i++)
-				for (size_t j = 0; j < 3; j++)
-					v[i] = mat[i][j] * m_ref[j];
-			return v;
+			return mat * m_ref;
 		}
 
-	protected:
-		Vec3				m_ref;
+	private:
 		const size_t		m_Id;
 
 		// mark only the split nodes, NOT the root ones.
@@ -109,14 +105,15 @@ namespace WR
 		void add_inner_springs();
 		void push_springs(int idx);
 		void push_single_spring(int idx, int stride);
+		void step(const Mat3& mWorld, float fTime, float fTimeElapsed);
 
 		std::vector<HairParticle>	m_particles;
 		std::list<ISpring*>			m_springs;
 		std::vector<HairStrand>		m_strands;
 		std::vector<HairSegment>		m_segments;
 
-		VecXb3						m_position;
-		VecXb3						m_velocity;
+		VecX							m_position;
+		VecX							m_velocity;
 
 		bool							mb_simInited = false;
 	};

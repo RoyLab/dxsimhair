@@ -75,7 +75,7 @@ void wrSceneManager::onFrame(double fTime, float fElapsedTime)
 	WR::Mat3 wrmWorld;
 	WR::convert3x3(wrmWorld, dxmWorld);
 
-	pHair->onFrame(wrmWorld, fTime, fElapsedTime);
+	pHair->onFrame(wrmWorld.transpose(), fTime, fElapsedTime);
     pHairRenderer->onFrame(fTime, fElapsedTime);
     pMeshRenderer->onFrame(fTime, fElapsedTime);
 }

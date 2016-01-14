@@ -31,9 +31,9 @@ namespace WR
 		void setCoef(float k, float l);
 
 		//protected:
-		float		KdivL0;
-		Particle* nodes[2];  // id 0 > id 1
-		int			stride;
+		float			KdivL0;
+		const Particle* nodes[2];  // id 0 > id 1
+		int				stride;
 	};
 
 

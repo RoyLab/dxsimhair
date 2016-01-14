@@ -1,6 +1,6 @@
 #include "wrSpring.h"
-#include <Eigen\Dense>
 #include "wrHair.h"
+#include <Eigen\Dense>
 
 using namespace Eigen;
 
@@ -20,12 +20,12 @@ namespace WR
 
 	void BiSpring::setSpring(int type, const Particle* p0, const Particle* p1, float K)
 	{
-		//type = stride;
+		type = stride;
 
-		//nodes[0] = p0;
-		//nodes[1] = p1;
+		nodes[0] = p0;
+		nodes[1] = p1;
 
-		//setCoef(K, computeDistance(nodes[0]->position, nodes[1]->position));
+		setCoef(K, (nodes[0]->get_ref()- nodes[1]->get_ref()).norm());
 	}
 
 	void BiSpring::setCoef(float k, float l)

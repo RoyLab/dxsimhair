@@ -242,7 +242,7 @@ namespace WR
 		size_t n = m_particles.size();
 		m_position.resize(3 * n);
 		for (size_t i = 0; i < n; i++)
-			m_position.triple(i) =  m_particles[i].m_ref;
+			triple(m_position, i) =  m_particles[i].m_ref;
 
 		m_velocity.resize(3 * n);
 		m_velocity.setZero();
@@ -288,8 +288,62 @@ namespace WR
 
 	void Hair::onFrame(Mat3 world, float fTime, float fTimeElapsed)
 	{
+		static Mat3 lastWorld = Mat3::Identity();
 
+		float tStep = fTimeElapsed;
+		int nPass = 1;
+		if (fTimeElapsed > MAX_TIME_STEP)
+		{
+			nPass = static_cast<int>(fTimeElapsed / MAX_TIME_STEP) + 1;
+			tStep = fTimeElapsed / static_cast<float>(nPass);
+		}
+
+		if (nPass > MAX_PASS_NUMBER) nPass = MAX_PASS_NUMBER;
+
+		float start = fTime - fTimeElapsed;
+		auto matStep = (world - lastWorld) / nPass;
+		for (int i = 0; i < nPass; i++)
+		{
+			lastWorld += matStep;
+			step(lastWorld, (start += tStep), tStep);
+			//Sleep(500);
+		}
 	}
+
+	void Hair::step(const Mat3& mWorld, float fTime, float fTimeElapsed)
+	{
+		//mat4x4 mWorld, mInvWorld;
+		//XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mWorld), w);
+		//CGAL::Aff_transformation_3<K> aff(mWorld[0][0], mWorld[0][1], mWorld[0][2], mWorld[0][3],
+		//	mWorld[1][0], mWorld[1][1], mWorld[1][2], mWorld[1][3],
+		//	mWorld[2][0], mWorld[2][1], mWorld[2][2], mWorld[2][3]);
+
+		//auto invAff = aff.inverse();
+
+		//auto invMat = DirectX::XMMatrixInverse(nullptr, w);
+		//XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mInvWorld), invMat);
+
+		size_t nMatDim = m_position.size();
+		SparseMat K(nMatDim, nMatDim), B(nMatDim, nMatDim), C(nMatDim, 1);
+
+		vec3 fixedPos[3], fixedVel[3], displace;
+
+		// modify root node's pos, vel. first 3.
+		// 假设固定点都在匀速运动
+		for (auto &strand : m_strands)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				size_t idx = strand.get_particle(j);
+				Vec3 newPos = get_particle(idx).transposeFromReference(mWorld);
+				Vec3 newVel = newPos / fTimeElapsed;
+				triple(m_position, idx) = newPos;
+			}
+		}
+
+		//m_position += m_velocity * fTimeElapsed;
+	}
+
 
 	void Hair::scale(float x)
 	{

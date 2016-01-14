@@ -14,13 +14,17 @@ namespace WR
 	typedef Eigen::MatrixXf	MatX;
 	typedef Eigen::VectorXf	VecX;
 
-	class VecXb3 :
-		public Eigen::VectorXf
+	template <class Derived>
+	Eigen::Block<Derived, 3, 1> triple(Eigen::MatrixBase<Derived>& m, int i)
 	{
-	public:
-		Eigen::Block<Eigen::VectorXf>& triple(int i) { return block(3 * i, 0, 3, 1); }
-		const Eigen::Block<const Eigen::VectorXf>& triple(int i) const { return block(3 * i, 0, 3, 1); }
-	};
+		return Eigen::Block<Derived, 3, 1>(m.derived(), 3 * i, 0);
+	}
+
+	template <class Derived>
+	const Eigen::Block<const Derived, 3, 1> triple(const Eigen::MatrixBase<Derived>& m, int i)
+	{
+		return Eigen::Block<const Derived, 3, 1>(m.derived(), 3 * i, 0);
+	}
 	
 	template <size_t _row, size_t _col>
 	class Mat:
@@ -36,7 +40,7 @@ namespace WR
 	void convert3x3(_matA& a, const _matB& b)
 	{
 		for (size_t i = 0; i < 3; i++)
-			for (size_t j = 0; i < 3; i++)
+			for (size_t j = 0; j < 3; j++)
 				a(i, j) = b(i, j);
 	}
 
