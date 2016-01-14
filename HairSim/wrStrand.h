@@ -1,13 +1,14 @@
 #pragma once
 #include "wrMath.h"
 #include <Eigen\Dense>
+#include "wrSpring.h"
 
 #define N_PARTICLES_PER_STRAND      25
 //#define N_SPRING_USED               3
 
 //#define NUMERICAL_TRACE
 class wrTetrahedron;
-class wrISpring;
+typedef WR::ISpring wrISpring;
 
 struct wrParticle
 {

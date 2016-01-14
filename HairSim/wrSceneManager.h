@@ -2,9 +2,13 @@
 
 class CModelViewerCamera;
 class wrHairRenderer;
-class wrHair;
-class wrHairSimulator;
 class wrMeshRenderer;
+
+namespace WR
+{
+	class Hair;
+}
+
 
 class wrRendererInterface
 {
@@ -32,11 +36,9 @@ private:
     bool initConstantBuffer();
 
 private:
-    wrHair*                     pHair = nullptr;
+    WR::Hair*                   pHair = nullptr;
     CModelViewerCamera*         pCamera = nullptr;
     wrHairRenderer*             pHairRenderer = nullptr;
-    wrHairSimulator*            pSimulator = nullptr;
-
     wrMeshRenderer*             pMeshRenderer = nullptr;
 
     ID3D11Device*               pd3dDevice = nullptr;

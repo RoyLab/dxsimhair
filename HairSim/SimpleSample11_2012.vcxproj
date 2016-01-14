@@ -384,6 +384,7 @@
   <ItemGroup>
     <ClCompile Include="CFBXLoader.cpp" />
     <ClCompile Include="CFBXRendererDX11.cpp" />
+    <ClCompile Include="ConfigReader.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
@@ -395,37 +396,38 @@
     </ClCompile>
     <ClCompile Include="test.cpp" />
     <ClCompile Include="wrGeo.cpp" />
-    <ClCompile Include="wrISpring.cpp" />
+    <ClCompile Include="wrSpring.cpp" />
     <ClCompile Include="wrLevelsetOctree.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />
     <ClCompile Include="wrSceneManager.cpp" />
     <ClCompile Include="wrLogger.cpp" />
     <ClCompile Include="wrColorGenerator.cpp" />
     <ClCompile Include="wrHair.cpp" />
-    <ClCompile Include="wrHairLoader.cpp" />
     <ClCompile Include="wrHairRenderer.cpp" />
     <ClCompile Include="wrHairSimulator.cpp" />
     <ClCompile Include="wrStrand.cpp" />
     <ClCompile Include="wrTetrahedron.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="SimpleSample.hlsl" />
     <None Include="SimpleSample.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CFBXLoader.h" />
     <ClInclude Include="CFBXRendererDX11.h" />
+    <ClInclude Include="ConfigReader.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="wrMacro.h" />
     <ClInclude Include="linmath.h" />
     <ClInclude Include="Parameter.h" />
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="wrColorGenerator.h" />
     <ClInclude Include="wrGeo.h" />
     <ClInclude Include="wrHair.h" />
-    <ClInclude Include="wrHairLoader.h" />
     <ClInclude Include="wrHairRenderer.h" />
     <ClInclude Include="wrHairSimulator.h" />
-    <ClInclude Include="wrISpring.h" />
+    <ClInclude Include="wrSpring.h" />
     <ClInclude Include="wrLevelsetOctree.h" />
     <ClInclude Include="wrMeshRenderer.h" />
     <ClInclude Include="wrSceneManager.h" />
@@ -434,6 +436,7 @@
     <ClInclude Include="wrStrand.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="wrTetrahedron.h" />
+    <ClInclude Include="wrTypes.h" />
     <ResourceCompile Include="SimpleSample.rc" />
   </ItemGroup>
   <ItemGroup>

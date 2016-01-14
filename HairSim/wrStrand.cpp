@@ -4,7 +4,7 @@
 #include <Eigen\Dense>
 #include "wrTetrahedron.h"
 #include "Parameter.h"
-#include "wrISpring.h"
+#include "wrSpring.h"
 
 using namespace Eigen;
 
@@ -205,7 +205,7 @@ void wrStrand::pushSingleSpring(wrParticle* p, size_t& sp, int stride)
     {
         auto &ptr = springs[sp];
 		auto spring = new wrNormalSpring;
-		spring->setSpring(stride, p, p - stride, K_SPRINGS[stride]);
+		//spring->setSpring(stride, p, p - stride, K_SPRINGS[stride]);
 		ptr = spring;
 
         ++sp;
@@ -242,88 +242,88 @@ void wrStrand::assignBackVectors(MatrixXf& Xn, MatrixXf& Vn)
 
 size_t wrStrand::computeMatrices(MatrixXf& K, MatrixXf& B, MatrixXf& C)
 {
-    const int offset = -3;
-    const size_t nParticles = this->nParticles + offset;
-    size_t nDim = 3 * nParticles;
-    K = MatrixXf::Zero(nDim, nDim);
-    B = MatrixXf::Zero(nDim, nDim);
-    C = MatrixXf::Zero(nDim, 1);
+  //  const int offset = -3;
+  //  const size_t nParticles = this->nParticles + offset;
+  //  size_t nDim = 3 * nParticles;
+  //  K = MatrixXf::Zero(nDim, nDim);
+  //  B = MatrixXf::Zero(nDim, nDim);
+  //  C = MatrixXf::Zero(nDim, 1);
 
-    vec3 de, coefk, coefc, coefb;
-    for (size_t i = 0; i < nSprings; i++)
-    {
-        auto &spring = *reinterpret_cast<wrNormalSpring*>(this->springs[i]);
-        vec3_sub(de, spring.nodes[0]->position, spring.nodes[1]->position);
-        vec3_norm(de, de);
+  //  vec3 de, coefk, coefc, coefb;
+  //  for (size_t i = 0; i < nSprings; i++)
+  //  {
+  //      auto &spring = *reinterpret_cast<wrNormalSpring*>(this->springs[i]);
+  //      vec3_sub(de, spring.nodes[0]->position, spring.nodes[1]->position);
+  //      vec3_norm(de, de);
 
-        size_t a = spring.nodes[0]->idx;
-        size_t b = spring.nodes[1]->idx;
-        int ai = 3 * (a + offset);
-        int bi = 3 * (b + offset);
+  //      size_t a = spring.nodes[0]->idx;
+  //      size_t b = spring.nodes[1]->idx;
+  //      int ai = 3 * (a + offset);
+  //      int bi = 3 * (b + offset);
 
-        vec3_scale(coefk, de, spring.KdivL0);
-        vec3_scale(coefc, de, spring.K());
-        vec3_scale(coefb, de, DAMPING_COEF);
+  //      vec3_scale(coefk, de, spring.KdivL0);
+  //      vec3_scale(coefc, de, spring.K());
+  //      vec3_scale(coefb, de, DAMPING_COEF);
 
-        if ((ai + 1) * (bi + 1) > 0)
-        {
-            // row j, column k
-            for (int j = 0; j < 3; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    float value = coefk[j] * de[k];
-                    float valueb = coefb[j] * de[k];
+  //      if ((ai + 1) * (bi + 1) > 0)
+  //      {
+  //          // row j, column k
+  //          for (int j = 0; j < 3; j++)
+  //          {
+  //              for (int k = 0; k < 3; k++)
+  //              {
+  //                  float value = coefk[j] * de[k];
+  //                  float valueb = coefb[j] * de[k];
 
-                    K(ai + j, ai + k) += value;
-                    K(ai + j, bi + k) += -value;
-                    K(bi + j, ai + k) += -value;
-                    K(bi + j, bi + k) += value;
+  //                  K(ai + j, ai + k) += value;
+  //                  K(ai + j, bi + k) += -value;
+  //                  K(bi + j, ai + k) += -value;
+  //                  K(bi + j, bi + k) += value;
 
-                    B(ai + j, ai + k) += valueb;
-                    B(ai + j, bi + k) += -valueb;
-                    B(bi + j, ai + k) += -valueb;
-                    B(bi + j, bi + k) += valueb;
-                }
-                C(ai + j, 0) -= coefc[j];
-                C(bi + j, 0) += coefc[j];
-            }
-        }
-        else // since bi < ai, so bi < 0
-        {
-            // row j, column k
-            for (int j = 0; j < 3; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    float value = coefk[j] * de[k];
-                    float valueb = coefb[j] * de[k];
+  //                  B(ai + j, ai + k) += valueb;
+  //                  B(ai + j, bi + k) += -valueb;
+  //                  B(bi + j, ai + k) += -valueb;
+  //                  B(bi + j, bi + k) += valueb;
+  //              }
+  //              C(ai + j, 0) -= coefc[j];
+  //              C(bi + j, 0) += coefc[j];
+  //          }
+  //      }
+  //      else // since bi < ai, so bi < 0
+  //      {
+  //          // row j, column k
+  //          for (int j = 0; j < 3; j++)
+  //          {
+  //              for (int k = 0; k < 3; k++)
+  //              {
+  //                  float value = coefk[j] * de[k];
+  //                  float valueb = coefb[j] * de[k];
 
-                    K(ai + j, ai + k) += value;
-                    B(ai + j, ai + k) += valueb;
-                }
-                C(ai + j, 0) -= coefc[j];
-                C(ai + j, 0) -= vec3_mul_inner(spring.nodes[1]->position, de) * coefk[j];
-            }
-        }
-    }
+  //                  K(ai + j, ai + k) += value;
+  //                  B(ai + j, ai + k) += valueb;
+  //              }
+  //              C(ai + j, 0) -= coefc[j];
+  //              C(ai + j, 0) -= vec3_mul_inner(spring.nodes[1]->position, de) * coefk[j];
+  //          }
+  //      }
+  //  }
 
-    // for wind damping
-    for (size_t i = 3; i < nParticles; i++)
-    {
-		C(3 * (i + offset) + 1, 0) += 10.0 * PARTICLE_MASS;
-		for (int j = 0; j < 3; j++)
-		{
-            B(3 * (i + offset) + j, 3 * (i + offset) + j) += WIND_DAMPING_COEF;
-		}
-    }
+  //  // for wind damping
+  //  for (size_t i = 3; i < nParticles; i++)
+  //  {
+		//C(3 * (i + offset) + 1, 0) += 10.0 * PARTICLE_MASS;
+		//for (int j = 0; j < 3; j++)
+		//{
+  //          B(3 * (i + offset) + j, 3 * (i + offset) + j) += WIND_DAMPING_COEF;
+		//}
+  //  }
 
-    // add altitude spring
-    //const auto nTetras = getNumberOfTetras();
-    //for (size_t i = 0; i < nTetras; i++)
-    //    tetras[i].applySpring(C);
-    
-    return nDim;
+  //  // add altitude spring
+  //  //const auto nTetras = getNumberOfTetras();
+  //  //for (size_t i = 0; i < nTetras; i++)
+  //  //    tetras[i].applySpring(C);
+  //  
+  //  return nDim;
 	return 0;
 }
 

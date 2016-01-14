@@ -4,10 +4,11 @@
 #include "wrColorGenerator.h"
 #include "wrLogger.h"
 #include "SDKmisc.h"
+#include "linmath.h"
 
 using namespace DirectX;
 
-wrHairRenderer::wrHairRenderer(const wrHair& hair):
+wrHairRenderer::wrHairRenderer(const WR::Hair& hair) :
 pHair(&hair){}
 
 wrHairRenderer::~wrHairRenderer(){}
@@ -132,12 +133,10 @@ void wrHairRenderer::render(double fTime, float fTimeElapsed)
     int n_strands = pHair->n_strands();
     for (int i = 0; i < n_strands; i++)
     {
-        auto ps = pHair->getStrand(i).pRealParticles;
-        
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
         {
-            memcpy(&pData[25 * i + j].pos, ps[j]->position, sizeof(vec3));
-            memcpy(&pData[25 * i + j].color, &vInputs[25 * i + j], sizeof(vec3));
+			memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].pos, pHair->get_visible_particle_position(i, j), sizeof(vec3));
+			memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &vInputs[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
         }
     }
     pd3dImmediateContext->Unmap(pVB, 0);
