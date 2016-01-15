@@ -7,7 +7,7 @@ using namespace Eigen;
 
 namespace WR
 {
-	void BiSpring::applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, Eigen::SparseMatrix<float>& Const) const
+	void BiSpring::applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, VecX& Const) const
 	{
 		//vec3 &p0 = nodes[0]->;
 		//vec3 &p1 = nodes[1]->position;

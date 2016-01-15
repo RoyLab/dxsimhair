@@ -13,7 +13,7 @@ namespace WR
 		ISpring(){}
 		virtual ~ISpring(){}
 
-		virtual void applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, Eigen::SparseMatrix<float>& Const) const = 0;
+		virtual void applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, VecX& Const) const = 0;
 		float K() const { return _K; };
 
 	protected:
@@ -26,7 +26,7 @@ namespace WR
 		public ISpring
 	{
 	public:
-		void applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, Eigen::SparseMatrix<float>& Const) const;
+		void applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, VecX& Const) const;
 		void setSpring(int type, const Particle* p0, const Particle* p1, float K);
 		void setCoef(float k, float l);
 
@@ -41,7 +41,7 @@ namespace WR
 		public ISpring
 	{
 	public:
-		void applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, Eigen::SparseMatrix<float>& Const) const;
+		void applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, VecX& Const) const;
 
 	protected:
 		Particle* nodes[4];  // 0 big index, 1 small index
@@ -51,7 +51,7 @@ namespace WR
 		public ISpring
 	{
 	public:
-		void applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, Eigen::SparseMatrix<float>& Const) const;
+		void applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, VecX& Const) const;
 
 	protected:
 		Particle* nodes[4];  // 0 big index, 1 small index

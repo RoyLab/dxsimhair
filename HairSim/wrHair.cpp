@@ -184,7 +184,9 @@ namespace WR
 			}
 			else
 			{
-				add_particle(strand, pos[i1], mass_1);
+				if (i == 2) add_particle(strand, pos[i1], mass_1, false, true, true);
+				else add_particle(strand, pos[i1], mass_1);
+
 				if (collinearPos.size() > i2 && collinearPos[i2] == i1)
 				{
 					isThisVirtual = true;
@@ -232,19 +234,36 @@ namespace WR
 	{
 		mb_simInited = true;
 
-		init_state();
+		init_matrices();
 		add_inner_springs();
 		
 		return true;
 	}
-	void Hair::init_state()
+	void Hair::init_matrices()
 	{
 		size_t n = m_particles.size();
-		m_position.resize(3 * n);
-		for (size_t i = 0; i < n; i++)
-			triple(m_position, i) =  m_particles[i].m_ref;
 
+		m_position.resize(3 * n);
+		m_filter.resize(3 * n);
+		m_mass_1.resize(3 * n, 3 * n);
 		m_velocity.resize(3 * n);
+
+		m_filter.setOnes();
+		for (size_t i = 0; i < n; i++)
+		{
+			triple(m_position, i) =  m_particles[i].get_ref();
+
+			if (m_particles[i].isFixedPos())
+			{
+				triple(m_filter, i) = Vec3::Zero();
+			}
+			else
+			{
+				m_mass_1.insertBack(1, 3)
+				m_mass_1(3 * i, 3 * i) = m_particles[i].get_mass_1();
+			}
+		}
+
 		m_velocity.setZero();
 	}
 
@@ -323,10 +342,10 @@ namespace WR
 		//auto invMat = DirectX::XMMatrixInverse(nullptr, w);
 		//XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mInvWorld), invMat);
 
-		size_t nMatDim = m_position.size();
-		SparseMat K(nMatDim, nMatDim), B(nMatDim, nMatDim), C(nMatDim, 1);
+		//size_t nMatDim = m_position.size();
+		//SparseMat K(nMatDim, nMatDim), B(nMatDim, nMatDim), C(nMatDim, 1);
 
-		vec3 fixedPos[3], fixedVel[3], displace;
+		//vec3 fixedPos[3], fixedVel[3], displace;
 
 		// modify root node's pos, vel. first 3.
 		// 假设固定点都在匀速运动
@@ -336,12 +355,26 @@ namespace WR
 			{
 				size_t idx = strand.get_particle(j);
 				Vec3 newPos = get_particle(idx).transposeFromReference(mWorld);
-				Vec3 newVel = newPos / fTimeElapsed;
-				triple(m_position, idx) = newPos;
+				Vec3 newVel = (newPos - Vec3(get_particle_position(idx))) / fTimeElapsed;
+				triple(m_velocity, idx) = newVel;
+				//triple(m_position, idx) = newPos;
 			}
 		}
 
-		//m_position += m_velocity * fTimeElapsed;
+		size_t dim = m_position.size();
+		SparseMat K(dim, dim), B(dim, dim);
+		VecX C(dim);
+
+		K.setZero();
+		B.setZero();
+		C.setZero();
+
+		for (auto &spring : m_springs)
+			spring->applyForces(K, B, C);
+
+
+
+		m_position += m_velocity * fTimeElapsed;
 	}
 
 

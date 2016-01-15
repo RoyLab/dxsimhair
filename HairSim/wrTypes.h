@@ -11,6 +11,7 @@ namespace WR
 	typedef Eigen::Vector4f Vec4;
 
 	typedef Eigen::SparseMatrix<float> SparseMat;
+	typedef Eigen::SparseVector<float> SparseVec;
 	typedef Eigen::MatrixXf	MatX;
 	typedef Eigen::VectorXf	VecX;
 
@@ -25,6 +26,55 @@ namespace WR
 	{
 		return Eigen::Block<const Derived, 3, 1>(m.derived(), 3 * i, 0);
 	}
+
+	template <class Derived>
+	Eigen::Block<Derived, 3, 3> squared_triple(Eigen::MatrixBase<Derived>& m, int i, int j)
+	{
+		return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
+	}
+
+	template <class Derived>
+	const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::MatrixBase<Derived>& m, int i, int j)
+	{
+		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
+	}
+
+	template <class Derived>
+	Eigen::Block<Derived, 3, 3> squared_triple(Eigen::MatrixBase<Derived>& m, int i)
+	{
+		return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
+	}
+
+	template <class Derived>
+	const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::MatrixBase<Derived>& m, int i)
+	{
+		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
+	}
+
+	template <class Derived>
+	Eigen::Block<Derived, 3, 3> squared_triple(Eigen::SparseMatrixBase<Derived>& m, int i, int j)
+	{
+		return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
+	}
+
+	template <class Derived>
+	const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::SparseMatrixBase<Derived>& m, int i, int j)
+	{
+		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
+	}
+
+	template <class Derived>
+	Eigen::Block<Derived, 3, 3> squared_triple(Eigen::SparseMatrixBase<Derived>& m, int i)
+	{
+		return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
+	}
+
+	template <class Derived>
+	const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::SparseMatrixBase<Derived>& m, int i)
+	{
+		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
+	}
+
 	
 	template <size_t _row, size_t _col>
 	class Mat:

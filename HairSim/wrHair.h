@@ -101,11 +101,18 @@ namespace WR
 	private:
 		size_t add_particle(const vec3&, float mass_1, bool isPerturbed = false, bool isFixedPos = false);
 		void add_particle(HairStrand& strand, const vec3&, float mass_1, bool isPerturbed = false, bool isFixedPos = false, bool isVisible = true);
-		void init_state();
+		void init_matrices();
 		void add_inner_springs();
 		void push_springs(int idx);
 		void push_single_spring(int idx, int stride);
 		void step(const Mat3& mWorld, float fTime, float fTimeElapsed);
+
+		template <class _M>
+		void filter(_M& mat) const
+		{
+
+		}
+		void solve(const SparseMat& A, const VecX& b, VecX& deltaV) const;
 
 		std::vector<HairParticle>	m_particles;
 		std::list<ISpring*>			m_springs;
@@ -114,6 +121,8 @@ namespace WR
 
 		VecX							m_position;
 		VecX							m_velocity;
+		VecX							m_filter;
+		SparseMat					m_mass_1;
 
 		bool							mb_simInited = false;
 	};
