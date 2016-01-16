@@ -10,70 +10,86 @@ namespace WR
 	typedef Eigen::Vector3f Vec3;
 	typedef Eigen::Vector4f Vec4;
 
+#ifdef _USE_SPARSE
 	typedef Eigen::SparseMatrix<float> SparseMat;
 	typedef Eigen::SparseVector<float> SparseVec;
+#else
+	typedef Eigen::MatrixXf SparseMat;
+	typedef Eigen::VectorXf SparseVec;
+#endif
+
 	typedef Eigen::MatrixXf	MatX;
 	typedef Eigen::VectorXf	VecX;
 
 	template <class Derived>
-	Eigen::Block<Derived, 3, 1> triple(Eigen::MatrixBase<Derived>& m, int i)
+	inline Eigen::Block<Derived, 3, 1> triple(Eigen::MatrixBase<Derived>& m, int i)
 	{
 		return Eigen::Block<Derived, 3, 1>(m.derived(), 3 * i, 0);
 	}
 
 	template <class Derived>
-	const Eigen::Block<const Derived, 3, 1> triple(const Eigen::MatrixBase<Derived>& m, int i)
+	inline const Eigen::Block<const Derived, 3, 1> triple(const Eigen::MatrixBase<Derived>& m, int i)
 	{
 		return Eigen::Block<const Derived, 3, 1>(m.derived(), 3 * i, 0);
 	}
 
 	template <class Derived>
-	Eigen::Block<Derived, 3, 3> squared_triple(Eigen::MatrixBase<Derived>& m, int i, int j)
+	inline Eigen::Block<Derived, 3, 3> squared_triple(Eigen::MatrixBase<Derived>& m, int i, int j)
 	{
 		return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
 	}
 
 	template <class Derived>
-	const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::MatrixBase<Derived>& m, int i, int j)
+	inline const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::MatrixBase<Derived>& m, int i, int j)
 	{
 		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
 	}
 
 	template <class Derived>
-	Eigen::Block<Derived, 3, 3> squared_triple(Eigen::MatrixBase<Derived>& m, int i)
+	inline Eigen::Block<Derived, 3, 3> squared_triple(Eigen::MatrixBase<Derived>& m, int i)
 	{
 		return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
 	}
 
 	template <class Derived>
-	const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::MatrixBase<Derived>& m, int i)
+	inline const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::MatrixBase<Derived>& m, int i)
 	{
 		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
 	}
 
-	template <class Derived>
-	Eigen::Block<Derived, 3, 3> squared_triple(Eigen::SparseMatrixBase<Derived>& m, int i, int j)
+#define ss_triple(m, i, j)\
+	((m).block(3, 3, 3 * (i), 3 * (j)))
+
+	inline void add_mat_triple(SparseMat& mat, int mi, int mj, const Mat3& c)
 	{
-		return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 3; j++)
+				mat.coeffRef(3 * mi + i, 3 * mj + j) += c(i, j);
 	}
 
-	template <class Derived>
-	const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::SparseMatrixBase<Derived>& m, int i, int j)
-	{
-		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
-	}
+	//template <class Derived>
+	//inline Eigen::Block<Derived, 3, 3> squared_triple(Eigen::SparseMatrixBase<Derived>& m, int i, int j)
+	//{
+	//	return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
+	//}
 
-	template <class Derived>
-	Eigen::Block<Derived, 3, 3> squared_triple(Eigen::SparseMatrixBase<Derived>& m, int i)
-	{
-		return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
-	}
+	//template <class Derived>
+	//inline const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::SparseMatrixBase<Derived>& m, int i, int j)
+	//{
+	//	return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * j);
+	//}
 
-	template <class Derived>
-	const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::SparseMatrixBase<Derived>& m, int i)
-	{
-		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
-	}
+	//template <class Derived>
+	//inline Eigen::Block<Derived, 3, 3> squared_triple(Eigen::SparseMatrixBase<Derived>& m, int i)
+	//{
+	//	return Eigen::Block<Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
+	//}
+
+	//template <class Derived>
+	//inline const Eigen::Block<const Derived, 3, 3> squared_triple(const Eigen::SparseMatrixBase<Derived>& m, int i)
+	//{
+	//	return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
+	//}
 
 	
 	template <size_t _row, size_t _col>
@@ -99,5 +115,13 @@ namespace WR
 	{
 		for (size_t i = 0; i < 3; i++)
 			a[i] = b[i];
+	}
+
+	template<class _MAT>
+	void write(char* fileName, _MAT& mat)
+	{
+		std::ofstream f(fileName);
+		f << mat;
+		f.close();
 	}
 }

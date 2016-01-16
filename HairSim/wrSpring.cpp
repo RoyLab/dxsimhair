@@ -1,21 +1,39 @@
 #include "wrSpring.h"
 #include "wrHair.h"
 #include <Eigen\Dense>
+#include "Parameter.h"
 
 using namespace Eigen;
 
 
 namespace WR
 {
-	void BiSpring::applyForces(Eigen::SparseMatrix<float>& matK, Eigen::SparseMatrix<float>& matB, VecX& Const) const
+	void BiSpring::applyForces(SparseMat& mK, SparseMat& mB, VecX& vC) const
 	{
-		//vec3 &p0 = nodes[0]->;
-		//vec3 &p1 = nodes[1]->position;
-		//Vector3f d(p0[0] - p1[0], p0[1] - p1[1], p0[2] - p1[2]);
+		Vec3 d = (nodes[0]->get_pos() - nodes[1]->get_pos());
+		d.normalize();
+		Mat3 d3x3 = d * d.transpose();
+		Mat3 d3x3K = KdivL0 * d3x3;
+		Mat3 d3x3B = DAMPING_COEF * d3x3;
+		Vec3 d3C = K() * d;
 
-		//Matrix3f block = d * d.transpose();
+		const int id0 = nodes[0]->get_Id();
+		const int id1 = nodes[1]->get_Id();
 
-		//matK
+		add_mat_triple(mK, id0, id0, d3x3K);
+		add_mat_triple(mK, id1, id1, d3x3K);
+
+		add_mat_triple(mK, id0, id1, -d3x3K);
+		add_mat_triple(mK, id1, id0, -d3x3K);
+
+		add_mat_triple(mB, id0, id0, d3x3B);
+		add_mat_triple(mB, id1, id1, d3x3B);
+
+		add_mat_triple(mB, id0, id1, -d3x3B);
+		add_mat_triple(mB, id1, id0, -d3x3B);
+
+		triple(vC, id0) += d3C;
+		triple(vC, id1) -= d3C;
 	}
 
 	void BiSpring::setSpring(int type, const Particle* p0, const Particle* p1, float K)

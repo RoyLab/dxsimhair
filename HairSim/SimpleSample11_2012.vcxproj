@@ -409,7 +409,6 @@
     <ClCompile Include="wrTetrahedron.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
     <None Include="SimpleSample.hlsl" />
     <None Include="SimpleSample.fx" />
   </ItemGroup>

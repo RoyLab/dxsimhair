@@ -81,6 +81,7 @@ namespace
 
 namespace WR
 {
+	Hair* HairParticle::m_hair = nullptr;
 	Hair* HairStrand::m_hair = nullptr;
 
 	Hair* loadFile(wchar_t* path)
@@ -130,6 +131,7 @@ namespace WR
 		else return nullptr;
 	}
 
+	// n is not used here
 	bool Hair::add_strand(float* positions, size_t n)
 	{
 		vec3* pos = reinterpret_cast<vec3*>(positions);
@@ -246,9 +248,13 @@ namespace WR
 		m_position.resize(3 * n);
 		m_filter.resize(3 * n);
 		m_mass_1.resize(3 * n, 3 * n);
+		m_mass.resize(3 * n, 3 * n);
 		m_velocity.resize(3 * n);
 
 		m_filter.setOnes();
+		m_mass_1.setZero();
+		m_mass.setZero();
+		//m_mass_1.reserve(1);
 		for (size_t i = 0; i < n; i++)
 		{
 			triple(m_position, i) =  m_particles[i].get_ref();
@@ -259,8 +265,11 @@ namespace WR
 			}
 			else
 			{
-				m_mass_1.insertBack(1, 3)
-				m_mass_1(3 * i, 3 * i) = m_particles[i].get_mass_1();
+				//m_mass_1.insert(3 * i, 3 * i) = m_particles[i].get_mass_1();
+				//m_mass_1.insert(3 * i + 1, 3 * i + 1) = m_particles[i].get_mass_1();
+				//m_mass_1.insert(3 * i + 2, 3 * i + 2) = m_particles[i].get_mass_1();
+				squared_triple(m_mass_1, i) = m_particles[i].get_mass_1() * Mat3::Identity();
+				squared_triple(m_mass, i) =  1 / m_particles[i].get_mass_1() * Mat3::Identity();
 			}
 		}
 
@@ -331,21 +340,7 @@ namespace WR
 
 	void Hair::step(const Mat3& mWorld, float fTime, float fTimeElapsed)
 	{
-		//mat4x4 mWorld, mInvWorld;
-		//XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mWorld), w);
-		//CGAL::Aff_transformation_3<K> aff(mWorld[0][0], mWorld[0][1], mWorld[0][2], mWorld[0][3],
-		//	mWorld[1][0], mWorld[1][1], mWorld[1][2], mWorld[1][3],
-		//	mWorld[2][0], mWorld[2][1], mWorld[2][2], mWorld[2][3]);
-
-		//auto invAff = aff.inverse();
-
-		//auto invMat = DirectX::XMMatrixInverse(nullptr, w);
-		//XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mInvWorld), invMat);
-
-		//size_t nMatDim = m_position.size();
-		//SparseMat K(nMatDim, nMatDim), B(nMatDim, nMatDim), C(nMatDim, 1);
-
-		//vec3 fixedPos[3], fixedVel[3], displace;
+		const float tdiv2 = fTimeElapsed / 2;
 
 		// modify root node's pos, vel. first 3.
 		// 假设固定点都在匀速运动
@@ -372,11 +367,88 @@ namespace WR
 		for (auto &spring : m_springs)
 			spring->applyForces(K, B, C);
 
+		// to-do add wind damping
 
+		//SparseMat A  = m_mass + (B + K * tdiv2) * tdiv2;
+		SparseMat A(dim, dim);
+		A.setIdentity();
+		A += m_mass_1 * (B + K * tdiv2) * tdiv2;
+		VecX b = - m_mass_1 * tdiv2 * ((K * m_position - C) + (B + K * tdiv2) * m_velocity);
 
+		// z = 0
+		VecX dv(dim), dv1(dim);MatX to(21, 4);
+		modified_pcg(A, b, dv);
+		simple_solve(A, b, dv1);
+		filter(dv1, dv);
+
+		//to.col(0) = A * dv - b;
+		//to.col(1) = A * dv1 - b;
+		//to.col(2) = dv;
+		//to.col(3) = dv1;
+		//to.col(4) = b;
+		////write("a.txt", m_mass_1);
+		//write("B.txt", K);
+		////write("K.txt", K);
+		//WR_LOG_DEBUG << std::endl << to;
+
+		//to.col(3) = m_velocity.block<21, 1>(0, 0);
+		//to.col(2) = (K * m_position - C).block<21, 1>(0, 0);
+		//to.col(1) = b.block<21, 1>(0, 0);
+		//to.col(0) = dv.block<21, 1>(0, 0);
+
+		//WR_LOG_DEBUG << std::endl << to;
+
+		m_velocity += 2 * dv;
 		m_position += m_velocity * fTimeElapsed;
 	}
 
+	void Hair::simple_solve(const SparseMat& A, const VecX& b, VecX& x) const
+	{
+		x = A.ldlt().solve(b);
+	}
+
+	void Hair::modified_pcg(const SparseMat& A, const VecX& b, VecX& dv) const
+	{
+		const size_t dim = b.size();
+
+		SparseMat P(dim, dim), P_1(dim, dim);
+		P_1.setZero();
+		//P.reserve(1);
+		//P_1.reserve(1);
+		for (size_t i = 0; i < dim; i++)
+		{
+			//P.insert(i, i) = 1.f / A.coeff(i, i);
+			//P_1.insert(i, i) = A.coeff(i, i);
+			P_1(i, i) = A(i, i);
+		}
+		P = P_1.inverse();
+
+		VecX b_f(dim), r(dim), c(dim), q(dim), s(dim);
+		float dnew, dold, a;
+
+		const float tol = 1e-5, tol_square = tol * tol;
+
+		dv.setZero();
+		filter(b, b_f);
+		const float delta0 = b_f.transpose() * P * b_f;
+		filter(b - A*dv, r);
+		filter(P_1 * r, c);
+
+		dnew = r.transpose() * c;
+
+		const float thresh = tol_square * delta0;
+		while (dnew > thresh)
+		{
+			filter(A * c, q);
+			a = dnew / (c.transpose() * q);
+			dv += a * c;
+			r -= a * q;
+			s = P_1 * r;
+			dold = dnew;
+			dnew = r.transpose() * s;
+			filter(s + (dnew / dold) * c, c);
+		}
+	}
 
 	void Hair::scale(float x)
 	{

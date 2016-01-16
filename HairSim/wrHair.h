@@ -19,6 +19,7 @@ namespace WR
 	{
 		COMMON_PROPERTY(float, mass_1);
 		COMMON_PROPERTY(Vec3, ref);
+		STATIC_PROPERTY(Hair*, hair);
 
 		friend class Hair;
 	public:
@@ -29,6 +30,7 @@ namespace WR
 		size_t get_Id() const { return m_Id; }
 		bool isPerturbed() const { return mb_perturbed; }
 		bool isFixedPos() const { return mb_fixedPos; }
+		const Vec3 get_pos() const;
 
 		template <class Matrix>
 		Vec3 transposeFromReference(const Matrix& mat) const
@@ -87,7 +89,7 @@ namespace WR
 		void mirror(bool, bool, bool);
 
 		bool add_strand(float* positions, size_t n = N_PARTICLES_PER_STRAND);
-		void reserve(size_t np, size_t ns) { m_strands.reserve(ns); }
+		void reserve(size_t np, size_t ns) { m_strands.reserve(ns); m_particles.reserve(np); }
 
 		size_t n_strands() const{ return m_strands.size(); }
 		const HairStrand& get_strand(size_t idx) const { return m_strands[idx]; }
@@ -107,12 +109,10 @@ namespace WR
 		void push_single_spring(int idx, int stride);
 		void step(const Mat3& mWorld, float fTime, float fTimeElapsed);
 
-		template <class _M>
-		void filter(_M& mat) const
-		{
-
-		}
-		void solve(const SparseMat& A, const VecX& b, VecX& deltaV) const;
+		template <class _M1, class _M2>
+		void filter(const _M1& vec, _M2& res) const{ res = m_filter.cwiseProduct(vec); }
+		void modified_pcg(const SparseMat& A, const VecX& b, VecX& dv) const;
+		void simple_solve(const SparseMat& A, const VecX& b, VecX& dv) const;
 
 		std::vector<HairParticle>	m_particles;
 		std::list<ISpring*>			m_springs;
@@ -122,8 +122,13 @@ namespace WR
 		VecX							m_position;
 		VecX							m_velocity;
 		VecX							m_filter;
-		SparseMat					m_mass_1;
+		SparseMat					m_mass_1, m_mass;
 
 		bool							mb_simInited = false;
 	};
+
+	inline const Vec3 HairParticle::get_pos() const 
+	{
+		return Vec3(m_hair->get_particle_position(m_Id)); 
+	}
 }

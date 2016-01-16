@@ -52,6 +52,7 @@ bool wrSceneManager::init()
 	pHair->mirror(false, true, false);
 
 	WR::HairStrand::set_hair(pHair);
+	WR::HairParticle::set_hair(pHair);
 	pHair->init_simulation();
 
     HRESULT hr;
