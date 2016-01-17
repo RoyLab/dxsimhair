@@ -200,7 +200,6 @@ void wrTetrahedron::applySpring(Eigen::MatrixXf& C)
         if (max_t == 0)
         {
             float force = (len / l_fp[maxIdx] - 1) * K_ALTITUDE_SPRING;
-            WR_LOG_TRACE << force;
             vec4 face;
             computeSurfaceWithoutCheck(face, pos[fp_in[maxIdx][0]], pos[fp_in[maxIdx][1]], pos[fp_in[maxIdx][2]]);
 
@@ -239,19 +238,7 @@ void wrTetrahedron::applySpring(Eigen::MatrixXf& C)
         {
             vec3 C1;
             vec3_sub(C1, pos[edges[edge_edge[maxIdx][0]][0]], pos[edges[edge_edge[maxIdx][1]][0]]);
-
-
-            //// for debug
-            //vec3 a = { 0, 3, 1 };
-            //vec3 b = { 0, -1, 1 };
-            //vec3 c = { 1, 0, 0 };
-            //vec3 d = { -5, 0, 0 };
-
-            //vec3_sub(maxU, b, a);
-            //vec3_sub(maxV, d, c);
-            //vec3_sub(C1, a, c);
-
-
+			
             float n1n2 = vec3_mul_inner(maxU, maxV);
             float n1_2 = vec3_mul_inner(maxU, maxU);
             float n2_2 = vec3_mul_inner(maxV, maxV);

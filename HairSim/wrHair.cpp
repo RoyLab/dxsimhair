@@ -365,9 +365,9 @@ namespace WR
 
 		size_t dim = m_position.size();
 		SparseMat K(dim, dim), B(dim, dim);
-		K.reserve(10);
-		B.reserve(10);
-
+		K.reserve(VecX::Constant(dim, 30));
+		B.reserve(VecX::Constant(dim, 30));
+		K.triangularView<Eigen::Upper>() * B;
 		VecX C(dim);
 
 		K.setZero();
