@@ -10,6 +10,7 @@ namespace WR
 	typedef Eigen::Vector3f Vec3;
 	typedef Eigen::Vector4f Vec4;
 
+#define _USE_SPARSE
 #ifdef _USE_SPARSE
 	typedef Eigen::SparseMatrix<float> SparseMat;
 	typedef Eigen::SparseVector<float> SparseVec;

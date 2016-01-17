@@ -254,10 +254,17 @@ namespace WR
 		m_filter.setOnes();
 		m_mass_1.setZero();
 		m_mass.setZero();
-		//m_mass_1.reserve(1);
+		m_mass_1.reserve(1);
+		m_mass.reserve(1);
 		for (size_t i = 0; i < n; i++)
 		{
 			triple(m_position, i) =  m_particles[i].get_ref();
+
+			float mass = 1.f / m_particles[i].get_mass_1();
+			m_mass.insert(3 * i, 3 * i) = mass;
+			m_mass.insert(3 * i + 1, 3 * i + 1) = mass;
+			m_mass.insert(3 * i + 2, 3 * i + 2) = mass;
+			//squared_triple(m_mass, i) = 1 / m_particles[i].get_mass_1() * Mat3::Identity();
 
 			if (m_particles[i].isFixedPos())
 			{
@@ -265,11 +272,12 @@ namespace WR
 			}
 			else
 			{
-				//m_mass_1.insert(3 * i, 3 * i) = m_particles[i].get_mass_1();
-				//m_mass_1.insert(3 * i + 1, 3 * i + 1) = m_particles[i].get_mass_1();
-				//m_mass_1.insert(3 * i + 2, 3 * i + 2) = m_particles[i].get_mass_1();
-				squared_triple(m_mass_1, i) = m_particles[i].get_mass_1() * Mat3::Identity();
-				squared_triple(m_mass, i) =  1 / m_particles[i].get_mass_1() * Mat3::Identity();
+				float mass_1 = m_particles[i].get_mass_1();
+
+				m_mass_1.insert(3 * i, 3 * i) = mass_1;
+				m_mass_1.insert(3 * i + 1, 3 * i + 1) = mass_1;
+				m_mass_1.insert(3 * i + 2, 3 * i + 2) = mass_1;
+				//squared_triple(m_mass_1, i) = m_particles[i].get_mass_1() * Mat3::Identity();
 			}
 		}
 
@@ -352,12 +360,14 @@ namespace WR
 				Vec3 newPos = get_particle(idx).transposeFromReference(mWorld);
 				Vec3 newVel = (newPos - Vec3(get_particle_position(idx))) / fTimeElapsed;
 				triple(m_velocity, idx) = newVel;
-				//triple(m_position, idx) = newPos;
 			}
 		}
 
 		size_t dim = m_position.size();
 		SparseMat K(dim, dim), B(dim, dim);
+		K.reserve(10);
+		B.reserve(10);
+
 		VecX C(dim);
 
 		K.setZero();
@@ -369,34 +379,18 @@ namespace WR
 
 		// to-do add wind damping
 
-		//SparseMat A  = m_mass + (B + K * tdiv2) * tdiv2;
-		SparseMat A(dim, dim);
-		A.setIdentity();
-		A += m_mass_1 * (B + K * tdiv2) * tdiv2;
-		VecX b = - m_mass_1 * tdiv2 * ((K * m_position - C) + (B + K * tdiv2) * m_velocity);
+		//SparseMat A(dim, dim);
+		//A.setIdentity();
+		//A += m_mass_1 * (B + K * tdiv2) * tdiv2;
+
+		SparseMat A  = m_mass + (B + K * tdiv2) * tdiv2;
+		VecX b = -tdiv2 * ((K * m_position - C) + (B + K * tdiv2) * m_velocity);
 
 		// z = 0
 		VecX dv(dim), dv1(dim);MatX to(21, 4);
 		modified_pcg(A, b, dv);
-		simple_solve(A, b, dv1);
-		filter(dv1, dv);
-
-		//to.col(0) = A * dv - b;
-		//to.col(1) = A * dv1 - b;
-		//to.col(2) = dv;
-		//to.col(3) = dv1;
-		//to.col(4) = b;
-		////write("a.txt", m_mass_1);
-		//write("B.txt", K);
-		////write("K.txt", K);
-		//WR_LOG_DEBUG << std::endl << to;
-
-		//to.col(3) = m_velocity.block<21, 1>(0, 0);
-		//to.col(2) = (K * m_position - C).block<21, 1>(0, 0);
-		//to.col(1) = b.block<21, 1>(0, 0);
-		//to.col(0) = dv.block<21, 1>(0, 0);
-
-		//WR_LOG_DEBUG << std::endl << to;
+		//simple_solve(A, b, dv1);
+		//filter(dv1, dv);
 
 		m_velocity += 2 * dv;
 		m_position += m_velocity * fTimeElapsed;
@@ -404,7 +398,7 @@ namespace WR
 
 	void Hair::simple_solve(const SparseMat& A, const VecX& b, VecX& x) const
 	{
-		x = A.ldlt().solve(b);
+		//x = A.ldlt().solve(b);
 	}
 
 	void Hair::modified_pcg(const SparseMat& A, const VecX& b, VecX& dv) const
@@ -413,20 +407,20 @@ namespace WR
 
 		SparseMat P(dim, dim), P_1(dim, dim);
 		P_1.setZero();
-		//P.reserve(1);
-		//P_1.reserve(1);
+		P.reserve(1);
+		P_1.reserve(1);
 		for (size_t i = 0; i < dim; i++)
 		{
-			//P.insert(i, i) = 1.f / A.coeff(i, i);
-			//P_1.insert(i, i) = A.coeff(i, i);
-			P_1(i, i) = A(i, i);
+			P.insert(i, i) = 1.f / A.coeff(i, i);
+			P_1.insert(i, i) = A.coeff(i, i);
+			//P_1(i, i) = A(i, i);
 		}
-		P = P_1.inverse();
+		//P = P_1.inverse();
 
 		VecX b_f(dim), r(dim), c(dim), q(dim), s(dim);
 		float dnew, dold, a;
 
-		const float tol = 1e-5, tol_square = tol * tol;
+		const float tol = 1e-7, tol_square = tol * tol;
 
 		dv.setZero();
 		filter(b, b_f);
