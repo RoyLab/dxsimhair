@@ -39,11 +39,11 @@ namespace WR
 		}
 
 	private:
-		const size_t		m_Id;
+		size_t		m_Id;
 
 		// mark only the split nodes, NOT the root ones.
-		const bool      mb_perturbed = false;
-		const bool		mb_fixedPos = false;
+		bool			mb_perturbed ;
+		bool			mb_fixedPos;
 	};
 
 	class HairStrand
@@ -122,7 +122,7 @@ namespace WR
 		VecX							m_position;
 		VecX							m_velocity;
 		VecX							m_filter;
-		SparseMat					m_mass_1, m_mass;
+		SparseMat					m_mass_1, m_mass, m_wind_damping;
 
 		bool							mb_simInited = false;
 	};

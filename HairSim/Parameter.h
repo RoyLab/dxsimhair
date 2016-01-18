@@ -17,7 +17,7 @@ const int           N_STRAND_MATRIX_DIM = 3 * N_PARTICLES_PER_STRAND;
 #define COMPRESS
 
 #ifdef COMPRESS
-const int COMPRESS_RATIO = 10000;
+const int COMPRESS_RATIO = 500;
 #endif
 
 

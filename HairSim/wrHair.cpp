@@ -8,6 +8,7 @@
 #include "wrLogger.h"
 #include "wrMacro.h"
 #include "wrSpring.h"
+#include "wrTripleMatrix.h"
 
 using namespace WR;
 
@@ -246,16 +247,25 @@ namespace WR
 		size_t n = m_particles.size();
 
 		m_position.resize(3 * n);
-		m_filter.resize(3 * n);
-		m_mass_1.resize(3 * n, 3 * n);
-		m_mass.resize(3 * n, 3 * n);
-		m_velocity.resize(3 * n);
 
+		m_velocity.resize(3 * n);
+		m_velocity.setZero();
+
+		m_filter.resize(3 * n);
 		m_filter.setOnes();
-		m_mass_1.setZero();
-		m_mass.setZero();
-		m_mass_1.reserve(1);
-		m_mass.reserve(1);
+
+		m_mass_1.resize(3 * n, 3 * n);
+		m_mass_1.reserve(VecX::Constant(3 * n, 1));
+
+		m_mass.resize(3 * n, 3 * n);
+		m_mass.reserve(VecX::Constant(3 * n, 1));
+
+		m_wind_damping.resize(3 * n, 3 * n);
+		m_wind_damping.reserve(VecX::Constant(3 * n, 1));
+
+		for (size_t i = 0; i < 3 * n; i++)
+			m_wind_damping.insert(i, i) = WIND_DAMPING_COEF;
+
 		for (size_t i = 0; i < n; i++)
 		{
 			triple(m_position, i) =  m_particles[i].get_ref();
@@ -264,7 +274,6 @@ namespace WR
 			m_mass.insert(3 * i, 3 * i) = mass;
 			m_mass.insert(3 * i + 1, 3 * i + 1) = mass;
 			m_mass.insert(3 * i + 2, 3 * i + 2) = mass;
-			//squared_triple(m_mass, i) = 1 / m_particles[i].get_mass_1() * Mat3::Identity();
 
 			if (m_particles[i].isFixedPos())
 			{
@@ -277,11 +286,9 @@ namespace WR
 				m_mass_1.insert(3 * i, 3 * i) = mass_1;
 				m_mass_1.insert(3 * i + 1, 3 * i + 1) = mass_1;
 				m_mass_1.insert(3 * i + 2, 3 * i + 2) = mass_1;
-				//squared_triple(m_mass_1, i) = m_particles[i].get_mass_1() * Mat3::Identity();
 			}
 		}
 
-		m_velocity.setZero();
 	}
 
 	void Hair::add_inner_springs()
@@ -364,33 +371,29 @@ namespace WR
 		}
 
 		size_t dim = m_position.size();
-		SparseMat K(dim, dim), B(dim, dim);
+		SparseMatAssemble K(dim, dim), B(dim, dim);
 		K.reserve(VecX::Constant(dim, 30));
 		B.reserve(VecX::Constant(dim, 30));
-		K.triangularView<Eigen::Upper>() * B;
-		VecX C(dim);
 
-		K.setZero();
-		B.setZero();
+		K.reserve_hash_map(10 * m_particles.size());
+		B.reserve_hash_map(10 * m_particles.size());
+
+		VecX C(dim);
 		C.setZero();
 
 		for (auto &spring : m_springs)
 			spring->applyForces(K, B, C);
 
-		// to-do add wind damping
+		K.flush();
+		B.flush();
 
-		//SparseMat A(dim, dim);
-		//A.setIdentity();
-		//A += m_mass_1 * (B + K * tdiv2) * tdiv2;
+		B += m_wind_damping;
 
 		SparseMat A  = m_mass + (B + K * tdiv2) * tdiv2;
 		VecX b = -tdiv2 * ((K * m_position - C) + (B + K * tdiv2) * m_velocity);
 
-		// z = 0
-		VecX dv(dim), dv1(dim);MatX to(21, 4);
+		VecX dv(dim);
 		modified_pcg(A, b, dv);
-		//simple_solve(A, b, dv1);
-		//filter(dv1, dv);
 
 		m_velocity += 2 * dv;
 		m_position += m_velocity * fTimeElapsed;

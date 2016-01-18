@@ -1,6 +1,7 @@
 #pragma once
 #include <Eigen\SparseCore>
 #include "wrTypes.h"
+#include "wrTripleMatrix.h"
 
 namespace WR
 {
@@ -13,7 +14,7 @@ namespace WR
 		ISpring(){}
 		virtual ~ISpring(){}
 
-		virtual void applyForces(SparseMat& matK, SparseMat& matB, VecX& Const) const = 0;
+		virtual void applyForces(SparseMatAssemble& matK, SparseMatAssemble& matB, VecX& Const) const = 0;
 		float K() const { return _K; };
 
 	protected:
@@ -26,7 +27,7 @@ namespace WR
 		public ISpring
 	{
 	public:
-		void applyForces(SparseMat& matK, SparseMat& matB, VecX& Const) const;
+		void applyForces(SparseMatAssemble& matK, SparseMatAssemble& matB, VecX& Const) const;
 		void setSpring(int type, const Particle* p0, const Particle* p1, float K);
 		void setCoef(float k, float l);
 
@@ -41,7 +42,7 @@ namespace WR
 		public ISpring
 	{
 	public:
-		void applyForces(SparseMat& matK, SparseMat& matB, VecX& Const) const;
+		void applyForces(SparseMatAssemble& matK, SparseMatAssemble& matB, VecX& Const) const;
 
 	protected:
 		Particle* nodes[4];  // 0 big index, 1 small index
@@ -51,7 +52,7 @@ namespace WR
 		public ISpring
 	{
 	public:
-		void applyForces(SparseMat& matK, SparseMat& matB, VecX& Const) const;
+		void applyForces(SparseMatAssemble& matK, SparseMatAssemble& matB, VecX& Const) const;
 
 	protected:
 		Particle* nodes[4];  // 0 big index, 1 small index

@@ -169,5 +169,8 @@
     <ClInclude Include="wrSpring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="wrTripleMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

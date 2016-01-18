@@ -34,5 +34,5 @@ private:
 
     DirectX::XMFLOAT3*      vInputs = nullptr;
 
-    const WR::Hair const*   pHair;
+    const WR::Hair*			pHair;
 };

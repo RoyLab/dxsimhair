@@ -8,7 +8,7 @@ using namespace Eigen;
 
 namespace WR
 {
-	void BiSpring::applyForces(SparseMat& mK, SparseMat& mB, VecX& vC) const
+	void BiSpring::applyForces(SparseMatAssemble& mK, SparseMatAssemble& mB, VecX& vC) const
 	{
 		Vec3 d = (nodes[0]->get_pos() - nodes[1]->get_pos());
 		d.normalize();
@@ -20,17 +20,15 @@ namespace WR
 		const int id0 = nodes[0]->get_Id();
 		const int id1 = nodes[1]->get_Id();
 
-		add_mat_triple(mK, id0, id0, d3x3K);
-		add_mat_triple(mK, id1, id1, d3x3K);
+		mK.add_triple(id1, id1, d3x3K);
+		mK.add_triple_without_check(id1, id0, -d3x3K);
+		mK.add_triple_without_check(id0, id1, -d3x3K);
+		mK.add_triple(id0, id0, d3x3K);
 
-		add_mat_triple(mK, id0, id1, -d3x3K);
-		add_mat_triple(mK, id1, id0, -d3x3K);
-
-		add_mat_triple(mB, id0, id0, d3x3B);
-		add_mat_triple(mB, id1, id1, d3x3B);
-
-		add_mat_triple(mB, id0, id1, -d3x3B);
-		add_mat_triple(mB, id1, id0, -d3x3B);
+		mB.add_triple(id1, id1, d3x3B);
+		mB.add_triple_without_check(id1, id0, -d3x3B);
+		mB.add_triple(id0, id0, d3x3B);
+		mB.add_triple_without_check(id0, id1, -d3x3B);
 
 		triple(vC, id0) += d3C;
 		triple(vC, id1) -= d3C;

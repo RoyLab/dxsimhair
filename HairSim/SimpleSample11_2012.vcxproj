@@ -246,8 +246,7 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy /Y "$(TargetDir)$(ProjectName).exe" "$(SolutionDir)HairSim\$(ProjectName).exe"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
@@ -435,6 +434,7 @@
     <ClInclude Include="wrStrand.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="wrTetrahedron.h" />
+    <ClInclude Include="wrTripleMatrix.h" />
     <ClInclude Include="wrTypes.h" />
     <ResourceCompile Include="SimpleSample.rc" />
   </ItemGroup>
