@@ -14,7 +14,7 @@ class wrHairRenderer:
     public wrRendererInterface
 {
 public:
-    wrHairRenderer(const wrHair& hair);
+	wrHairRenderer(const WR::Hair& hair);
 	~wrHairRenderer();
 
     bool init();
@@ -34,5 +34,5 @@ private:
 
     DirectX::XMFLOAT3*      vInputs = nullptr;
 
-    wrHair const*           pHair;
+    const WR::Hair*			pHair;
 };

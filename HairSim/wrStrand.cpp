@@ -3,15 +3,14 @@
 #include <vector>
 #include <Eigen\Dense>
 #include "wrTetrahedron.h"
+#include "Parameter.h"
+#include "wrSpring.h"
 
 using namespace Eigen;
 
 namespace
 {
-    const float K_SPRINGS[4] = { 0.0f /*null*/, 2.0e-3f, 20.0e-5f, 10.0e-5f };
-    const float PARTICLE_MASS = 5.0e-7f;  // kg
-    const float DAMPING_COEF = 1.0e-5f;
-    const float WIND_DAMPING_COEF = 1.e-5f;
+
 
     const int REAL_SPRING_DICT[][4] = {
         {1, 2, 3, 0},
@@ -78,15 +77,28 @@ namespace
     }
 }
 
+size_t wrParticle::gCount = 0;
+
 wrStrand::~wrStrand()
 {
     SAFE_DELETE_ARRAY(particles);
+	for (size_t i = 0; i < nSprings; i++)
+		SAFE_DELETE(springs[i]);
     SAFE_DELETE_ARRAY(springs);
     SAFE_DELETE_ARRAY(tetras);
 }
 
+// init springs and tetrahedrons
 bool wrStrand::initSimulation()
 {
+	nSprings = 3 * (nParticles - 3);
+	springs = new wrISpring*[nSprings];
+	memset(springs, 0, sizeof(wrISpring*)*nSprings);
+
+	size_t springPtr = 0;
+	for (size_t i = 3; i < nParticles; i++)
+		pushSprings(particles + i, springPtr);
+
     const size_t nTetras = getNumberOfTetras();
     tetras = new wrTetrahedron[nTetras];
     for (size_t i = 0; i < nTetras; i++)
@@ -123,19 +135,16 @@ bool wrStrand::init(float* positions)
     // apply the memory, two extra virtual particles for the root
     nParticles = N_PARTICLES_PER_STRAND + collinearPos.size() + 2;
     particles = new wrParticle[nParticles];
-    memset(particles, 0, sizeof(wrParticle)*nParticles);
 
-    nSprings = 3 * (nParticles - 3);
-    springs = new wrSpring[nSprings];
-    memset(springs, 0, sizeof(wrSpring)*nSprings);
-
-    // generate 2 virtual (but with real [isVirtual] flag) hair root particles
+    // generate 2 virtual (but with [isVirtual] = false) hair root particles
     vec3_sub(particles[0].position, pos[0], edgeSprings[0]);
     genRandParticle(particles[1].position, particles[0].position, pos[0]);
+	particles[0].isFixed = true;
+	particles[1].isFixed = true;
+	particles[2].isFixed = true;
 
     // copy information into normal particles
     bool isThisVirtual = false;
-    size_t springPtr = 0;
     for (size_t i = 2, i1 = 0, i2 = 0; i < nParticles; i++)
     {
         particles[i].mass_1 = 1.f / PARTICLE_MASS;
@@ -146,7 +155,6 @@ bool wrStrand::init(float* positions)
             particles[i].isVirtual = true;
             particles[i].idx = i;
 
-            pushSprings(particles + i, springPtr);
         }
         else
         {
@@ -155,10 +163,6 @@ bool wrStrand::init(float* positions)
             particles[i].idx = i;
 
             pRealParticles[i1] = particles + i;
-
-            if (i != 2) // root particle (idx 2) is special, no front springs added.
-                pushSprings(particles + i, springPtr);
-
             if (collinearPos.size() > i2 && collinearPos[i2] == i1)
             {
                 isThisVirtual = true;
@@ -167,6 +171,9 @@ bool wrStrand::init(float* positions)
             ++i1;
         }
     }
+
+	// the last particle has a half mass
+	particles[nParticles - 1].mass_1 *= 2.f;
 
     // assign position to reference
     for (size_t i = 0; i < nParticles; i++)
@@ -196,14 +203,10 @@ void wrStrand::pushSingleSpring(wrParticle* p, size_t& sp, int stride)
 {
     if (stride)
     {
-        auto &spring = springs[sp];
-        spring.type = stride;
-
-        spring.nodes[0] = p;
-        spring.nodes[1] = p - stride;
-
-        spring.strength = K_SPRINGS[stride];
-        spring.coef = spring.strength / computeDistance(spring.nodes[0]->position, spring.nodes[1]->position);
+        auto &ptr = springs[sp];
+		auto spring = new wrNormalSpring;
+		//spring->setSpring(stride, p, p - stride, K_SPRINGS[stride]);
+		ptr = spring;
 
         ++sp;
     }
@@ -239,88 +242,89 @@ void wrStrand::assignBackVectors(MatrixXf& Xn, MatrixXf& Vn)
 
 size_t wrStrand::computeMatrices(MatrixXf& K, MatrixXf& B, MatrixXf& C)
 {
-    const int offset = -3;
-    const size_t nParticles = this->nParticles + offset;
-    size_t nDim = 3 * nParticles;
-    K = MatrixXf::Zero(nDim, nDim);
-    B = MatrixXf::Zero(nDim, nDim);
-    C = MatrixXf::Zero(nDim, 1);
+  //  const int offset = -3;
+  //  const size_t nParticles = this->nParticles + offset;
+  //  size_t nDim = 3 * nParticles;
+  //  K = MatrixXf::Zero(nDim, nDim);
+  //  B = MatrixXf::Zero(nDim, nDim);
+  //  C = MatrixXf::Zero(nDim, 1);
 
-    vec3 de, coefk, coefc, coefb;
-    for (size_t i = 0; i < nSprings; i++)
-    {
-        auto &spring = this->springs[i];
-        vec3_sub(de, spring.nodes[0]->position, spring.nodes[1]->position);
-        vec3_norm(de, de);
+  //  vec3 de, coefk, coefc, coefb;
+  //  for (size_t i = 0; i < nSprings; i++)
+  //  {
+  //      auto &spring = *reinterpret_cast<wrNormalSpring*>(this->springs[i]);
+  //      vec3_sub(de, spring.nodes[0]->position, spring.nodes[1]->position);
+  //      vec3_norm(de, de);
 
-        size_t a = spring.nodes[0]->idx;
-        size_t b = spring.nodes[1]->idx;
-        int ai = 3 * (a + offset);
-        int bi = 3 * (b + offset);
+  //      size_t a = spring.nodes[0]->idx;
+  //      size_t b = spring.nodes[1]->idx;
+  //      int ai = 3 * (a + offset);
+  //      int bi = 3 * (b + offset);
 
-        vec3_scale(coefk, de, spring.coef);
-        vec3_scale(coefc, de, spring.strength);
-        vec3_scale(coefb, de, DAMPING_COEF);
+  //      vec3_scale(coefk, de, spring.KdivL0);
+  //      vec3_scale(coefc, de, spring.K());
+  //      vec3_scale(coefb, de, DAMPING_COEF);
 
-        if ((ai + 1) * (bi + 1) > 0)
-        {
-            // row j, column k
-            for (int j = 0; j < 3; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    float value = coefk[j] * de[k];
-                    float valueb = coefb[j] * de[k];
+  //      if ((ai + 1) * (bi + 1) > 0)
+  //      {
+  //          // row j, column k
+  //          for (int j = 0; j < 3; j++)
+  //          {
+  //              for (int k = 0; k < 3; k++)
+  //              {
+  //                  float value = coefk[j] * de[k];
+  //                  float valueb = coefb[j] * de[k];
 
-                    K(ai + j, ai + k) += value;
-                    K(ai + j, bi + k) += -value;
-                    K(bi + j, ai + k) += -value;
-                    K(bi + j, bi + k) += value;
+  //                  K(ai + j, ai + k) += value;
+  //                  K(ai + j, bi + k) += -value;
+  //                  K(bi + j, ai + k) += -value;
+  //                  K(bi + j, bi + k) += value;
 
-                    B(ai + j, ai + k) += valueb;
-                    B(ai + j, bi + k) += -valueb;
-                    B(bi + j, ai + k) += -valueb;
-                    B(bi + j, bi + k) += valueb;
-                }
-                C(ai + j, 0) -= coefc[j];
-                C(bi + j, 0) += coefc[j];
-            }
-        }
-        else // since bi < ai, so bi < 0
-        {
-            // row j, column k
-            for (int j = 0; j < 3; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    float value = coefk[j] * de[k];
-                    float valueb = coefb[j] * de[k];
+  //                  B(ai + j, ai + k) += valueb;
+  //                  B(ai + j, bi + k) += -valueb;
+  //                  B(bi + j, ai + k) += -valueb;
+  //                  B(bi + j, bi + k) += valueb;
+  //              }
+  //              C(ai + j, 0) -= coefc[j];
+  //              C(bi + j, 0) += coefc[j];
+  //          }
+  //      }
+  //      else // since bi < ai, so bi < 0
+  //      {
+  //          // row j, column k
+  //          for (int j = 0; j < 3; j++)
+  //          {
+  //              for (int k = 0; k < 3; k++)
+  //              {
+  //                  float value = coefk[j] * de[k];
+  //                  float valueb = coefb[j] * de[k];
 
-                    K(ai + j, ai + k) += value;
-                    B(ai + j, ai + k) += valueb;
-                }
-                C(ai + j, 0) -= coefc[j];
-                C(ai + j, 0) -= vec3_mul_inner(spring.nodes[1]->position, de) * coefk[j];
-            }
-        }
-    }
+  //                  K(ai + j, ai + k) += value;
+  //                  B(ai + j, ai + k) += valueb;
+  //              }
+  //              C(ai + j, 0) -= coefc[j];
+  //              C(ai + j, 0) -= vec3_mul_inner(spring.nodes[1]->position, de) * coefk[j];
+  //          }
+  //      }
+  //  }
 
-    // for wind damping
-    for (size_t i = 3; i < nParticles; i++)
-    {
-		C(3 * (i + offset) + 1, 0) += 10.0 * PARTICLE_MASS;
-		for (int j = 0; j < 3; j++)
-		{
-            B(3 * (i + offset) + j, 3 * (i + offset) + j) += WIND_DAMPING_COEF;
-		}
-    }
+  //  // for wind damping
+  //  for (size_t i = 3; i < nParticles; i++)
+  //  {
+		//C(3 * (i + offset) + 1, 0) += 10.0 * PARTICLE_MASS;
+		//for (int j = 0; j < 3; j++)
+		//{
+  //          B(3 * (i + offset) + j, 3 * (i + offset) + j) += WIND_DAMPING_COEF;
+		//}
+  //  }
 
-    // add altitude spring
-    //const auto nTetras = getNumberOfTetras();
-    //for (size_t i = 0; i < nTetras; i++)
-    //    tetras[i].applySpring(C);
-    
-    return nDim;
+  //  // add altitude spring
+  //  //const auto nTetras = getNumberOfTetras();
+  //  //for (size_t i = 0; i < nTetras; i++)
+  //  //    tetras[i].applySpring(C);
+  //  
+  //  return nDim;
+	return 0;
 }
 
 

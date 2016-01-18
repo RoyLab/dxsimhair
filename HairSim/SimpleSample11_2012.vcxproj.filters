@@ -20,6 +20,9 @@
     <Filter Include="FBX">
       <UniqueIdentifier>{e366668c-c870-4fe5-8ea6-616560973fb5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Miscs">
+      <UniqueIdentifier>{ddc1de22-ef8b-40e6-be5d-f2681f69797c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\DXUT\Optional\directx.ico">
@@ -36,9 +39,6 @@
     <ClCompile Include="wrHair.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wrHairLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="wrHairRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -49,9 +49,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="wrHairSimulator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="wrSceneManager.cpp">
@@ -79,6 +76,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="wrGeo.cpp">
+      <Filter>Miscs</Filter>
+    </ClCompile>
+    <ClCompile Include="wrLogger.cpp">
+      <Filter>Miscs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigReader.cpp">
+      <Filter>Miscs</Filter>
+    </ClCompile>
+    <ClCompile Include="wrSpring.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -97,25 +103,10 @@
     <ResourceCompile Include="SimpleSample.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-    <ClInclude Include="linmath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrColorGenerator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="wrHair.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wrHairLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="wrHairRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrLogger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wrStrand.h">
@@ -148,7 +139,37 @@
     <ClInclude Include="wrLevelsetOctree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Parameter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrMacro.h">
+      <Filter>Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrTypes.h">
+      <Filter>Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrMath.h">
+      <Filter>Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrLogger.h">
+      <Filter>Miscs</Filter>
+    </ClInclude>
     <ClInclude Include="wrGeo.h">
+      <Filter>Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="linmath.h">
+      <Filter>Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrColorGenerator.h">
+      <Filter>Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigReader.h">
+      <Filter>Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrSpring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrTripleMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
