@@ -2,18 +2,16 @@
 #include "wrMacro.h"
 #include "wrTypes.h"
 #include "linmath.h"
+#include "Parameter.h"
 #include <list>
 
 namespace WR
 {
 	class Hair;
 	class ISpring;
+	class StrainLimitPair;
 
 	Hair *loadFile(wchar_t*);
-
-#ifndef N_PARTICLES_PER_STRAND
-#define N_PARTICLES_PER_STRAND      25
-#endif
 
 	class HairParticle
 	{
@@ -107,6 +105,11 @@ namespace WR
 		void add_inner_springs();
 		void push_springs(int idx);
 		void push_single_spring(int idx, int stride);
+
+		// 保证了从发根到发梢的次序！！非常重要
+		void add_strain_limits();
+
+		void resolve_strain_limits(VecX& vel, float t) const;
 		void step(const Mat3& mWorld, float fTime, float fTimeElapsed);
 
 		template <class _M1, class _M2>
@@ -118,10 +121,11 @@ namespace WR
 		std::list<ISpring*>			m_springs;
 		std::vector<HairStrand>		m_strands;
 		std::vector<HairSegment>		m_segments;
+		std::list<StrainLimitPair*> m_strain_limits;
 
 		VecX							m_position;
 		VecX							m_velocity;
-		VecX							m_filter;
+		VecX							m_filter, m_gravity;
 		SparseMat					m_mass_1, m_mass, m_wind_damping;
 
 		bool							mb_simInited = false;

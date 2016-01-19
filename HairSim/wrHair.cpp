@@ -10,8 +10,8 @@
 #include "wrSpring.h"
 #include "wrTripleMatrix.h"
 
+#define FULL_IMPLICIT
 using namespace WR;
-
 
 namespace
 {
@@ -27,6 +27,12 @@ namespace
 		{ 1, 2, 3 },
 		{ 1, 3, 0 }
 	};
+
+	inline void remove_vertical_comp(const Vec3& n, Vec3& v)
+	{
+		Vec3 diff = n.normalized();
+		v -= v.dot(diff) * diff;
+	}
 
 	int classifyRealParticle(WR::HairParticle* p)
 	{
@@ -78,10 +84,19 @@ namespace
 
 		vec3_add(r, r, middle);
 	}
+
+
 }
 
 namespace WR
 {
+
+	struct StrainLimitPair
+	{
+		float squared_length;
+		int Id[2]; // 0 > 1
+	};
+
 	Hair* HairParticle::m_hair = nullptr;
 	Hair* HairStrand::m_hair = nullptr;
 
@@ -227,10 +242,14 @@ namespace WR
 		for (auto spring : m_springs)
 			SAFE_DELETE(spring);
 
+		for (auto limit : m_strain_limits)
+			SAFE_DELETE(limit);
+
 		m_particles.clear();
 		m_springs.clear();
 		m_strands.clear();
 		m_segments.clear();
+		m_strain_limits.clear();
 	}
 
 	bool Hair::init_simulation()
@@ -239,7 +258,8 @@ namespace WR
 
 		init_matrices();
 		add_inner_springs();
-		
+		add_strain_limits();
+
 		return true;
 	}
 	void Hair::init_matrices()
@@ -253,6 +273,11 @@ namespace WR
 
 		m_filter.resize(3 * n);
 		m_filter.setOnes();
+
+		m_gravity.resize(3 * n);
+		m_gravity.setZero();
+		for (size_t i = 0; i < n; i++)
+			triple(m_gravity, i) = Vec3(GRAVITY) / m_particles[i].get_mass_1();
 
 		m_mass_1.resize(3 * n, 3 * n);
 		m_mass_1.reserve(VecX::Constant(3 * n, 1));
@@ -289,6 +314,38 @@ namespace WR
 			}
 		}
 
+	}
+
+	void Hair::add_strain_limits()
+	{
+		StrainLimitPair* data;
+		size_t n = m_strands.size();
+		for (size_t i = 0; i < n; i++)
+		{
+			auto & strand = m_strands[i];
+			size_t np = strand.m_parIds.size();
+			for (size_t i = 4; i < np; i++)
+			{
+				data = new StrainLimitPair;
+
+				int idx = strand.m_parIds[i];
+				int idx2 = strand.m_parIds[i - 1];
+
+				if (m_particles[idx].isPerturbed())
+					data->Id[1] = idx2;
+				else
+				{
+					if (m_particles[idx2].isPerturbed())
+						data->Id[1] = strand.m_parIds[i - 2];
+					else	 data->Id[1] = idx2;
+				}
+
+				data->Id[0] = idx;
+				Vec3 diff = m_particles[data->Id[0]].get_ref() - m_particles[data->Id[1]].get_ref();
+				data->squared_length = diff.dot(diff);
+				m_strain_limits.push_back(data);
+			}
+		}
 	}
 
 	void Hair::add_inner_springs()
@@ -355,7 +412,7 @@ namespace WR
 
 	void Hair::step(const Mat3& mWorld, float fTime, float fTimeElapsed)
 	{
-		const float tdiv2 = fTimeElapsed / 2;
+		assert(mb_simInited);
 
 		// modify root node's pos, vel. first 3.
 		// 假设固定点都在匀速运动
@@ -387,16 +444,32 @@ namespace WR
 		K.flush();
 		B.flush();
 
-		B += m_wind_damping;
-
-		SparseMat A  = m_mass + (B + K * tdiv2) * tdiv2;
-		VecX b = -tdiv2 * ((K * m_position - C) + (B + K * tdiv2) * m_velocity);
+#ifdef FULL_IMPLICIT
+		SparseMat T = B + m_wind_damping + K * fTimeElapsed;
+		SparseMat A = m_mass + T * fTimeElapsed;
+		VecX b = -fTimeElapsed * ((K * m_position - C) + T * m_velocity) + m_gravity;
 
 		VecX dv(dim);
 		modified_pcg(A, b, dv);
 
-		m_velocity += 2 * dv;
+		m_velocity += dv;
+		resolve_strain_limits(m_velocity, fTimeElapsed);
 		m_position += m_velocity * fTimeElapsed;
+#else
+		const float tdiv2 = fTimeElapsed / 2;
+
+		SparseMat T = B + m_wind_damping + K * tdiv2;
+		SparseMat A = m_mass + T * tdiv2;
+		VecX b = -tdiv2 * ((K * m_position - C) + T * m_velocity);
+
+		VecX dv(dim);
+		modified_pcg(A, b, dv);
+
+		m_velocity += 2 *dv;
+		VecX v_1_2 = m_velocity - dv;
+		//resolve_strain_limits(v_1_2);
+		m_position += v_1_2 * fTimeElapsed;
+#endif
 	}
 
 	void Hair::simple_solve(const SparseMat& A, const VecX& b, VecX& x) const
@@ -416,9 +489,7 @@ namespace WR
 		{
 			P.insert(i, i) = 1.f / A.coeff(i, i);
 			P_1.insert(i, i) = A.coeff(i, i);
-			//P_1(i, i) = A(i, i);
 		}
-		//P = P_1.inverse();
 
 		VecX b_f(dim), r(dim), c(dim), q(dim), s(dim);
 		float dnew, dold, a;
@@ -463,4 +534,33 @@ namespace WR
 		}
 	}
 
+	void Hair::resolve_strain_limits(VecX& vel, float t) const
+	{
+		bool flag = false;
+		for (auto &limit : m_strain_limits)
+		{
+			Vec3 diff = Vec3(get_particle_position(limit->Id[0])) - 	Vec3(get_particle_position(limit->Id[1]));
+			Vec3 v_diff = triple(vel, limit->Id[0]) - triple(vel, limit->Id[1]);
+			
+			Vec3 pred_diff = diff + v_diff * t;
+			float sqRatio = pred_diff.dot(pred_diff) / limit->squared_length;
+
+			if (sqRatio > 1.21f)
+			{
+				flag = true;
+				pred_diff *=  1.1 / sqrt(sqRatio);
+			}
+			else if (sqRatio < 0.81f)
+			{
+				flag = true;
+				pred_diff *= 0.9 / sqrt(sqRatio);
+			}
+
+			if (flag)
+			{
+				flag = false;
+				triple(vel, limit->Id[0]) = (pred_diff - diff) / t + triple(vel, limit->Id[1]);
+			}
+		}
+	}
 }

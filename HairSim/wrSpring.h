@@ -2,6 +2,7 @@
 #include <Eigen\SparseCore>
 #include "wrTypes.h"
 #include "wrTripleMatrix.h"
+#include <vector>
 
 namespace WR
 {
@@ -57,6 +58,7 @@ namespace WR
 	protected:
 		Particle* nodes[4];  // 0 big index, 1 small index
 	};
+
 }
 
 typedef WR::ISpring wrISpring;

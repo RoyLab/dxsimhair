@@ -1,24 +1,24 @@
 #pragma once
 
 
-const float K_SPRINGS[4] = { 0.0f /*null*/, 2.0e-3f, 20.0e-5f, 10.0e-5f };
-const float PARTICLE_MASS = 5.0e-7f;  // kg
-const float DAMPING_COEF = 1.0e-5f;
-const float WIND_DAMPING_COEF = 1.e-5f;
+#ifndef N_PARTICLES_PER_STRAND
+#define N_PARTICLES_PER_STRAND      25
+#endif
 
-const float         MAX_TIME_STEP = 1.0e-3f;
-const int           MAX_PASS_NUMBER = 1;
+extern float K_SPRINGS[4];
+extern float PARTICLE_MASS;  // kg
+extern float DAMPING_COEF;
+extern float WIND_DAMPING_COEF;
 
-const vec3          GRAVITY = { 0.0f, -10.0f, 0.0f };
+extern float         MAX_TIME_STEP;
+extern int           MAX_PASS_NUMBER;
 
-const int           N_STRAND_MATRIX_DIM = 3 * N_PARTICLES_PER_STRAND;
+extern float          GRAVITY[3];
 
 
 #define COMPRESS
 
-#ifdef COMPRESS
-const int COMPRESS_RATIO = 500;
-#endif
+extern int COMPRESS_RATIO;
+extern float K_ALTITUDE_SPRING;
 
-
-const float K_ALTITUDE_SPRING = 0.e-6f;
+void init_global_param();

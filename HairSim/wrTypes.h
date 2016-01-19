@@ -53,8 +53,8 @@ namespace WR
 		return Eigen::Block<const Derived, 3, 3>(m.derived(), 3 * i, 3 * i);
 	}
 
-#define ss_triple(m, i, j)\
-	((m).block(3, 3, 3 * (i), 3 * (j)))
+//#define ss_triple(m, i, j)\
+//	((m).block(3, 3, 3 * (i), 3 * (j)))
 
 	inline void add_mat_triple(SparseMat& mat, int mi, int mj, const Mat3& c)
 	{

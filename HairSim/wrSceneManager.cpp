@@ -6,6 +6,7 @@
 #include <GeometricPrimitive.h>
 #include <DXUTcamera.h>
 #include "wrTypes.h"
+#include "Parameter.h"
 
 
 
@@ -46,6 +47,7 @@ bool wrSceneManager::init()
     pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
     initConstantBuffer();
+	init_global_param();
 
     pHair = WR::loadFile(L"../../models/straight.hair");
 	pHair->scale(0.01f);
