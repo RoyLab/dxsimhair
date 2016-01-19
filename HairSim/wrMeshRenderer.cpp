@@ -9,9 +9,9 @@
 
 using namespace DirectX;
 std::unique_ptr<GeometricPrimitive> shape;
-FBX_LOADER::CFBXRenderDX11*	g_pFbxDX11;
+FBX_LOADER::CFBXRenderDX11*    g_pFbxDX11;
 
-ID3DUserDefinedAnnotation*			g_pUserAnotation = nullptr;
+ID3DUserDefinedAnnotation*            g_pUserAnotation = nullptr;
 
 
 wrMeshRenderer::wrMeshRenderer()

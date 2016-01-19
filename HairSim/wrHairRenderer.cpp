@@ -135,8 +135,8 @@ void wrHairRenderer::render(double fTime, float fTimeElapsed)
     {
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
         {
-			memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].pos, pHair->get_visible_particle_position(i, j), sizeof(vec3));
-			memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &vInputs[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
+            memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].pos, pHair->get_visible_particle_position(i, j), sizeof(vec3));
+            memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &vInputs[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
         }
     }
     pd3dImmediateContext->Unmap(pVB, 0);

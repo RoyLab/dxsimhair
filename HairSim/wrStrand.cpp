@@ -82,8 +82,8 @@ size_t wrParticle::gCount = 0;
 wrStrand::~wrStrand()
 {
     SAFE_DELETE_ARRAY(particles);
-	for (size_t i = 0; i < nSprings; i++)
-		SAFE_DELETE(springs[i]);
+    for (size_t i = 0; i < nSprings; i++)
+        SAFE_DELETE(springs[i]);
     SAFE_DELETE_ARRAY(springs);
     SAFE_DELETE_ARRAY(tetras);
 }
@@ -91,13 +91,13 @@ wrStrand::~wrStrand()
 // init springs and tetrahedrons
 bool wrStrand::initSimulation()
 {
-	nSprings = 3 * (nParticles - 3);
-	springs = new wrISpring*[nSprings];
-	memset(springs, 0, sizeof(wrISpring*)*nSprings);
+    nSprings = 3 * (nParticles - 3);
+    springs = new wrISpring*[nSprings];
+    memset(springs, 0, sizeof(wrISpring*)*nSprings);
 
-	size_t springPtr = 0;
-	for (size_t i = 3; i < nParticles; i++)
-		pushSprings(particles + i, springPtr);
+    size_t springPtr = 0;
+    for (size_t i = 3; i < nParticles; i++)
+        pushSprings(particles + i, springPtr);
 
     const size_t nTetras = getNumberOfTetras();
     tetras = new wrTetrahedron[nTetras];
@@ -139,9 +139,9 @@ bool wrStrand::init(float* positions)
     // generate 2 virtual (but with [isVirtual] = false) hair root particles
     vec3_sub(particles[0].position, pos[0], edgeSprings[0]);
     genRandParticle(particles[1].position, particles[0].position, pos[0]);
-	particles[0].isFixed = true;
-	particles[1].isFixed = true;
-	particles[2].isFixed = true;
+    particles[0].isFixed = true;
+    particles[1].isFixed = true;
+    particles[2].isFixed = true;
 
     // copy information into normal particles
     bool isThisVirtual = false;
@@ -172,8 +172,8 @@ bool wrStrand::init(float* positions)
         }
     }
 
-	// the last particle has a half mass
-	particles[nParticles - 1].mass_1 *= 2.f;
+    // the last particle has a half mass
+    particles[nParticles - 1].mass_1 *= 2.f;
 
     // assign position to reference
     for (size_t i = 0; i < nParticles; i++)
@@ -204,9 +204,9 @@ void wrStrand::pushSingleSpring(wrParticle* p, size_t& sp, int stride)
     if (stride)
     {
         auto &ptr = springs[sp];
-		auto spring = new wrNormalSpring;
-		//spring->setSpring(stride, p, p - stride, K_SPRINGS[stride]);
-		ptr = spring;
+        auto spring = new wrNormalSpring;
+        //spring->setSpring(stride, p, p - stride, K_SPRINGS[stride]);
+        ptr = spring;
 
         ++sp;
     }
@@ -311,11 +311,11 @@ size_t wrStrand::computeMatrices(MatrixXf& K, MatrixXf& B, MatrixXf& C)
   //  // for wind damping
   //  for (size_t i = 3; i < nParticles; i++)
   //  {
-		//C(3 * (i + offset) + 1, 0) += 10.0 * PARTICLE_MASS;
-		//for (int j = 0; j < 3; j++)
-		//{
+        //C(3 * (i + offset) + 1, 0) += 10.0 * PARTICLE_MASS;
+        //for (int j = 0; j < 3; j++)
+        //{
   //          B(3 * (i + offset) + j, 3 * (i + offset) + j) += WIND_DAMPING_COEF;
-		//}
+        //}
   //  }
 
   //  // add altitude spring
@@ -324,7 +324,7 @@ size_t wrStrand::computeMatrices(MatrixXf& K, MatrixXf& B, MatrixXf& C)
   //  //    tetras[i].applySpring(C);
   //  
   //  return nDim;
-	return 0;
+    return 0;
 }
 
 

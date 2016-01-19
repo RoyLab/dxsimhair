@@ -6,7 +6,7 @@ class wrMeshRenderer;
 
 namespace WR
 {
-	class Hair;
+    class Hair;
 }
 
 

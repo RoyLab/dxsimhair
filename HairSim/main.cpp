@@ -143,7 +143,7 @@ void InitApp()
 
     CreateConsole();
 
-	test();
+    test();
 }
 
 

@@ -55,12 +55,12 @@ bool wrHairSimulator::init(wrHair* hair)
 {
     //hair->initSimulation();
 
-	HRESULT hr;
+    HRESULT hr;
 
-	Polyhedron_3 *P = WRG::readFile<Polyhedron_3>("../../models/head.off");
+    Polyhedron_3 *P = WRG::readFile<Polyhedron_3>("../../models/head.off");
     pLSTree = new wrLevelsetOctree;
     V_RETURN(pLSTree->construct(*P, 0));
-	SAFE_DELETE(P);
+    SAFE_DELETE(P);
 
     return true;
 }
@@ -99,33 +99,33 @@ void wrHairSimulator::step(wrHair* hair, XMMATRIX& w, float fTime, float fTimeEl
  //   int n_strands = hair->n_strands();
 
  //   mat4x4 mWorld, mInvWorld;
-	//XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mWorld), w);
-	//CGAL::Aff_transformation_3<K> aff(mWorld[0][0], mWorld[0][1], mWorld[0][2], mWorld[0][3],
-	//	mWorld[1][0], mWorld[1][1], mWorld[1][2], mWorld[1][3],
-	//	mWorld[2][0], mWorld[2][1], mWorld[2][2], mWorld[2][3]);
+    //XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mWorld), w);
+    //CGAL::Aff_transformation_3<K> aff(mWorld[0][0], mWorld[0][1], mWorld[0][2], mWorld[0][3],
+    //    mWorld[1][0], mWorld[1][1], mWorld[1][2], mWorld[1][3],
+    //    mWorld[2][0], mWorld[2][1], mWorld[2][2], mWorld[2][3]);
 
-	//auto invAff = aff.inverse();
+    //auto invAff = aff.inverse();
 
-	//auto invMat = DirectX::XMMatrixInverse(nullptr, w);
-	//XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mInvWorld), invMat);
+    //auto invMat = DirectX::XMMatrixInverse(nullptr, w);
+    //XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&mInvWorld), invMat);
 
-	//size_t nMatDim = wrParticle::n_particles() * 3;
-	//SparseMatrix<float> K(nMatDim, nMatDim), B(nMatDim, nMatDim), C(nMatDim, 1);
-	//vec3 fixedPos[3], fixedVel[3], displace;
+    //size_t nMatDim = wrParticle::n_particles() * 3;
+    //SparseMatrix<float> K(nMatDim, nMatDim), B(nMatDim, nMatDim), C(nMatDim, 1);
+    //vec3 fixedPos[3], fixedVel[3], displace;
  //   for (int i = 0; i < n_strands; i++)
  //   {
  //       auto &strand = pStrands[i];
 
  //       // move the fixed vertices
-	//	// modify velocity
-	//	for (int j = 0; j < 3; j++)
-	//	{
-	//		mat4x4_mul_vec3(fixedPos[j], mWorld, strand.particles[j].reference);
-	//		vec3_sub(displace, fixedPos[j], strand.particles[j].position);
-	//		vec3_scale(strand.particles[j].velocity, displace, fTimeElapsed);
+    //    // modify velocity
+    //    for (int j = 0; j < 3; j++)
+    //    {
+    //        mat4x4_mul_vec3(fixedPos[j], mWorld, strand.particles[j].reference);
+    //        vec3_sub(displace, fixedPos[j], strand.particles[j].position);
+    //        vec3_scale(strand.particles[j].velocity, displace, fTimeElapsed);
 
-	//		vec3_copy(strand.particles[j].position, fixedPos[j]);
-	//	}
+    //        vec3_copy(strand.particles[j].position, fixedPos[j]);
+    //    }
 
 
 
@@ -169,32 +169,32 @@ void wrHairSimulator::step(wrHair* hair, XMMATRIX& w, float fTime, float fTimeEl
 
 //for (size_t i = 0; i < nDim /3; i++)
 //{
-//	Point_3 p( Xnp1(3 * i, 0), Xnp1(3 * i + 1, 0), Xnp1(3 * i + 2, 0) ), p0;
-//	p0 = p.transform(invAff);
+//    Point_3 p( Xnp1(3 * i, 0), Xnp1(3 * i + 1, 0), Xnp1(3 * i + 2, 0) ), p0;
+//    p0 = p.transform(invAff);
 
-//	auto dist = pLSTree->queryInexactDistance(Point_3(p0[0], p0[1], p0[2]));
+//    auto dist = pLSTree->queryInexactDistance(Point_3(p0[0], p0[1], p0[2]));
 
 //          //WR_LOG_TRACE << "point: " << Point_3(p0[0], p0[1], p0[2]);
 //          //WR_LOG_TRACE << "distance: " << dist;
 
-//	if (dist < 0)
-//	{
-//		//Vector_3 grad;
+//    if (dist < 0)
+//    {
+//        //Vector_3 grad;
 //              auto dir = (p0 - pLSTree->center());
 //              auto dire = dir / sqrt(dir.squared_length());
 //              p0 = pLSTree->center() + dire * pLSTree->radius();
 //              //pLSTree->queryGradient(Point_3(p0[0], p0[1], p0[2]), grad);
 
-//		//Vector_3 delta = (dist / grad.squared_length()) * grad;
+//        //Vector_3 delta = (dist / grad.squared_length()) * grad;
 //              //p0 = p0 + delta;
 //              
 //              p = p0.transform(aff);
 //              for (size_t j = 0; j < 3; j++)
 //              {
-//			Xnp1(3* i + j, 0) = p[j];
+//            Xnp1(3* i + j, 0) = p[j];
 //                  Vnp1(3 * i + j, 0) = 0;
 //              }
-//	}
+//    }
 //}
 
 //      strand.assignBackVectors(Xnp1, Vnp1);

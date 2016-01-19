@@ -238,7 +238,7 @@ void wrTetrahedron::applySpring(Eigen::MatrixXf& C)
         {
             vec3 C1;
             vec3_sub(C1, pos[edges[edge_edge[maxIdx][0]][0]], pos[edges[edge_edge[maxIdx][1]][0]]);
-			
+            
             float n1n2 = vec3_mul_inner(maxU, maxV);
             float n1_2 = vec3_mul_inner(maxU, maxU);
             float n2_2 = vec3_mul_inner(maxV, maxV);
