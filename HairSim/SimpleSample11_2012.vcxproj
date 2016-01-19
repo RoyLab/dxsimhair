@@ -394,6 +394,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Parameter.cpp" />
+    <ClCompile Include="SphereCollisionObject.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="wrGeo.cpp" />
     <ClCompile Include="wrSpring.cpp" />
@@ -417,6 +418,8 @@
     <ClInclude Include="CFBXRendererDX11.h" />
     <ClInclude Include="ConfigReader.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="ICollisionObject.h" />
+    <ClInclude Include="SphereCollisionObject.h" />
     <ClInclude Include="wrMacro.h" />
     <ClInclude Include="linmath.h" />
     <ClInclude Include="Parameter.h" />

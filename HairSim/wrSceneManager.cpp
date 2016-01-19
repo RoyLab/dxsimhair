@@ -49,7 +49,7 @@ bool wrSceneManager::init()
     initConstantBuffer();
 	init_global_param();
 
-    pHair = WR::loadFile(L"../../models/straight.hair");
+    pHair = WR::loadFile(L"../../models/curly.hair");
 	pHair->scale(0.01f);
 	pHair->mirror(false, true, false);
 

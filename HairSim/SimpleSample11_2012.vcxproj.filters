@@ -90,6 +90,9 @@
     <ClCompile Include="Parameter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SphereCollisionObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -173,6 +176,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wrTripleMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ICollisionObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereCollisionObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

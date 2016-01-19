@@ -30,4 +30,8 @@ void init_global_param()
 	MAX_TIME_STEP = std::stof(reader.getValue("timestep"));
 	WIND_DAMPING_COEF = std::stof(reader.getValue("winddamping"));
 	DAMPING_COEF = std::stof(reader.getValue("springdamping"));
+	K_SPRINGS[1] = std::stof(reader.getValue("spring1"));
+	K_SPRINGS[2] = std::stof(reader.getValue("spring2"));
+	K_SPRINGS[3] = std::stof(reader.getValue("spring3"));
+	GRAVITY[1] = -std::stof(reader.getValue("gravity"));
 }
