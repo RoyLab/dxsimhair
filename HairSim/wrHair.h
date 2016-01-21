@@ -5,11 +5,19 @@
 #include "Parameter.h"
 #include <list>
 
+
 namespace WR
 {
     class Hair;
     class ISpring;
     class StrainLimitPair;
+    class ICollisionObject;
+
+    struct UserData
+    {
+        WR::ICollisionObject* pCollisionHead = nullptr;
+    };
+
 
     Hair *loadFile(wchar_t*);
 
@@ -81,7 +89,7 @@ namespace WR
 
         // add springs, add tetrahedrons, add segments
         bool init_simulation();
-        void onFrame(Mat3 world, float fTime, float fTimeElapsed);
+        void onFrame(Mat3 world, float fTime, float fTimeElapsed, UserData* = nullptr);
 
         void scale(float x);
         void mirror(bool, bool, bool);
@@ -109,26 +117,28 @@ namespace WR
         // 保证了从发根到发梢的次序！！非常重要
         void add_strain_limits();
 
-        void resolve_strain_limits(VecX& vel, float t) const;
-        void step(const Mat3& mWorld, float fTime, float fTimeElapsed);
+        void resolve_strain_limits(VecX& pos, VecX& vel, float t) const;
+        void resolve_body_collision(const Mat3& mWorld, VecX& pos, VecX& vel, float t) const;
+        void step(const Mat3& mWorld, float fTime, float fTimeElapsed, UserData* = nullptr);
 
         template <class _M1, class _M2>
         void filter(const _M1& vec, _M2& res) const{ res = m_filter.cwiseProduct(vec); }
         void modified_pcg(const SparseMat& A, const VecX& b, VecX& dv) const;
         void simple_solve(const SparseMat& A, const VecX& b, VecX& dv) const;
 
-        std::vector<HairParticle>    m_particles;
-        std::list<ISpring*>            m_springs;
-        std::vector<HairStrand>        m_strands;
+        std::vector<HairParticle>       m_particles;
+        std::list<ISpring*>             m_springs;
+        std::vector<HairStrand>         m_strands;
         std::vector<HairSegment>        m_segments;
-        std::list<StrainLimitPair*> m_strain_limits;
+        std::list<StrainLimitPair*>     m_strain_limits;
 
         VecX                            m_position;
         VecX                            m_velocity;
         VecX                            m_filter, m_gravity;
-        SparseMat                    m_mass_1, m_mass, m_wind_damping;
+        SparseMat                       m_mass_1, m_mass, m_wind_damping;
 
         bool                            mb_simInited = false;
+        UserData*                       mp_data = nullptr;
     };
 
     inline const Vec3 HairParticle::get_pos() const 

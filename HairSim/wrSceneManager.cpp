@@ -7,6 +7,8 @@
 #include <DXUTcamera.h>
 #include "wrTypes.h"
 #include "Parameter.h"
+#include "SphereCollisionObject.h"
+#include "wrGeo.h"
 
 
 
@@ -57,6 +59,13 @@ bool wrSceneManager::init()
     WR::HairParticle::set_hair(pHair);
     pHair->init_simulation();
 
+    WR::Polyhedron_3 *P = WRG::readFile<WR::Polyhedron_3>("../../models/head.off");
+    WR::SphereCollisionObject* sphere = new WR::SphereCollisionObject;
+    sphere->setupFromPolyhedron(*P);
+    delete P;
+
+    pCollisionHead = sphere;
+
     HRESULT hr;
     pHairRenderer = new wrHairRenderer(*pHair);
     V_RETURN(pHairRenderer->init());
@@ -78,7 +87,10 @@ void wrSceneManager::onFrame(double fTime, float fElapsedTime)
     WR::Mat3 wrmWorld;
     WR::convert3x3(wrmWorld, dxmWorld);
 
-    pHair->onFrame(wrmWorld.transpose(), fTime, fElapsedTime);
+    WR::UserData userData;
+    userData.pCollisionHead = pCollisionHead;
+
+    pHair->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
     pHairRenderer->onFrame(fTime, fElapsedTime);
     pMeshRenderer->onFrame(fTime, fElapsedTime);
 }

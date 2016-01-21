@@ -9,6 +9,7 @@
 #include "wrMacro.h"
 #include "wrSpring.h"
 #include "wrTripleMatrix.h"
+#include "ICollisionObject.h"
 
 #define FULL_IMPLICIT
 using namespace WR;
@@ -386,9 +387,10 @@ namespace WR
         }
     }
 
-    void Hair::onFrame(Mat3 world, float fTime, float fTimeElapsed)
+    void Hair::onFrame(Mat3 world, float fTime, float fTimeElapsed, UserData* pData)
     {
         static Mat3 lastWorld = Mat3::Identity();
+        mp_data = pData;
 
         float tStep = fTimeElapsed;
         int nPass = 1;
@@ -405,12 +407,12 @@ namespace WR
         for (int i = 0; i < nPass; i++)
         {
             lastWorld += matStep;
-            step(lastWorld, (start += tStep), tStep);
+            step(lastWorld, (start += tStep), tStep, pData);
             //Sleep(500);
         }
     }
 
-    void Hair::step(const Mat3& mWorld, float fTime, float fTimeElapsed)
+    void Hair::step(const Mat3& mWorld, float fTime, float fTimeElapsed, UserData* pData)
     {
         assert(mb_simInited);
 
@@ -453,8 +455,12 @@ namespace WR
         modified_pcg(A, b, dv);
 
         m_velocity += dv;
-        resolve_strain_limits(m_velocity, fTimeElapsed);
-        m_position += m_velocity * fTimeElapsed;
+        VecX newPos = m_position + m_velocity * fTimeElapsed;
+        resolve_strain_limits(newPos, m_velocity, fTimeElapsed);
+        resolve_body_collision(mWorld, newPos, m_velocity, fTimeElapsed);
+
+        m_position = newPos;
+
 #else
         const float tdiv2 = fTimeElapsed / 2;
 
@@ -534,15 +540,39 @@ namespace WR
         }
     }
 
-    void Hair::resolve_strain_limits(VecX& vel, float t) const
+    
+    void Hair::resolve_body_collision(const Mat3& mWorld, VecX& pos, VecX& vel, float t) const
+    {
+        auto mInvWorld = mWorld.inverse();
+        size_t ns = m_strands.size();
+        for (size_t i = 0; i < ns; i++)
+        {
+            size_t nvp = m_strands[i].m_visibleParticles.size();
+            for (size_t j = 1; j < nvp; j++)
+            {
+                size_t idx = m_strands[i].m_visibleParticles[j];
+                Vec3 p = mInvWorld * triple(pos, idx);
+                ICollisionObject::Point_3 p1, p0 = ICollisionObject::Point_3(p[0], p[1], p[2]);
+                bool isCollide = mp_data->pCollisionHead->position_correlation(p0, &p1);
+                if (isCollide)
+                {
+                    convert3(p, p1);
+                    p = mWorld * p;
+                    triple(pos, idx) = p;
+                    triple(vel, idx) = (p - Vec3(get_particle_position(idx))) / t;
+                }
+            }
+        }
+    }
+
+
+    void Hair::resolve_strain_limits(VecX& pos, VecX& vel, float t) const
     {
         bool flag = false;
         for (auto &limit : m_strain_limits)
         {
-            Vec3 diff = Vec3(get_particle_position(limit->Id[0])) -     Vec3(get_particle_position(limit->Id[1]));
-            Vec3 v_diff = triple(vel, limit->Id[0]) - triple(vel, limit->Id[1]);
-            
-            Vec3 pred_diff = diff + v_diff * t;
+            Vec3 diff = Vec3(get_particle_position(limit->Id[0])) - Vec3(get_particle_position(limit->Id[1]));
+            Vec3 pred_diff = triple(pos, limit->Id[0]) - triple(pos, limit->Id[1]);
             float sqRatio = pred_diff.dot(pred_diff) / limit->squared_length;
 
             if (sqRatio > 1.21f)
@@ -559,7 +589,10 @@ namespace WR
             if (flag)
             {
                 flag = false;
-                triple(vel, limit->Id[0]) = (pred_diff - diff) / t + triple(vel, limit->Id[1]);
+                Vec3 newpos = pred_diff + triple(pos, limit->Id[1]);
+                triple(pos, limit->Id[0]) = newpos;
+                //triple(vel, limit->Id[0]) = (pred_diff - diff) / t + triple(vel, limit->Id[1]);
+                triple(vel, limit->Id[0]) = (newpos - Vec3(get_particle_position(limit->Id[0]))) / t;
             }
         }
     }
