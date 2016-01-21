@@ -75,9 +75,6 @@
     <ClCompile Include="wrLevelsetOctree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wrGeo.cpp">
-      <Filter>Miscs</Filter>
-    </ClCompile>
     <ClCompile Include="wrLogger.cpp">
       <Filter>Miscs</Filter>
     </ClCompile>

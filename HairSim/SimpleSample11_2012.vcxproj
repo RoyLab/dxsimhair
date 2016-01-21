@@ -132,7 +132,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>_CRTDBG_MAP_ALLOC;WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -217,7 +217,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -302,7 +302,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -396,7 +396,6 @@
     <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="SphereCollisionObject.cpp" />
     <ClCompile Include="test.cpp" />
-    <ClCompile Include="wrGeo.cpp" />
     <ClCompile Include="wrSpring.cpp" />
     <ClCompile Include="wrLevelsetOctree.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />
@@ -457,6 +456,9 @@
     </ProjectReference>
     <ProjectReference Include="..\DXUT\Optional\DXUTOpt_2012.vcxproj">
       <Project>{61b333c2-c4f7-4cc1-a9bf-83f6d95588eb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\LevelSet\LevelSet.vcxproj">
+      <Project>{9fd2cd8c-b136-421c-bfde-5bbe2f2ac3b9}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

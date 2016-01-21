@@ -113,6 +113,7 @@ void wrSceneManager::release()
     if (pMeshRenderer) pMeshRenderer->release();
 
     SAFE_DELETE(pMeshRenderer);
+    SAFE_DELETE(pCollisionHead);
     SAFE_DELETE(pHairRenderer);
     SAFE_DELETE(pHair);
 }
