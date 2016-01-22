@@ -287,7 +287,7 @@ namespace WR
 
     int ADFOctree::detSignOnFace(const Point_3& p, const Vector_3& diff, size_t triIdx) const
     {
-        if (diff * triList[triIdx].normal < 0.0) return 1;
+        if (diff * triList[triIdx].normal > 0.0) return 1;
         else return -1;
     }
 
@@ -297,7 +297,7 @@ namespace WR
         for (size_t i = 0; i < seq; i++, edge++);
 
         Vector_3 normal = (triList[edge->opposite()->facet()->idx].normal + triList[triIdx].normal) / 2.0;
-        if (diff * normal < 0.0) return 1;
+        if (diff * normal > 0.0) return 1;
         else return -1;
     }
 
@@ -312,7 +312,8 @@ namespace WR
         Vector_3 dir(0, 0, 0);
         for (size_t i = 0; i < dim; i++, v_circle++)
         {
-            dir = dir + (v_circle->opposite()->vertex()->point() - vh->point());
+            auto newDir = v_circle->opposite()->vertex()->point() - vh->point();
+            dir = dir + newDir;
         }
         if (diff * dir < 0.0) return 1;
         else return -1;

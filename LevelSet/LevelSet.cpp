@@ -14,13 +14,14 @@
 #include <fstream>
 #include <limits>
 #include <boost/foreach.hpp>
+#include <fstream>
+#include <sstream>
 
 using std::cout;
 using std::endl;
 
 namespace WR
 { 
-
     typedef K::FT FT;
     typedef K::Point_3 Point;
     typedef K::Segment_3 Segment;
@@ -28,15 +29,27 @@ namespace WR
     typedef CGAL::AABB_traits<K, Primitive> Traits;
     typedef CGAL::AABB_tree<Traits> Tree;
 
+    void loadPoints(const wchar_t* fileName, std::vector<Point>& parr)
+    {
+        std::ifstream file(fileName);
+        assert(file);
+        while (!file.eof())
+        {
+            Point p;
+            file >> p;
+            parr.push_back(p);
 
+        }
+        file.close();
+    }
 
     template <class K, class PolygonSide>
     int determine_sign(const PolygonSide& inside, const CGAL::Point_3<K>& query)
     {
         auto res = inside(query);
-        if (res == CGAL::ON_BOUNDED_SIDE) return 1;
+        if (res == CGAL::ON_BOUNDED_SIDE) return -1;
         if (res == CGAL::ON_BOUNDARY) return 0;
-        else return -1;
+        else return 1;
     }
 
 
@@ -78,6 +91,7 @@ namespace WR
         ConfigReader reader("..\\HairSim\\config.ini");
         int level = std::stoi(reader.getValue("maxlevel"));
         int number = std::stoi(reader.getValue("testnumber"));
+        bool loadArray = std::stoi(reader.getValue("loadtest"));
 
         Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
         assert(pModel);
@@ -91,14 +105,24 @@ namespace WR
         
         double size = max_coordinate(*pModel);
         std::vector<Point> points;
-        points.reserve(number);
-        CGAL::Random_points_in_cube_3<Point> gen(size);
-        for (unsigned int i = 0; i < number; ++i)
-            points.push_back(*gen++);
+
+        if (loadArray)
+        {
+            loadPoints(L"test.dat", points);
+            number = points.size();
+        }
+        else
+        {
+            points.reserve(number);
+            CGAL::Random_points_in_cube_3<Point> gen(size);
+            for (unsigned int i = 0; i < number; ++i)
+                points.push_back(*gen++);
+        }
+
 
         while (number--)
         {
-            auto & p = points[number-1];
+            auto & p = points[number];
             double dist = pTree->query_distance(p);
 
             FT sqd = tree.squared_distance(p);
