@@ -457,9 +457,6 @@
     <ProjectReference Include="..\DXUT\Optional\DXUTOpt_2012.vcxproj">
       <Project>{61b333c2-c4f7-4cc1-a9bf-83f6d95588eb}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\LevelSet\LevelSet.vcxproj">
-      <Project>{9fd2cd8c-b136-421c-bfde-5bbe2f2ac3b9}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Line.hlsl">

@@ -1,35 +1,14 @@
 #pragma once
-#include "LSOctree.h"
-#include "ICollisionObject.h"
+#include "wrGeo.h"
+#include "ADFOctree.h"
 #include <CGAL\Polyhedron_3.h>
 
 namespace WR
 {
-    template <class _K>
-    ICollisionObject* createCollisionObject(const CGAL::Polyhedron_3<_K>& poly)
-    {
-        return createLSOctree(poly);
-    }
+    ICollisionObject* createCollisionObject(Polyhedron_3_FaceWithId& poly);
 
+    ICollisionObject* createCollisionObject(const wchar_t* fileName);
 
-    template <class _K>
-    ISOctree* createLSOctree(const CGAL::Polyhedron_3<_K>& poly)
-    {
-        ISOctree* pTree = new ISOctree;
-        return pTree;
-    }
+    void runLevelSetBenchMark(const wchar_t* fileName);
 
-    template <class _K>
-    ISOctree* loadLSOCollisionObject(const wchar_t fileName[])
-    {
-        ISOctree* pTree = new ISOctree;
-        return pTree;
-    }
-
-    template <class _K>
-    ISOctree* saveLSOctree(const wchar_t fileName[])
-    {
-        ISOctree* pTree = new ISOctree;
-        return pTree;
-    }
 }

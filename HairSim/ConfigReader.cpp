@@ -56,16 +56,17 @@ string ConfigReader::getValue(const string & name)
     string new_line;
     while (getline(*infile, line))
     {
-        if (line.empty())
+        if (line.empty() || line == "\n\r" || line == "\n")
         {
-            return "";
+            continue;
         }
+
         int start_pos = 0, end_pos = line.size() - 1, pos;
         if ((pos = line.find(COMMENT_CHAR)) != -1)
         {
             if (0 == pos)
             {  // 行的第一个字符就是注释字符
-                return "";
+                continue;
             }
             end_pos = pos - 1;
         }
