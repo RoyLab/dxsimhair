@@ -2,6 +2,7 @@
 #include "ICollisionObject.h"
 #include <CGAL\Delaunay_Triangulation_3.h>
 #include <CGAL\Triangulation_vertex_base_with_info_3.h>
+#include <CGAL\Iso_cuboid_3.h>
 #include <limits>
 #include "wrMacro.h"
 
@@ -10,7 +11,9 @@ namespace WR
     class ADFCollisionObject :
         public ICollisionObject
     {
-        COMMON_PROPERTY(CGAL::Bbox_3, bbox);
+        typedef CGAL::Iso_cuboid_3<K> BoundingBox;
+
+        COMMON_PROPERTY(BoundingBox, bbox);
         COMMON_PROPERTY(size_t, max_level);
 
         friend class ADFOctree;
@@ -28,7 +31,7 @@ namespace WR
         typedef float(ADFCollisionObject::*ExtrapolateFunc)(const Point_3& p, const Point_3 v[], size_t infId, Dt::Cell_handle ch) const;
 
     public:
-        ADFCollisionObject(Dt* stt, const CGAL::Bbox_3& box, size_t lvl) :
+        ADFCollisionObject(Dt* stt, const BoundingBox& box, size_t lvl) :
             pDt(stt), m_bbox(box), m_max_level(lvl){
             compute_gradient();
         }
@@ -46,6 +49,8 @@ namespace WR
         void compute_gradient();
 
     private:
+        // must be in finite cell, near hint
+        bool position_correlation_iteration(const Point_3& p, Point_3& newPos, Dt::Cell_handle chnew, Dt::Cell_handle chhint, float thresh) const;
         float query_distance_with_extrapolation(const Point_3& p) const { return query_distance_template(p, &ADFCollisionObject::extrapolate); }
         float query_distance_with_fake_extrapolation(const Point_3& p) const { return query_distance_template(p, &ADFCollisionObject::fake_extrapolate); }
         float query_distance_template(const Point_3& p, ExtrapolateFunc func) const;

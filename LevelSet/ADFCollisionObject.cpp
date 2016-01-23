@@ -10,7 +10,7 @@ namespace
 #define ADF_SUFFIXW L".adf"
 
     template <class K, class T>
-    T simplex3d_interpolation(CGAL::Point_3<K>* cell, T* vals, const CGAL::Point_3<K>& p)
+    void simplex3d_interpolation(CGAL::Point_3<K>* cell, T* vals, const CGAL::Point_3<K>& p, T& numer)
     {
         float vol[4];
         vol[0] = CGAL::volume(cell[1], cell[3], cell[2], p);
@@ -19,22 +19,20 @@ namespace
         vol[3] = CGAL::volume(cell[0], cell[1], cell[2], p);
 
         float sum = 0.f;
-        float numer = 0.0f;
         for (size_t i = 0; i < 4; i++)
         {
             sum += vol[i];
-            numer += vol[i] * vals[i];
+            numer = numer + vol[i] * vals[i];
         }
 
-        if (std::isnan(numer / sum))
+        if (std::isnan(sum))
         {
             WR_LOG_DEBUG << std::endl << vals[0] << ", " << vals[1]
                 << ", " << vals[2] << ", " << vals[3]
                 << ", " << numer << ", " << sum;
         }
 
-        return numer / sum;
-
+        numer = numer / sum;
     }
 
     template <class K, class T>
@@ -174,27 +172,126 @@ namespace WR
             float vals[4];
             for (size_t i = 0; i < 4; i++)
                 vals[i] = ch->vertex(i)->info().minDist;
-            return simplex3d_interpolation(v, vals, p);
+
+            float result = 0.f;
+            simplex3d_interpolation(v, vals, p, result);
+            return result;
         }
     }
 
 
     float ADFCollisionObject::query_squared_distance(const Point_3& p) const
     {
-        assert(0);
+        UNIMPLEMENTED_DECLARATION;
         return 0.f;
     }
 
 
     bool ADFCollisionObject::exceed_threshhold(const Point_3& p, float thresh) const
     {
+        UNIMPLEMENTED_DECLARATION;
         return false;
-
     }
 
 
     bool ADFCollisionObject::position_correlation(const Point_3& p, Point_3* pCorrect, float thresh) const
     {
+        assert(pDt);
+        assert(pDt->number_of_cells());
+
+        if (CGAL::ON_UNBOUNDED_SIDE == m_bbox.bounded_side(p))
+            return false;
+
+        Dt::Cell_handle ch = pDt->locate(p);
+
+        Point_3 v[4];
+        bool isInf = false;
+        int infId = -1;
+        for (size_t i = 0; i < 4; i++)
+        {
+            if (ch->vertex(i) == pDt->infinite_vertex())
+            {
+                assert(infId == -1);
+                isInf = true;
+                infId = i;
+            }
+            else v[i] = ch->vertex(i)->point();
+        }
+
+        if (isInf)
+        {
+            return false;
+        }
+        else
+        {
+            assert(CGAL::volume(v[0], v[1], v[2], v[3]) > 0);
+            std::vector<float> vals(4);
+            for (size_t i = 0; i < 4; i++)
+                vals[i] = ch->vertex(i)->info().minDist;
+
+            if (*std::min_element(vals.cbegin(), vals.cend()) > thresh)
+                return false;
+
+            float cur_value = 0.f;
+            simplex3d_interpolation(v, vals.data(), p, cur_value);
+
+            if (cur_value > thresh)
+            {
+                return false;
+            }
+            else
+            {
+                if (!pCorrect) return true;
+
+                std::vector<Vector_3> grads(4);
+                for (size_t i = 0; i < 4; i++)
+                    grads[i] = ch->vertex(i)->info().gradient;
+
+                Vector_3 g(0, 0, 0);
+                simplex3d_interpolation(v, grads.data(), p, g);
+
+                Point_3 curPos, newPos;
+                curPos = p - g * cur_value;
+                Dt::Cell_handle ch_hint = ch, ch_new;
+                size_t count = 0;
+                while (position_correlation_iteration(curPos, newPos, ch_new, ch_hint, thresh))
+                {
+                    ch_hint = ch_new;
+                    curPos = newPos;
+                    count++;
+                }
+                WR_LOG_DEBUG << "correlation iteration: " << count;
+                *pCorrect = newPos;
+                return true;
+            }
+        }
+    }
+
+    bool ADFCollisionObject::position_correlation_iteration(const Point_3& p, Point_3& newPos, Dt::Cell_handle chnew, Dt::Cell_handle chhint, float thresh) const
+    {
+        chnew = pDt->locate(p, chhint);
+
+        std::vector<float> dist(4);
+        std::vector<Point_3> pts(4);
+        for (size_t i = 0; i < 4; i++)
+        {
+            pts[i] = chnew->vertex(i)->point();
+            dist[i] = chnew->vertex(i)->info().minDist;
+        }
+
+        float cur_value = 0.f;
+        simplex3d_interpolation(pts.data(), dist.data(), p, cur_value);
+
+        if (abs(cur_value - thresh) < 1e-3) return false;
+
+        std::vector<Vector_3> grads(4);
+        for (size_t i = 0; i < 4; i++)
+            grads[i] = chnew->vertex(i)->info().gradient;
+
+        Vector_3 g(0, 0, 0);
+        simplex3d_interpolation(pts.data(), grads.data(), p, g);
+
+        newPos = p - g * cur_value;
         return true;
     }
 
@@ -311,7 +408,9 @@ namespace WR
                         << ", " << dist1 << ", " << dist2;
                 }
             }
-            vItr->info().gradient = Vector_3(v[0], v[1], v[2]);
+            Vector_3 grad(v[0], v[1], v[2]);
+            grad = grad / sqrt(grad.squared_length());
+            vItr->info().gradient = grad;
         }
     }
 

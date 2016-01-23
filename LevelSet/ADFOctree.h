@@ -119,7 +119,7 @@ namespace WR
 
         bool construct(Polyhedron_3& geom, size_t maxLvl);
         ADFCollisionObject* releaseAndCreateCollisionObject();
-        double query_distance(const Point_3& p) const;
+        float query_distance(const Point_3& p) const;
         const CGAL::Bbox_3& bbox() const { return box; }
 
     private:
@@ -131,9 +131,9 @@ namespace WR
         int determineSign(int type, const Point_3& p, const Vector_3& diff, size_t triIdx) const;
 
         template <class Iterator>
-        double minSquaredDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff = nullptr, size_t* tri = nullptr, int* type = nullptr) const;
+        float minSquaredDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff = nullptr, size_t* tri = nullptr, int* type = nullptr) const;
 
-        double minDist(const Cube_3& bbox, const Point_3& p);
+        float minDist(const Cube_3& bbox, const Point_3& p);
         void computeGradient();
 
         void computeTripleFromBbox(Cube_3&, const Cube_3&) const;

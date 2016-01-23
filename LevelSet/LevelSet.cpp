@@ -116,7 +116,12 @@ namespace WR
             cout << "Point: " << p << endl;
             cout << " Dist1: " << dist << " Dist2: " << std_dist <<
                 "\t\t diff: " << dist - std_dist << endl << endl;
+
+            Point crt;
+            pCO->position_correlation(p, &crt);
         }
+
+        pCO->query_squared_distance(points[0]);
 
         if (regen)
             pCO->save_model(L"hair");

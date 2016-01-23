@@ -70,3 +70,6 @@ m_##__name__ = _##__name__##_; \
     sz = wcslen(sf);\
     pch = wcsstr(ch, sf);\
     if (!pch || !wcscmp(pch, sf)) {str = ch; str += sf;}
+
+
+#define UNIMPLEMENTED_METHOD "This is an unimplemented method. "

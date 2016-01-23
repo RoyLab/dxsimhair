@@ -190,13 +190,13 @@ namespace WR
         cellList.clear();
     }
 
-    double ADFOctree::query_distance(const Point_3& p) const
+    float ADFOctree::query_distance(const Point_3& p) const
     {
         int type = -1;
         size_t triIdx = 0;
         Vector_3 diff;
 
-        double sd = minSquaredDist(p, pRoot->eList.cbegin(), pRoot->eList.cend(), &diff, &triIdx, &type);
+        float sd = minSquaredDist(p, pRoot->eList.cbegin(), pRoot->eList.cend(), &diff, &triIdx, &type);
         int sign = determineSign(type, p, diff, triIdx);
 
         return sign * sqrt(sd);
@@ -216,7 +216,7 @@ namespace WR
             size_t triIdx = 0;
             Node* curNode = node;
             Vector_3 diff;
-            double tmpSquaredDist, distLimit;
+            float tmpSquaredDist, distLimit;
 
             while (true)
             {
@@ -299,15 +299,15 @@ namespace WR
 
     // begin != end !!!
     template <class Iterator>
-    double ADFOctree::minSquaredDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff, size_t* pTriIdx, int* pType) const
+    float ADFOctree::minSquaredDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff, size_t* pTriIdx, int* pType) const
     {
         assert(begin != end);
 
-        double dist = 1.e8;
+        float dist = std::numeric_limits<float>::max();
         size_t triIdx = 0;
         int type = 0;
-        double s;
-        double t;
+        float s;
+        float t;
 
         for (auto eItr = begin; eItr != end; eItr++)
         {
@@ -332,9 +332,9 @@ namespace WR
         return dist;
     }
 
-    double ADFOctree::minDist(const Cube_3& bbox, const Point_3& p)
+    float ADFOctree::minDist(const Cube_3& bbox, const Point_3& p)
     {
-        double dist = 1.e9;
+        float dist = std::numeric_limits<float>::max();
 
 #define MIN_TEST(d, d0)\
                     {if ((d) < (d0))\

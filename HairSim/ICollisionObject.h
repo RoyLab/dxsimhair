@@ -27,6 +27,7 @@ namespace WR
     public:
         typedef K::Point_3                                              Point_3;
         typedef K::Vector_3                                             Vector_3;
+        typedef K::Direction_3                                          Direction_3;
 
     public:
         ICollisionObject(){}

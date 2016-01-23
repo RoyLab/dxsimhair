@@ -1,4 +1,5 @@
 #pragma once
+#include "wrMacro.h"
 
 #define USE_BOOST_LOGGER
 
@@ -83,3 +84,5 @@ const char LOGGER_PREFIX_fatal[] = "fatal: ";
 #define WR_LOG_FATAL WR_LOG_DEBUG_HELPER(fatal)
 
 #endif
+
+#define UNIMPLEMENTED_DECLARATION WR_LOG_ERROR << UNIMPLEMENTED_METHOD << __FUNCTION__
