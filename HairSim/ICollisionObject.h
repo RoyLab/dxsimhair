@@ -1,10 +1,25 @@
 #pragma once
-#include <CGAL\Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL\Point_3.h>
+#include <CGAL\Simple_cartesian.h>
+#include <CGAL\Filtered_kernel.h>
+
+namespace CGAL
+{
+    class FloatKernel
+        : public CGAL::Filtered_kernel_adaptor<
+        Type_equality_wrapper< Simple_cartesian<float>::Base<FloatKernel>::Type, FloatKernel >,
+#ifdef CGAL_NO_STATIC_FILTERS
+        false >
+#else
+        true >
+#endif
+    {};
+}
 
 namespace WR
 {
-    typedef CGAL::Exact_predicates_inexact_constructions_kernel     K;
+
+
+    typedef CGAL::FloatKernel     K;
 
     // since most are geometry computation, using CGAL Point_3
     class ICollisionObject

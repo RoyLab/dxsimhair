@@ -77,6 +77,9 @@
       <AdditionalLibraryDirectories>..\3rdparty\lib;$(BOOST_LIBRARYDIR);C:\Program Files (x86)\Visual Leak Detector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libgmp-10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)$(ProjectName).exe" "$(SolutionDir)LevelSet\$(ProjectName).exe"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -85,9 +88,11 @@
     <ClInclude Include="ADFCollisionObject.h" />
     <ClInclude Include="LevelSet.h" />
     <ClInclude Include="ADFOctree.h" />
+    <ClInclude Include="UnitTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\HairSim\ConfigReader.cpp" />
+    <ClCompile Include="ADFCollisionObject.cpp" />
     <ClCompile Include="ADFOctree.cpp" />
     <ClCompile Include="LevelSet.cpp" />
     <ClCompile Include="main.cpp" />

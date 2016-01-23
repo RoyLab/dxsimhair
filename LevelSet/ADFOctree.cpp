@@ -3,6 +3,7 @@
 #include "wrLogger.h"
 #include "wrGeo.h"
 #include "linmath.h"
+#include "ADFCollisionObject.h"
 #include <CGAL\bounding_box.h>
 
 namespace
@@ -37,7 +38,7 @@ namespace
 
 namespace WR
 {
-
+    float ADFOctree::m_box_enlarge_size = 0.1f;
 
     ADFOctree::ADFOctree()
     {
@@ -49,9 +50,12 @@ namespace WR
         release();
     }
 
-    ADFCollisionObject* ADFOctree::createCollisionObject()
+    ADFCollisionObject* ADFOctree::releaseAndCreateCollisionObject()
     {
-        return nullptr;
+        ADFCollisionObject* pCO = new ADFCollisionObject(dt, box, nMaxLevel);
+        releaseExceptDt();
+        dt = nullptr;
+        return pCO;
     }
 
 
@@ -60,6 +64,8 @@ namespace WR
         release();
         nMaxLevel = maxLvl;
         dt = new Dt;
+
+        WR_LOG_INFO << "constructing...";
 
         // contruct all the triangles
         nTriangles = geom.size_of_facets();
@@ -86,7 +92,7 @@ namespace WR
 
         constructChildren(pRoot);
         //computeGradient();
-
+        WR_LOG_INFO << "constructed: depth, " << maxLvl;
         return true;
     }
 
@@ -185,28 +191,6 @@ namespace WR
         cellList.clear();
     }
 
-    //void ADFOctree::computeGradient()
-    //{
-    //    Vector_3 step[3];
-    //    auto& bbox = pRoot->bbox;
-    //    float coef = pow(0.5f, nMaxLevel);
-    //    step[0] = Vector_3(coef * (bbox.xmax() - bbox.xmin()), 0, 0);
-    //    step[1] = Vector_3(0, coef * (bbox.ymax() - bbox.ymin()), 0);
-    //    step[2] = Vector_3(0, 0, coef * (bbox.zmax() - bbox.zmin()));
-
-    //    vec3 v;
-    //    for (auto vItr = dt->finite_vertices_begin(); vItr != dt->finite_vertices_end(); vItr++)
-    //    {
-    //        auto &pos = vItr->point();
-    //        for (size_t i = 0; i < 3; i++)
-    //        {
-    //            auto dist1 = queryDistance(pos + step[i]);
-    //            auto dist2 = queryDistance(pos - step[i]);
-    //            v[i] = (dist2 - dist1) / (2 * step[i][i]);
-    //        }
-    //        vItr->info().gradient = Vector_3(v[0], v[1], v[2]);
-    //    }
-    //}
     double ADFOctree::query_distance(const Point_3& p) const
     {
         int type = -1;
@@ -253,12 +237,6 @@ namespace WR
 
             int sign = determineSign(type, vh->point(), diff, triIdx);
             dist *= sign;
-            //assert(sign == testSign(vh->point()));
-
-            //vh->info().idx = count++;
-            ////******************************************************
-            //std::cout << count++ << ": " << vh->point() << '\t';
-            //std::cout << ": " << dist << std::endl;
         }
     }
 
@@ -381,7 +359,7 @@ namespace WR
         box = bbox.bbox();
         WR_LOG_INFO << "Bbox size: " << bbox;
 
-        WRG::enlarge(bbox, 1.13); // 不希望贴的太紧
+        WRG::enlarge(bbox, m_box_enlarge_size); // 不希望贴的太紧
         node->vertices[0] = dt->insert(Point_3(bbox.xmin(), bbox.ymin(), bbox.zmax()));
         node->vertices[1] = dt->insert(Point_3(bbox.xmin(), bbox.ymax(), bbox.zmax()));
         node->vertices[2] = dt->insert(Point_3(bbox.xmax(), bbox.ymax(), bbox.zmax()));
@@ -416,31 +394,7 @@ namespace WR
         triple = Cube_3(center - 3.0f * radius, center + 3.0f * radius);
     }
 
-    //float ADFOctree::queryExactDistance(const Point_3& p) const
-    //{
-    //    return sqrt(minSquaredDist(p, pRoot->eList.begin(), pRoot->eList.end()));
-    //}
-
-    //float ADFOctree::queryDistance(const Point_3& p) const
-    //{
-    //    if (!dt.number_of_cells()) return -1.0f;
-
-    //    DT_3::Cell_handle ch = dt.locate(p);
-
-    //    Point_3 v[4];
-    //    bool isInfinite = false;
-    //    int infiniteId = -1;
-    //    for (size_t i = 0; i < 4; i++)
-    //    {
-    //        if (ch->vertex(i) == dt.infinite_vertex())
-    //        {
-    //            assert(infiniteId == -1);
-    //            isInfinite = true;
-    //            infiniteId = i;
-    //        }
-    //        else v[i] = ch->vertex(i)->point();
-    //    }
-
+    /////////////////////////////////////////外推法/////////////////////////////////////////////
     //    if (isInfinite)
     //    {
     //        //std::cout << "this is out." << std::endl;
@@ -465,137 +419,4 @@ namespace WR
     //        dist += sqrt(res.dist);
     //        return dist;
     //    }
-    //    else
-    //    {
-    //        assert(CGAL::volume(v[0], v[1], v[2], v[3]) > 0);
-    //        float vol[4];
-    //        vol[0] = CGAL::volume(v[1], v[3], v[2], p);
-    //        vol[1] = CGAL::volume(v[2], v[3], v[0], p);
-    //        vol[2] = CGAL::volume(v[0], v[3], v[1], p);
-    //        vol[3] = CGAL::volume(v[0], v[1], v[2], p);
-
-    //        float sum = 0.f;
-    //        float numer = 0.0f;
-    //        for (size_t i = 0; i < 4; i++)
-    //        {
-    //            sum += vol[i];
-    //            //WR_LOG_DEBUG << ch->vertex(i)->info().minDist << " idx: " << ch->vertex(i)->info().idx << " point: " << ch->vertex(i)->point();
-    //            numer += vol[i] * ch->vertex(i)->info().minDist;
-    //        }
-
-    //        return numer / sum;
-    //    }
-    //}
-
-
-    //bool ADFOctree::queryGradient(const Point_3& p, Vector_3& grad) const
-    //{
-    //    if (!dt.number_of_cells()) return false;
-
-    //    grad = Vector_3(0, 0, 0);
-
-    //    DT_3::Cell_handle ch = dt.locate(p);
-
-    //    Point_3 v[4];
-    //    bool isInfinite = false;
-    //    int infiniteId = -1;
-    //    for (size_t i = 0; i < 4; i++)
-    //    {
-    //        if (ch->vertex(i) == dt.infinite_vertex())
-    //        {
-    //            assert(infiniteId == -1);
-    //            isInfinite = true;
-    //            infiniteId = i;
-    //        }
-    //        else v[i] = ch->vertex(i)->point();
-    //    }
-
-    //    if (isInfinite)
-    //    {
-    //        //std::cout << "this is out." << std::endl;
-    //        // do nothing
-    //        Triangle_3 tri(v[(infiniteId + 1) % 4], v[(infiniteId + 2) % 4], v[(infiniteId + 3) % 4]);
-    //        tri.initInfo();
-    //        tri.computeInfo(p);
-    //        WRG::PointTriangleDistResult<K::FT> res;
-    //        WRG::squaredDistance(p, tri, tri.infos, res);
-
-    //        Point_3 touch = tri.vertex(0) + res.s * tri.E0 + res.t * tri.E1;
-    //        double a[3];
-    //        a[2] = WRG::squaredArea(tri.vertex(0), tri.vertex(1), touch);
-    //        a[0] = WRG::squaredArea(tri.vertex(1), tri.vertex(2), touch);
-    //        a[1] = WRG::squaredArea(tri.vertex(2), tri.vertex(0), touch);
-
-    //        // 不进行外推
-    //        grad = (a[0] * ch->vertex((infiniteId + 1) % 4)->info().gradient +
-    //            (a[1] * ch->vertex((infiniteId + 2) % 4)->info().gradient) +
-    //            (a[2] * ch->vertex((infiniteId + 3) % 4)->info().gradient)) /
-    //            (a[0] + a[1] + a[2]);
-
-    //        return true;
-    //    }
-    //    else
-    //    {
-    //        assert(CGAL::volume(v[0], v[1], v[2], v[3]) > 0);
-    //        float vol[4];
-    //        vol[0] = CGAL::volume(v[1], v[3], v[2], p);
-    //        vol[1] = CGAL::volume(v[2], v[3], v[0], p);
-    //        vol[2] = CGAL::volume(v[0], v[3], v[1], p);
-    //        vol[3] = CGAL::volume(v[0], v[1], v[2], p);
-
-    //        float sum = 0.f;
-    //        for (size_t i = 0; i < 4; i++)
-    //        {
-    //            sum += vol[i];
-    //            //WR_LOG_DEBUG << ch->vertex(i)->info().minDist << " idx: " << ch->vertex(i)->info().idx << " point: " << ch->vertex(i)->point();
-    //            grad = grad + vol[i] * ch->vertex(i)->info().gradient;
-    //        }
-    //        grad = grad / sum;
-    //        return true;
-    //    }
-    //}
 }
-//#include <CGAL/Polyhedron_3.h>
-//#include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
-//#include <CGAL\AABB_tree.h>
-//#include <CGAL\AABB_traits.h>
-//#include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
-//#include <CGAL/AABB_face_graph_triangle_primitive.h>
-
-//void main()
-//{
-//    Point p(1.0, 0.0, 0.0);
-//    Point q(0.0, 1.0, 0.0);
-//    Point r(0.0, 0.0, 1.0);
-//    Point s(0.0, 0.0, 0.0);
-//    Polyhedron polyhedron;
-//    polyhedron.make_tetrahedron(p, q, r, s);
-//    // constructs AABB tree and computes internal KD-tree 
-//    // data structure to accelerate distance queries
-//    Tree tree(polyhedron.facets_begin(), polyhedron.facets_end(), polyhedron);
-//    tree.accelerate_distance_queries();
-//    // query point
-//    Point query(0.0, 0.0, 3.0);
-//    // computes squared distance from query
-//    FT sqd = tree.squared_distance(query);
-//    std::cout << "squared distance: " << sqd << std::endl;
-//    // computes closest point
-//    Point closest = tree.closest_point(query);
-//    std::cout << "closest point: " << closest << std::endl;
-//    // computes closest point and primitive id
-//    Point_and_primitive_id pp = tree.closest_point_and_primitive(query);
-//    Point closest_point = pp.first;
-//    Polyhedron::Face_handle f = pp.second; // closest primitive id
-//    std::cout << "closest point: " << closest_point << std::endl;
-//    std::cout << "closest triangle: ( "
-//        << f->halfedge()->vertex()->point() << " , "
-//        << f->halfedge()->next()->vertex()->point() << " , "
-//        << f->halfedge()->next()->next()->vertex()->point()
-//        << " )" << std::endl;
-//}
-
-//template <class K>
-//inline typename K::FT distance(const CGAL::AABB_tree<CGAL::AABB_traits<K, CGAL::AABB_face_graph_triangle_primitive<CGAL::Polyhedron_3<K>>>>& tree, const CGAL::Point_3<K>& query)
-//{
-//    return tree.squared_distance(query);
-//}

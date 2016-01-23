@@ -42,9 +42,7 @@ namespace WRG
     }
 
     template < class K >
-    inline
-        typename K::FT
-        squaredArea(const CGAL::Point_3<K> &p, const CGAL::Point_3<K> &q, const CGAL::Point_3<K> &r)
+    inline typename K::FT squaredArea(const CGAL::Point_3<K> &p, const CGAL::Point_3<K> &q, const CGAL::Point_3<K> &r)
     {
         auto e1 = q - p;
         auto e2 = r - p;

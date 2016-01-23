@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include "wrGeo.h"
 #include "ADFCollisionObject.h"
-#include <CGAL\Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL\Delaunay_Triangulation_3.h>
+#include "wrMacro.h"
+//#include <CGAL\Delaunay_Triangulation_3.h>
 #include <CGAL\Triangulation_vertex_base_with_info_3.h>
 #include <CGAL\Polyhedron_3.h>
-#include <CGAL\Point_3.h>
+//#include <CGAL\Point_3.h>
 #include <CGAL\Triangle_3.h>
 
 
@@ -27,52 +27,53 @@ namespace WR
     
     typedef CGAL::Polyhedron_3<K, Items_FaceWithId> Polyhedron_3_FaceWithId;
 
+
+    template <class _Kernel>
+    class TriangleWithInfos : public CGAL::Triangle_3 <_Kernel>
+    {
+        typedef typename _Kernel::Point_3                                   Point_3;
+        typedef typename _Kernel::Vector_3                                  Vector_3;
+        typedef typename Polyhedron_3_FaceWithId::Face_handle               Fh;
+        typedef typename WRG::PointTriangleDistInfo<typename _Kernel::FT>   Info;
+
+    public:
+        TriangleWithInfos() {}
+
+        TriangleWithInfos(const CGAL::Triangle_3<_Kernel>& t)
+            : CGAL::Triangle_3 <_Kernel>(t) {}
+
+        TriangleWithInfos(const Point_3& p, const Point_3& q, const Point_3& r) :
+            CGAL::Triangle_3 <_Kernel>(p, q, r){}
+
+        void initInfo()
+        {
+            E0 = vertex(1) - vertex(0);
+            E1 = vertex(2) - vertex(0);
+
+            infos.a = E0 * E0;
+            infos.b = E0 * E1;
+            infos.c = E1 * E1;
+
+            normal = CGAL::normal(vertex(0), vertex(1), vertex(2));
+            normal = normal / sqrt(normal.squared_length());
+        }
+
+        void computeInfo(const Point_3& p)
+        {
+            Vector_3 D = vertex(0) - p;
+            infos.d = E0 * D;
+            infos.e = E1 * D;
+            infos.f = D * D;
+        }
+
+        Info                infos;
+        Vector_3            E0, E1;
+        Vector_3            normal;
+        Fh                  fh;
+    };
+
     class ADFOctree
     {
-        template <class _Kernel>
-        class TriangleWithInfos : public CGAL::Triangle_3 <_Kernel>
-        {
-            typedef typename _Kernel::Point_3                                   Point_3;
-            typedef typename _Kernel::Vector_3                                  Vector_3;
-            typedef typename Polyhedron_3_FaceWithId::Face_handle               Fh;
-            typedef typename WRG::PointTriangleDistInfo<typename _Kernel::FT>   Info;
-
-        public:
-            TriangleWithInfos() {}
-
-            TriangleWithInfos(const CGAL::Triangle_3<_Kernel>& t)
-                : CGAL::Triangle_3 <_Kernel>(t) {}
-
-            TriangleWithInfos(const Point_3& p, const Point_3& q, const Point_3& r) :
-                CGAL::Triangle_3 <_Kernel>(p, q, r){}
-
-            void initInfo()
-            {
-                E0 = vertex(1) - vertex(0);
-                E1 = vertex(2) - vertex(0);
-
-                infos.a = E0 * E0;
-                infos.b = E0 * E1;
-                infos.c = E1 * E1;
-
-                normal = CGAL::normal(vertex(0), vertex(1), vertex(2));
-                normal = normal / sqrt(normal.squared_length());
-            }
-
-            void computeInfo(const Point_3& p)
-            {
-                Vector_3 D = vertex(0) - p;
-                infos.d = E0 * D;
-                infos.e = E1 * D;
-                infos.f = D * D;
-            }
-
-            Info                infos;
-            Vector_3            E0, E1;
-            Vector_3            normal;
-            Fh                  fh;
-        };
-
         typedef K::Iso_cuboid_3             Cube_3;
         typedef K::Point_3                  Point_3;
         typedef K::Vector_3                 Vector_3;
@@ -110,13 +111,14 @@ namespace WR
             bool hasChild() const { return children[0] == nullptr; }
         };
 
+        STATIC_PROPERTY(float, box_enlarge_size);
 
     public:
         ADFOctree();
         ~ADFOctree();
 
         bool construct(Polyhedron_3& geom, size_t maxLvl);
-        ADFCollisionObject* createCollisionObject();
+        ADFCollisionObject* releaseAndCreateCollisionObject();
         double query_distance(const Point_3& p) const;
         const CGAL::Bbox_3& bbox() const { return box; }
 

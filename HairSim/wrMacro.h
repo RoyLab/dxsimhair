@@ -1,5 +1,6 @@
 #pragma once
-#include <cassert>
+#include <assert.h>
+#include <string.h>
 
 #if defined(DEBUG) || defined(_DEBUG)
 #ifndef V
@@ -38,7 +39,10 @@ return m_##__name__; \
 __type__ & get_##__name__(){ \
 return m_##__name__; \
 } \
-void set_##__name__##(const __type__ & _##__name__##_){ \
+void set_##__name__##(__type__ & _##__name__##_){ \
+m_##__name__ = _##__name__##_; \
+}\
+void set_##__name__##(const __type__ & _##__name__##_){\
 m_##__name__ = _##__name__##_; \
 }
 #endif
@@ -56,3 +60,13 @@ m_##__name__ = _##__name__##_; \
 }
 #endif
 
+#define ADD_SUFFIX_IF_NECESSARY(ch, sf, str)\
+    sz = strlen(sf);\
+    pch = strstr(ch, sf);\
+    if (!pch || !strcmp(pch, sf)) {str = ch; str += sf;}
+
+
+#define ADD_SUFFIX_IF_NECESSARYW(ch, sf, str)\
+    sz = wcslen(sf);\
+    pch = wcsstr(ch, sf);\
+    if (!pch || !wcscmp(pch, sf)) {str = ch; str += sf;}

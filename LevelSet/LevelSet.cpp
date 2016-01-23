@@ -1,22 +1,13 @@
+#include "UnitTest.h"
+#include <boost/foreach.hpp>
+#include <CGAL/point_generators_3.h>
 #include "LevelSet.h"
 #include "ConfigReader.h"
 #include "wrMath.h"
-
-#include <CGAL/AABB_tree.h>
-#include <CGAL/AABB_traits.h>
-#include <CGAL/Polyhedron_3.h>
-#include <CGAL/AABB_face_graph_triangle_primitive.h>
-#include <CGAL/IO/Polyhedron_iostream.h>
-#include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
-#include <CGAL/point_generators_3.h>
-#include <CGAL/Side_of_triangle_mesh.h>
 #include <vector>
 #include <fstream>
-#include <limits>
-#include <boost/foreach.hpp>
-#include <fstream>
-#include <sstream>
 
+#include <limits>
 using std::cout;
 using std::endl;
 
@@ -24,10 +15,6 @@ namespace WR
 { 
     typedef K::FT FT;
     typedef K::Point_3 Point;
-    typedef K::Segment_3 Segment;
-    typedef CGAL::AABB_face_graph_triangle_primitive<Polyhedron_3_FaceWithId> Primitive;
-    typedef CGAL::AABB_traits<K, Primitive> Traits;
-    typedef CGAL::AABB_tree<Traits> Tree;
 
     void loadPoints(const wchar_t* fileName, std::vector<Point>& parr)
     {
@@ -43,21 +30,12 @@ namespace WR
         file.close();
     }
 
-    template <class K, class PolygonSide>
-    int determine_sign(const PolygonSide& inside, const CGAL::Point_3<K>& query)
-    {
-        auto res = inside(query);
-        if (res == CGAL::ON_BOUNDED_SIDE) return -1;
-        if (res == CGAL::ON_BOUNDARY) return 0;
-        else return 1;
-    }
-
 
     ICollisionObject* createCollisionObject(Polyhedron_3_FaceWithId& poly)
     {
         ADFOctree* pTree = new ADFOctree;
         pTree->construct(poly, 2);
-        ICollisionObject* pCO = pTree->createCollisionObject();
+        ICollisionObject* pCO = pTree->releaseAndCreateCollisionObject();
         delete pTree;
         return pCO;
     }
@@ -73,9 +51,9 @@ namespace WR
     }
 
     template <class Poly>
-    double max_coordinate(const Poly& poly)
+    float max_coordinate(const Poly& poly)
     {
-        double max_coord = (std::numeric_limits<double>::min)();
+        float max_coord = (std::numeric_limits<float>::min)();
         BOOST_FOREACH(Poly::Vertex_handle v, vertices(poly))
         {
             Point p = v->point();
@@ -92,20 +70,30 @@ namespace WR
         int level = std::stoi(reader.getValue("maxlevel"));
         int number = std::stoi(reader.getValue("testnumber"));
         bool loadArray = std::stoi(reader.getValue("loadtest"));
+        float tmp = std::stof(reader.getValue("boxgap"));
+        bool regen = std::stoi(reader.getValue("regenmodel"));
+        ADFOctree::set_box_enlarge_size(tmp);
 
         Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
         assert(pModel);
 
-        Tree tree(pModel->facets_begin(), pModel->facets_end(), *pModel);
-        tree.accelerate_distance_queries();
-        CGAL::Side_of_triangle_mesh<Polyhedron_3_FaceWithId, K> inside(*pModel);
+        auto* tester = CGAL::Ext::createDistanceTester<Polyhedron_3_FaceWithId, K>(*pModel);
 
-        ADFOctree* pTree = new ADFOctree;
-        pTree->construct(*pModel, level);
-        
+        ADFCollisionObject* pCO = nullptr;
+        if (regen)
+        {
+            ADFOctree* pTree = new ADFOctree;
+            pTree->construct(*pModel, level);
+            pCO = pTree->releaseAndCreateCollisionObject();
+            delete pTree;
+        }
+        else
+        {
+            pCO = new ADFCollisionObject(L"hair");
+        }
+
         double size = max_coordinate(*pModel);
         std::vector<Point> points;
-
         if (loadArray)
         {
             loadPoints(L"test.dat", points);
@@ -119,21 +107,22 @@ namespace WR
                 points.push_back(*gen++);
         }
 
-
         while (number--)
         {
             auto & p = points[number];
-            double dist = pTree->query_distance(p);
-
-            FT sqd = tree.squared_distance(p);
-            int s = determine_sign(inside, p);
-
+            double dist = pCO->query_distance(p);
+            double std_dist = tester->query_signed_distance(p);
             cout << "Point: " << p << endl;
-            cout << " Dist1: " << dist << " Dist2: " << sqrt(sqd) * s <<
-                "\t\t diff: " << dist - sqrt(sqd) * s << endl;
+            cout << " Dist1: " << dist << " Dist2: " << std_dist <<
+                "\t\t diff: " << dist - std_dist << endl << endl;
         }
 
-        delete pTree;
+        if (regen)
+            pCO->save_model(L"hair");
+
+        delete pCO;
+
+        delete tester;
         delete pModel;
     }
 }
