@@ -91,7 +91,6 @@ namespace WR
         pRoot = createRootNode(geom);
 
         constructChildren(pRoot);
-        //computeGradient();
         WR_LOG_INFO << "constructed: depth, " << maxLvl;
         return true;
     }

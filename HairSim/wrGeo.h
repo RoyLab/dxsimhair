@@ -213,6 +213,6 @@ namespace WRG
                 _e1(res, infos);
             }
         }
-        res.dist = _calcDist(res.s, res.t, infos);
+        res.dist = std::abs(_calcDist(res.s, res.t, infos));
     }
 }

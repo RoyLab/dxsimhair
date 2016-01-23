@@ -72,6 +72,7 @@ namespace WR
         bool loadArray = std::stoi(reader.getValue("loadtest"));
         float tmp = std::stof(reader.getValue("boxgap"));
         bool regen = std::stoi(reader.getValue("regenmodel"));
+
         ADFOctree::set_box_enlarge_size(tmp);
 
         Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);

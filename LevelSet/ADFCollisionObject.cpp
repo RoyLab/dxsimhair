@@ -25,7 +25,16 @@ namespace
             sum += vol[i];
             numer += vol[i] * vals[i];
         }
+
+        if (std::isnan(numer / sum))
+        {
+            WR_LOG_DEBUG << std::endl << vals[0] << ", " << vals[1]
+                << ", " << vals[2] << ", " << vals[3]
+                << ", " << numer << ", " << sum;
+        }
+
         return numer / sum;
+
     }
 
     template <class K, class T>
@@ -99,10 +108,13 @@ namespace WR
         squared_dist_from_plane *= squared_dist_from_plane / normal.squared_length();
 
         //if (CGAL::coplanar(validv[0], validv[1], validv[2], p)) // too strict
-        if (squared_dist_from_plane < 1e-15)
-            return simplex2d_interpolation(validv, dists, p, normal);
+
+        float result = 0.0;
+        if (squared_dist_from_plane < 1e-10)
+            result = simplex2d_interpolation(validv, dists, p, normal);
         else 
-            return std::numeric_limits<float>::max();
+            result = std::numeric_limits<float>::max();
+        return result;
     }
 
     float ADFCollisionObject::extrapolate(const Point_3& p, const Point_3 v[], size_t infId, Dt::Cell_handle ch) const
@@ -127,6 +139,7 @@ namespace WR
         float dist = simplex2d_interpolation(validv, dists, touch);
 
         dist += sqrt(res.dist);
+
         return dist;
     }
 
@@ -208,6 +221,7 @@ namespace WR
             file << itr->info().minDist << '\t';
             file << itr->info().gradient << std::endl;
         }
+        file.close();
         return true;
     }
 
@@ -233,14 +247,25 @@ namespace WR
         Point_3 p;
         VInfo info;
         pDt = new Dt;
+
+        size_t count = 0;
         while (!file.eof())
         {
+            if (!file.good())
+            {
+                WR_LOG_ERROR << "fatal error! point " << count << ", " << p;
+                return false;
+            }
+
             file >> p;
             file >> info.minDist;
             file >> info.gradient;
             vh = pDt->insert(p);
             vh->info() = info;
+
+            count++;
         }
+        file.close();
 
         WR_LOG_INFO << "load succeded! " << fullName;
         return true;
@@ -266,7 +291,11 @@ namespace WR
                 auto dist1 = query_distance_with_fake_extrapolation(pos + step[i]);
                 auto dist2 = query_distance_with_fake_extrapolation(pos - step[i]);
 
-                assert(dist1 < 1e6 || dist2 < 1e6);
+                if (dist1 > 1e6 && dist2 > 1e6)
+                {
+                    WR_LOG_ERROR << "\ndual large distance, cannot interpolate. "
+                        << pos << " direction: " << i;
+                }
 
                 if (dist1 > 1e6)
                     v[i] = (vItr->info().minDist - dist2) / step[i][i];
@@ -275,7 +304,12 @@ namespace WR
                 else
                     v[i] = (dist1 - dist2) / (2 * step[i][i]);
 
-                assert(!std::isinf(v[i]));
+                if (std::isnan(v[i]))
+                {
+                    WR_LOG_ERROR << "\ninvalid gradient. "
+                        << pos << " direction: " << i 
+                        << ", " << dist1 << ", " << dist2;
+                }
             }
             vItr->info().gradient = Vector_3(v[0], v[1], v[2]);
         }
