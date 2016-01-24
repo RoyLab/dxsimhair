@@ -6,9 +6,9 @@ class wrMeshRenderer;
 
 namespace WR
 {
-	class Hair;
+    class Hair;
+    class ICollisionObject;
 }
-
 
 class wrRendererInterface
 {
@@ -45,6 +45,7 @@ private:
     ID3D11DeviceContext*        pd3dImmediateContext = nullptr;
 
     ID3D11Buffer*               pcbVSPerFrame = nullptr;
+    WR::ICollisionObject*       pCollisionHead = nullptr;
 };
 
 

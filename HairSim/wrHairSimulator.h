@@ -8,7 +8,7 @@ class wrStrand;
 class wrHairSimulator
 {
 public:
-	typedef Eigen::SparseMatrix<float> SM;
+    typedef Eigen::SparseMatrix<float> SM;
 public:
     wrHairSimulator();
     ~wrHairSimulator();
@@ -17,9 +17,9 @@ public:
     void onFrame(wrHair* hair, const DirectX::XMMATRIX& mWorld, float fTime, float fTimeElapsed);
 
 protected:
-	void applyMatrixToStrand(const wrStrand* strand, SM& matK, SM& matB, SM& vecC) const;
+    void applyMatrixToStrand(const wrStrand* strand, SM& matK, SM& matB, SM& vecC) const;
     void step(wrHair* hair, DirectX::XMMATRIX& mWorld, float fTime, float fTimeElapsed);
 
-    wrLevelsetOctree*			pLSTree = nullptr;
+    wrLevelsetOctree*            pLSTree = nullptr;
 };
 

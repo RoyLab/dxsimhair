@@ -14,11 +14,11 @@ class wrHairRenderer:
     public wrRendererInterface
 {
 public:
-	wrHairRenderer(const WR::Hair& hair);
-	~wrHairRenderer();
+    wrHairRenderer(const WR::Hair& hair);
+    ~wrHairRenderer();
 
     bool init();
-	void release();
+    void release();
     void onFrame(double, float){}
     void render(double, float);
 
@@ -34,5 +34,5 @@ private:
 
     DirectX::XMFLOAT3*      vInputs = nullptr;
 
-    const WR::Hair*			pHair;
+    const WR::Hair*            pHair;
 };

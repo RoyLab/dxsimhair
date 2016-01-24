@@ -12,15 +12,15 @@ using namespace std;
 class ConfigReader
 {
 private:
-	ifstream *infile;
+    ifstream *infile;
 public:
-	ConfigReader(void){}
-	~ConfigReader(void){}
+    ConfigReader(void){}
+    ~ConfigReader(void){}
 
-	//参数filename，配置文件的名字
-	ConfigReader(const string & filename);
+    //参数filename，配置文件的名字
+    ConfigReader(const string & filename);
 
-	//参数name，配置项的名字
-	//返回值，对应配置项name的value值
-	string getValue(const string & name);
+    //参数name，配置项的名字
+    //返回值，对应配置项name的value值
+    string getValue(const string & name);
 };

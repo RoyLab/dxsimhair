@@ -6,6 +6,10 @@
 #include <GeometricPrimitive.h>
 #include <DXUTcamera.h>
 #include "wrTypes.h"
+#include "Parameter.h"
+//#include "SphereCollisionObject.h"
+#include "LevelSet.h"
+#include "wrGeo.h"
 
 
 
@@ -46,14 +50,22 @@ bool wrSceneManager::init()
     pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
     initConstantBuffer();
+    init_global_param();
 
-    pHair = WR::loadFile(L"../../models/straight.hair");
-	pHair->scale(0.01f);
-	pHair->mirror(false, true, false);
+    pHair = WR::loadFile(L"../../models/curly.hair");
+    pHair->scale(0.01f);
+    pHair->mirror(false, true, false);
 
-	WR::HairStrand::set_hair(pHair);
-	WR::HairParticle::set_hair(pHair);
-	pHair->init_simulation();
+    WR::HairStrand::set_hair(pHair);
+    WR::HairParticle::set_hair(pHair);
+    pHair->init_simulation();
+
+    //WR::Polyhedron_3 *P = WRG::readFile<WR::Polyhedron_3>("../../models/head.off");
+    //WR::SphereCollisionObject* sphere = new WR::SphereCollisionObject;
+    //sphere->setupFromPolyhedron(*P);
+    //delete P;
+
+    pCollisionHead = WR::loadCollisionObject(L"../../models/head");
 
     HRESULT hr;
     pHairRenderer = new wrHairRenderer(*pHair);
@@ -69,14 +81,17 @@ bool wrSceneManager::init()
 
 void wrSceneManager::onFrame(double fTime, float fElapsedTime)
 {
-	XMMATRIX dxWorld = pCamera->GetWorldMatrix();
-	XMFLOAT3X3 dxmWorld;
-	XMStoreFloat3x3(&dxmWorld, dxWorld);
-	
-	WR::Mat3 wrmWorld;
-	WR::convert3x3(wrmWorld, dxmWorld);
+    XMMATRIX dxWorld = pCamera->GetWorldMatrix();
+    XMFLOAT3X3 dxmWorld;
+    XMStoreFloat3x3(&dxmWorld, dxWorld);
+    
+    WR::Mat3 wrmWorld;
+    WR::convert3x3(wrmWorld, dxmWorld);
 
-	pHair->onFrame(wrmWorld.transpose(), fTime, fElapsedTime);
+    WR::UserData userData;
+    userData.pCollisionHead = pCollisionHead;
+
+    pHair->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
     pHairRenderer->onFrame(fTime, fElapsedTime);
     pMeshRenderer->onFrame(fTime, fElapsedTime);
 }
@@ -99,6 +114,7 @@ void wrSceneManager::release()
     if (pMeshRenderer) pMeshRenderer->release();
 
     SAFE_DELETE(pMeshRenderer);
+    SAFE_DELETE(pCollisionHead);
     SAFE_DELETE(pHairRenderer);
     SAFE_DELETE(pHair);
 }
