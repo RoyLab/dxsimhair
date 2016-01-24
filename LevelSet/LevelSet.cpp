@@ -121,8 +121,6 @@ namespace WR
             pCO->position_correlation(p, &crt);
         }
 
-        pCO->query_squared_distance(points[0]);
-
         if (regen)
             pCO->save_model(L"hair");
 

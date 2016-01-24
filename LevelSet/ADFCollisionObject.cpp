@@ -2,12 +2,14 @@
 #include "wrMacro.h"
 #include <fstream>
 #include "wrLogger.h"
-#include "linmath.h"
+#include "wrMath.h"
 #include "ADFOctree.h"
 
 namespace
 {
 #define ADF_SUFFIXW L".adf"
+#define MAX_INTERATION 20
+#define CORRECTION_TOL 1e-3f
 
     template <class K, class T>
     void simplex3d_interpolation(CGAL::Point_3<K>* cell, T* vals, const CGAL::Point_3<K>& p, T& numer)
@@ -72,6 +74,8 @@ namespace
         }
         return numer / sum;
     }
+
+    size_t g_count = 0;
 }
 
 
@@ -247,20 +251,16 @@ namespace WR
                 for (size_t i = 0; i < 4; i++)
                     grads[i] = ch->vertex(i)->info().gradient;
 
-                Vector_3 g(0, 0, 0);
-                simplex3d_interpolation(v, grads.data(), p, g);
-
                 Point_3 curPos, newPos;
-                curPos = p - g * cur_value;
+                g_count = 0;
+                correct_position_by_gradient(p, curPos, v, grads.data(), cur_value, thresh);
+
                 Dt::Cell_handle ch_hint = ch, ch_new;
-                size_t count = 0;
-                while (position_correlation_iteration(curPos, newPos, ch_new, ch_hint, thresh))
+                while (position_correlation_iteration(curPos, newPos, ch_new, ch_hint, thresh) && g_count < MAX_INTERATION)
                 {
                     ch_hint = ch_new;
                     curPos = newPos;
-                    count++;
                 }
-                WR_LOG_DEBUG << "correlation iteration: " << count;
                 *pCorrect = newPos;
                 return true;
             }
@@ -282,19 +282,30 @@ namespace WR
         float cur_value = 0.f;
         simplex3d_interpolation(pts.data(), dist.data(), p, cur_value);
 
-        if (abs(cur_value - thresh) < 1e-3) return false;
+        if (cur_value > thresh && cur_value - thresh < CORRECTION_TOL) return false;
 
         std::vector<Vector_3> grads(4);
         for (size_t i = 0; i < 4; i++)
             grads[i] = chnew->vertex(i)->info().gradient;
 
-        Vector_3 g(0, 0, 0);
-        simplex3d_interpolation(pts.data(), grads.data(), p, g);
+        correct_position_by_gradient(p, newPos, pts.data(), grads.data(), cur_value, thresh + CORRECTION_TOL / 2.0f);
 
-        newPos = p - g * cur_value;
         return true;
     }
 
+    void ADFCollisionObject::correct_position_by_gradient(const Point_3& p, Point_3& newPos, Point_3* pts, Vector_3* grads, float cur_value, float thresh) const
+    {
+        Vector_3 g(0, 0, 0);
+        simplex3d_interpolation(pts, grads, p, g);
+
+        float rawStep = cur_value - thresh;
+        float step = sgn(rawStep) * std::min(m_max_step, std::abs(rawStep));
+        newPos = p - g * step * 0.8f;
+
+        WR_LOG_DEBUG << "correlation iteration: " << g_count <<
+            " dist: " << query_distance(newPos) << " step: " << step;
+        g_count++;
+    }
 
     bool ADFCollisionObject::save_model(const wchar_t* fileName) const
     {
@@ -309,6 +320,7 @@ namespace WR
         assert(file);
 
         file.precision(10);
+        file << m_max_step << std::endl;
         file << m_bbox << std::endl;
 
         Dt::Finite_vertices_iterator v_end = pDt->finite_vertices_end();
@@ -336,6 +348,7 @@ namespace WR
         std::ifstream file(fullName);
         assert(file);
 
+        file >> m_max_step;
         file >> m_bbox;
 
         Dt::Vertex_handle vh;
@@ -371,7 +384,7 @@ namespace WR
 
     void ADFCollisionObject::compute_gradient()
     {
-        const float k = 0.4f;
+        const float k = 0.1f;
 
         Vector_3 step[3];
         float coef = pow(0.5f, m_max_level) * k;

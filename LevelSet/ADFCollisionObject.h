@@ -15,6 +15,7 @@ namespace WR
 
         COMMON_PROPERTY(BoundingBox, bbox);
         COMMON_PROPERTY(size_t, max_level);
+        COMMON_PROPERTY(float, max_step);
 
         friend class ADFOctree;
 
@@ -31,8 +32,8 @@ namespace WR
         typedef float(ADFCollisionObject::*ExtrapolateFunc)(const Point_3& p, const Point_3 v[], size_t infId, Dt::Cell_handle ch) const;
 
     public:
-        ADFCollisionObject(Dt* stt, const BoundingBox& box, size_t lvl) :
-            pDt(stt), m_bbox(box), m_max_level(lvl){
+        ADFCollisionObject(Dt* stt, const BoundingBox& box, size_t lvl, float sz) :
+            pDt(stt), m_bbox(box), m_max_level(lvl), m_max_step(sz * 0.95f){
             compute_gradient();
         }
         ADFCollisionObject(const wchar_t*);
@@ -51,6 +52,7 @@ namespace WR
     private:
         // must be in finite cell, near hint
         bool position_correlation_iteration(const Point_3& p, Point_3& newPos, Dt::Cell_handle chnew, Dt::Cell_handle chhint, float thresh) const;
+        void correct_position_by_gradient(const Point_3& p, Point_3& newPos, Point_3* pts, Vector_3* grads, float cur_value, float thresh) const;
         float query_distance_with_extrapolation(const Point_3& p) const { return query_distance_template(p, &ADFCollisionObject::extrapolate); }
         float query_distance_with_fake_extrapolation(const Point_3& p) const { return query_distance_template(p, &ADFCollisionObject::fake_extrapolate); }
         float query_distance_template(const Point_3& p, ExtrapolateFunc func) const;

@@ -145,3 +145,9 @@ static inline void computeWeightForTripleLever(vec3& r, const vec3& a, const vec
     vec3_scale(r, r, 1.0f / sum);
 }
 
+template <typename T>
+inline int sgn(T val)
+{
+    return (T(0) < val) - (val < T(0));
+}
+

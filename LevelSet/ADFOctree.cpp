@@ -52,7 +52,7 @@ namespace WR
 
     ADFCollisionObject* ADFOctree::releaseAndCreateCollisionObject()
     {
-        ADFCollisionObject* pCO = new ADFCollisionObject(dt, box, nMaxLevel);
+        ADFCollisionObject* pCO = new ADFCollisionObject(dt, box, nMaxLevel, m_box_enlarge_size);
         releaseExceptDt();
         dt = nullptr;
         return pCO;
