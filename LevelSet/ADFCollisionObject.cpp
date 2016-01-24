@@ -9,7 +9,7 @@ namespace
 {
 #define ADF_SUFFIXW L".adf"
 #define MAX_INTERATION 20
-#define CORRECTION_TOL 1e-3f
+#define CORRECTION_TOL 3e-4f
 
     template <class K, class T>
     void simplex3d_interpolation(CGAL::Point_3<K>* cell, T* vals, const CGAL::Point_3<K>& p, T& numer)
@@ -302,8 +302,8 @@ namespace WR
         float step = sgn(rawStep) * std::min(m_max_step, std::abs(rawStep));
         newPos = p - g * step * 0.8f;
 
-        WR_LOG_DEBUG << "correlation iteration: " << g_count <<
-            " dist: " << query_distance(newPos) << " step: " << step;
+        //WR_LOG_DEBUG << "correlation iteration: " << g_count <<
+        //    " dist: " << query_distance(newPos) << " step: " << step;
         g_count++;
     }
 

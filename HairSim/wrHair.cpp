@@ -553,7 +553,7 @@ namespace WR
                 size_t idx = m_strands[i].m_visibleParticles[j];
                 Vec3 p = mInvWorld * triple(pos, idx);
                 ICollisionObject::Point_3 p1, p0 = ICollisionObject::Point_3(p[0], p[1], p[2]);
-                bool isCollide = mp_data->pCollisionHead->position_correlation(p0, &p1);
+                bool isCollide = mp_data->pCollisionHead->position_correlation(p0, &p1, 3e-3f);
                 if (isCollide)
                 {
                     convert3(p, p1);

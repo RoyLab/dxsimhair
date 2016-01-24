@@ -40,6 +40,11 @@ namespace WR
         return pCO;
     }
 
+    ICollisionObject* loadCollisionObject(const wchar_t* fileName)
+    {
+        return new ADFCollisionObject(fileName);
+    }
+
     ICollisionObject* createCollisionObject(const wchar_t* fileName)
     {
         Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
