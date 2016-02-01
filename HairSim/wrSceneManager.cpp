@@ -33,6 +33,11 @@ struct CB_VS_PER_FRAME
 };
 #pragma pack(pop)
 
+#ifdef _DEBUG
+#define ADF_FILE L"../../models/head_d"
+#else
+#define ADF_FILE L"../../models/head"
+#endif
 
 wrSceneManager::wrSceneManager()
 {
@@ -65,7 +70,8 @@ bool wrSceneManager::init()
     //sphere->setupFromPolyhedron(*P);
     //delete P;
 
-    pCollisionHead = WR::loadCollisionObject(L"../../models/head");
+    if (APPLY_COLLISION)
+        pCollisionHead = WR::loadCollisionObject(ADF_FILE);
 
     HRESULT hr;
     pHairRenderer = new wrHairRenderer(*pHair);

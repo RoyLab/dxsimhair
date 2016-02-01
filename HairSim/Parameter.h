@@ -20,5 +20,8 @@ extern float          GRAVITY[3];
 
 extern int COMPRESS_RATIO;
 extern float K_ALTITUDE_SPRING;
+extern bool APPLY_COLLISION;
+extern bool APPLY_STRAINLIMIT;
+extern bool APPLY_PCG;
 
 void init_global_param();

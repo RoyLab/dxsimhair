@@ -15,7 +15,7 @@ float          GRAVITY[3] = { 0.0f, -10.0f, 0.0f };
 #ifdef COMPRESS
 
 #ifdef _DEBUG
-int COMPRESS_RATIO = 10000;
+int COMPRESS_RATIO = 500;
 #else
 int COMPRESS_RATIO = 500;
 #endif
@@ -23,6 +23,10 @@ int COMPRESS_RATIO = 500;
 #endif
 
 float K_ALTITUDE_SPRING = 0.e-6f;
+bool APPLY_COLLISION = false;
+bool APPLY_STRAINLIMIT = false;
+bool APPLY_PCG = false;
+
 
 void init_global_param()
 {
@@ -34,4 +38,7 @@ void init_global_param()
     K_SPRINGS[2] = std::stof(reader.getValue("spring2"));
     K_SPRINGS[3] = std::stof(reader.getValue("spring3"));
     GRAVITY[1] = -std::stof(reader.getValue("gravity"));
+    APPLY_COLLISION = std::stoi(reader.getValue("collision"));
+    APPLY_STRAINLIMIT = std::stoi(reader.getValue("strainlimit"));
+    APPLY_PCG = std::stoi(reader.getValue("pcg"));
 }

@@ -448,17 +448,38 @@ namespace WR
 
 #ifdef FULL_IMPLICIT
         SparseMat T = B + m_wind_damping + K * fTimeElapsed;
-        SparseMat A = m_mass + T * fTimeElapsed;
-        VecX b = -fTimeElapsed * ((K * m_position - C) + T * m_velocity) + m_gravity;
 
         VecX dv(dim);
-        modified_pcg(A, b, dv);
+
+        if (APPLY_PCG)
+        {
+            SparseMat A = m_mass + T * fTimeElapsed;
+            VecX b = -fTimeElapsed * ((K * m_position - C) + T * m_velocity) + m_gravity;
+            modified_pcg(A, b, dv);
+        }
+        else
+        {
+            SparseMat A(dim, dim);
+            A.setIdentity();
+            A += m_mass_1 * T * fTimeElapsed;
+
+            VecX b = m_mass_1 * (-fTimeElapsed * ((K * m_position - C) + T * m_velocity) + m_gravity);
+            LU(A, b, dv);
+        }
 
         m_velocity += dv;
         VecX newPos = m_position + m_velocity * fTimeElapsed;
-        resolve_strain_limits(newPos, m_velocity, fTimeElapsed);
-        resolve_body_collision(mWorld, newPos, m_velocity, fTimeElapsed);
 
+        if (APPLY_STRAINLIMIT)
+            resolve_strain_limits(newPos, m_velocity, fTimeElapsed);
+
+        if (APPLY_COLLISION)
+            resolve_body_collision(mWorld, newPos, m_velocity, fTimeElapsed);
+
+        //std::cout << std::setprecision(2) << fTimeElapsed << " ";
+        for (size_t i = 0; i < dim; i++)
+            if (std::isnan(newPos[i]))
+                std::cout << i << std::endl;
         m_position = newPos;
 
 #else
@@ -478,9 +499,23 @@ namespace WR
 #endif
     }
 
-    void Hair::simple_solve(const SparseMat& A, const VecX& b, VecX& x) const
+    void Hair::simple_solve(const MatX& A, const VecX& b, VecX& x) const
     {
-        //x = A.ldlt().solve(b);
+        x = A.ldlt().solve(b);
+    }
+
+    void Hair::LU(const SparseMat& A, const VecX& b, VecX& dv) const
+    {
+        Eigen::SparseLU<SparseMat> solver;
+        solver.analyzePattern(A);
+        solver.factorize(A);
+        if (Eigen::Success != solver.info())
+        {
+            std::cout << solver.lastErrorMessage() << std::endl;
+            system("pause");
+            exit(0);
+        }
+        dv = solver.solve(b);
     }
 
     void Hair::modified_pcg(const SparseMat& A, const VecX& b, VecX& dv) const
@@ -500,7 +535,7 @@ namespace WR
         VecX b_f(dim), r(dim), c(dim), q(dim), s(dim);
         float dnew, dold, a;
 
-        const float tol = 1e-7, tol_square = tol * tol;
+        const float tol = 1e-12, tol_square = tol * tol;
 
         dv.setZero();
         filter(b, b_f);

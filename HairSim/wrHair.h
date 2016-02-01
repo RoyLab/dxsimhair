@@ -124,7 +124,8 @@ namespace WR
         template <class _M1, class _M2>
         void filter(const _M1& vec, _M2& res) const{ res = m_filter.cwiseProduct(vec); }
         void modified_pcg(const SparseMat& A, const VecX& b, VecX& dv) const;
-        void simple_solve(const SparseMat& A, const VecX& b, VecX& dv) const;
+        void LU(const SparseMat& A, const VecX& b, VecX& dv) const;
+        void simple_solve(const MatX& A, const VecX& b, VecX& dv) const;
 
         std::vector<HairParticle>       m_particles;
         std::list<ISpring*>             m_springs;
