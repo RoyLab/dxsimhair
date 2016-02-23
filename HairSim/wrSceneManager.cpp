@@ -7,11 +7,11 @@
 #include <DXUTcamera.h>
 #include "wrTypes.h"
 #include "Parameter.h"
-//#include "SphereCollisionObject.h"
 #include "LevelSet.h"
 #include "wrGeo.h"
 
 
+#include "SphereCollisionObject.h"
 
 using namespace DirectX;
 
@@ -68,6 +68,7 @@ bool wrSceneManager::init()
     //WR::Polyhedron_3 *P = WRG::readFile<WR::Polyhedron_3>("../../models/head.off");
     //WR::SphereCollisionObject* sphere = new WR::SphereCollisionObject;
     //sphere->setupFromPolyhedron(*P);
+    //pCollisionHead = sphere;
     //delete P;
 
     if (APPLY_COLLISION)

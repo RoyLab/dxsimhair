@@ -408,6 +408,7 @@ namespace WR
         {
             lastWorld += matStep;
             step(lastWorld, (start += tStep), tStep, pData);
+            //std::cout << std::setprecision(2) << tStep << ' ';
             //Sleep(500);
         }
     }
@@ -454,7 +455,7 @@ namespace WR
         if (APPLY_PCG)
         {
             SparseMat A = m_mass + T * fTimeElapsed;
-            VecX b = -fTimeElapsed * ((K * m_position - C) + T * m_velocity) + m_gravity;
+            VecX b = -fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity);
             modified_pcg(A, b, dv);
         }
         else
@@ -463,7 +464,7 @@ namespace WR
             A.setIdentity();
             A += m_mass_1 * T * fTimeElapsed;
 
-            VecX b = m_mass_1 * (-fTimeElapsed * ((K * m_position - C) + T * m_velocity) + m_gravity);
+            VecX b = m_mass_1 * (-fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity));
             LU(A, b, dv);
         }
 
@@ -476,10 +477,10 @@ namespace WR
         if (APPLY_COLLISION)
             resolve_body_collision(mWorld, newPos, m_velocity, fTimeElapsed);
 
-        //std::cout << std::setprecision(2) << fTimeElapsed << " ";
-        for (size_t i = 0; i < dim; i++)
-            if (std::isnan(newPos[i]))
-                std::cout << i << std::endl;
+        //for (size_t i = 0; i < dim; i++)
+        //    if (std::isnan(newPos[i]))
+        //        std::cout << i << std::endl;
+
         m_position = newPos;
 
 #else
@@ -535,7 +536,7 @@ namespace WR
         VecX b_f(dim), r(dim), c(dim), q(dim), s(dim);
         float dnew, dold, a;
 
-        const float tol = 1e-12, tol_square = tol * tol;
+        const float tol = 1e-7, tol_square = tol * tol;
 
         dv.setZero();
         filter(b, b_f);

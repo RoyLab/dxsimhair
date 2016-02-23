@@ -17,7 +17,7 @@ float          GRAVITY[3] = { 0.0f, -10.0f, 0.0f };
 #ifdef _DEBUG
 int COMPRESS_RATIO = 500;
 #else
-int COMPRESS_RATIO = 500;
+int COMPRESS_RATIO = 1000;
 #endif
 
 #endif
