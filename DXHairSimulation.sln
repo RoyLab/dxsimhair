@@ -32,6 +32,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LevelSet", "LevelSet\LevelSet.vcxproj", "{9FD2CD8C-B136-421C-BFDE-5BBE2F2AC3B9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dx11Template", "Hairworks\hairworks.vcxproj", "{EC153763-494A-4E6A-B823-C45A90FF400C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -150,6 +152,18 @@ Global
 		{9FD2CD8C-B136-421C-BFDE-5BBE2F2AC3B9}.Release|Win32.ActiveCfg = Release|Win32
 		{9FD2CD8C-B136-421C-BFDE-5BBE2F2AC3B9}.Release|Win32.Build.0 = Release|Win32
 		{9FD2CD8C-B136-421C-BFDE-5BBE2F2AC3B9}.Release|x64.ActiveCfg = Release|Win32
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Debug|Win32.Build.0 = Debug|Win32
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Debug|x64.ActiveCfg = Debug|x64
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Debug|x64.Build.0 = Debug|x64
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Profile|Win32.ActiveCfg = Profile|Win32
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Profile|Win32.Build.0 = Profile|Win32
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Profile|x64.ActiveCfg = Profile|x64
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Profile|x64.Build.0 = Profile|x64
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Release|Win32.ActiveCfg = Release|Win32
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Release|Win32.Build.0 = Release|Win32
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Release|x64.ActiveCfg = Release|x64
+		{EC153763-494A-4E6A-B823-C45A90FF400C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
