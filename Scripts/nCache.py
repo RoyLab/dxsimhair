@@ -18,7 +18,7 @@ import string
 import re
 import array
 
-from IPython.core.debugger import Tracer
+# from IPython.core.debugger import Tracer
 
 """
 
@@ -153,6 +153,8 @@ class CacheFile:
     m_blockTypeSize = 4
     m_glCount = 0
     m_numFramesToPrint = 5
+
+    mf_hooker = None
 
     ########################################################################
     #   Description:
@@ -391,16 +393,16 @@ class CacheFile:
                 #FVCA == Float Vector Array
                 if bufferLength != arrayLength*3*4:
                     fileFormatError()
-                floatArray = array.array('f')
-                floatArray.fromfile(fd,arrayLength*3)
+                doubleArray = array.array('f')
+                doubleArray.fromfile(fd,arrayLength*3)
                 bytesRead += arrayLength*3*4
                 self.m_glCount += bytesRead
                 if needSwap:
-                    floatArray.byteswap()
+                    doubleArray.byteswap()
                 if numPointsToPrint > arrayLength:
                     numPointsToPrint = arrayLength
-                print "Channelname = %s,Data type float vector array,length = %d elements, First %d points:" % (channelName,arrayLength,numPointsToPrint)
-                print floatArray[0:numPointsToPrint*3]
+                # print "Channelname = %s,Data type float vector array,length = %d elements, First %d points:" % (channelName,arrayLength,numPointsToPrint)
+                # print doubleArray[0:numPointsToPrint*3]
             elif dataFormatTag == "DVCA":
                 #DVCA == Double Vector Array
                 if bufferLength != arrayLength*3*8:
@@ -413,11 +415,11 @@ class CacheFile:
                     doubleArray.byteswap()
                 if numPointsToPrint > arrayLength:
                     numPointsToPrint = arrayLength
-                print "Channelname = %s,Data type double vector array,length = %d elements, First %d points:" % (channelName,arrayLength,numPointsToPrint)
-                print doubleArray[0:numPointsToPrint*3]
+                # print "Channelname = %s,Data type double vector array,length = %d elements, First %d points:" % (channelName,arrayLength,numPointsToPrint)
+                # print doubleArray[0:numPointsToPrint*3]
             elif dataFormatTag == "DBLA":
                 #DBLA == Double Array
-                print ""
+                # print ""
                 if bufferLength != arrayLength*8:
                     fileFormatError()
                 doubleArray = array.array('d')
@@ -428,11 +430,11 @@ class CacheFile:
                     doubleArray.byteswap()
                 if numPointsToPrint > arrayLength:
                     numPointsToPrint = arrayLength
-                print "Channelname = %s,Data type double array,length = %d elements, First %d points:" % (channelName,arrayLength,numPointsToPrint)
-                print doubleArray[0:numPointsToPrint]
+                # print "Channelname = %s,Data type double array,length = %d elements, First %d points:" % (channelName,arrayLength,numPointsToPrint)
+                # print doubleArray[0:numPointsToPrint]
             elif dataFormatTag == "FBCA":
                 #FBCA == Float Array
-                print ""
+                # print ""
                 if bufferLength != arrayLength*4:
                     fileFormatError()
                 doubleArray = array.array('f')
@@ -443,10 +445,13 @@ class CacheFile:
                     doubleArray.byteswap()
                 if numPointsToPrint > arrayLength:
                     numPointsToPrint = arrayLength
-                print "Channelname = %s,Data type float array,length = %d elements, First %d points:" % (channelName,arrayLength,numPointsToPrint)
-                print doubleArray[0:numPointsToPrint]
+                # print "Channelname = %s,Data type float array,length = %d elements, First %d points:" % (channelName,arrayLength,numPointsToPrint)
+                # print doubleArray[0:numPointsToPrint]
             else:
                 fileFormatError()
+
+            if self.mf_hooker:
+                self.mf_hooker(channelName, arrayLength, doubleArray)
 
             #Padding
             sizeToRead = (bufferLength + mask) & (~mask)
@@ -463,7 +468,7 @@ class CacheFile:
     #   method to parse and display the contents of the data file, for the
     #   One large file case ("OneFile")
     def parseDataOneFile(self):
-        dataFilePath = os.path.join(cacheFile.m_directory,cacheFile.m_baseFileName)
+        dataFilePath = os.path.join(self.m_directory,self.m_baseFileName)
         dataFilePath_mcc = dataFilePath + ".mcc"
         dataFilePath_mcx = dataFilePath + ".mcx"
         self.m_glCount = 0
@@ -602,7 +607,7 @@ class CacheFile:
             if len(frameAndTickNumber) > 1:
                 tickNumber = int(frameAndTickNumber[1])
 
-            timeInTicks = frameNumber*cacheFile.m_timePerFrame + tickNumber
+            timeInTicks = frameNumber*self.m_timePerFrame + tickNumber
             print "--------------------------------------------------------------\n"
             print "Data found at time %f seconds:\n"%(timeInTicks/6000.0)
 
@@ -670,41 +675,43 @@ class CacheFile:
 def usage():
     print "Use -f to indicate the cache description file (.xml) you wish to parse\n"
 
-try:
-    (opts, args) = getopt.getopt(sys.argv[1:], "f:")
-except getopt.error:
-    # print help information and exit:
-    usage()
-    sys.exit(2)
+def importFile(fileName, hooker):
+    # try:
+    #     (opts, args) = getopt.getopt(sys.argv[1:], "f:")
+    # except getopt.error:
+    #     # print help information and exit:
+    #     usage()
+    #     sys.exit(2)
+    #
+    # if len(opts) == 0:
+    #     usage()
+    #     sys.exit(2)
+    #
+    # fileName = ""
+    # for o,a in opts:
+    #     if o == "-f":
+    #         fileName = a
 
-if len(opts) == 0:
-    usage()
-    sys.exit(2)
+    cacheFile = CacheFile(fileName)
+    cacheFile.mf_hooker = hooker
 
-fileName = ""
-for o,a in opts:
-    if o == "-f":
-        fileName = a
+    if cacheFile.m_version > 2.0:
+        print "Error: this script can only parse cache files of version 2 or lower\n"
+        sys.exit(2)
 
-cacheFile = CacheFile(fileName)
+    print "*******************************************************************************\n"
+    print "Maya Cache version %f, Format = %s\n"%(cacheFile.m_version,cacheFile.m_cacheType)
+    print "The cache was originally created at %d FPS\n"%(6000.0/cacheFile.m_timePerFrame)
+    print "Cache has %d channels, starting at time %f seconds and ending at %f seconds\n"%(len(cacheFile.m_channels),cacheFile.m_cacheStartTime/6000.0,cacheFile.m_cacheEndTime/6000.0)
+    for channel in cacheFile.m_channels:
+        print   "Channelname =%s, type=%s, interpretation =%s, sampling Type = %s\n"% (channel.m_channelName,channel.m_channelType,channel.m_channelInterp,channel.m_sampleType)
+        print   "sample rate (for regular sample type only) = %f FPS\n"%(6000.0/channel.m_sampleRate)
+        print   "startTime=%f seconds, endTime=%f seconds\n"%(channel.m_startTime/6000.0,channel.m_endTime/6000.0)
+    print "*******************************************************************************\n"
 
-if cacheFile.m_version > 2.0:
-    print "Error: this script can only parse cache files of version 2 or lower\n"
-    sys.exit(2)
-
-print "*******************************************************************************\n"
-print "Maya Cache version %f, Format = %s\n"%(cacheFile.m_version,cacheFile.m_cacheType)
-print "The cache was originally created at %d FPS\n"%(6000.0/cacheFile.m_timePerFrame)
-print "Cache has %d channels, starting at time %f seconds and ending at %f seconds\n"%(len(cacheFile.m_channels),cacheFile.m_cacheStartTime/6000.0,cacheFile.m_cacheEndTime/6000.0)
-for channel in cacheFile.m_channels:
-    print   "Channelname =%s, type=%s, interpretation =%s, sampling Type = %s\n"% (channel.m_channelName,channel.m_channelType,channel.m_channelInterp,channel.m_sampleType)
-    print   "sample rate (for regular sample type only) = %f FPS\n"%(6000.0/channel.m_sampleRate)
-    print   "startTime=%f seconds, endTime=%f seconds\n"%(channel.m_startTime/6000.0,channel.m_endTime/6000.0)
-print "*******************************************************************************\n"
-
-if cacheFile.m_cacheType == "OneFilePerFrame":
-    cacheFile.parseDataFilePerFrame()
-elif cacheFile.m_cacheType == "OneFile":
-    cacheFile.parseDataOneFile()
-else:
-    print "unknown cache type!\n"
+    if cacheFile.m_cacheType == "OneFilePerFrame":
+        cacheFile.parseDataFilePerFrame()
+    elif cacheFile.m_cacheType == "OneFile":
+        cacheFile.parseDataOneFile()
+    else:
+        print "unknown cache type!\n"
