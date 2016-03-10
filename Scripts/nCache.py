@@ -140,21 +140,6 @@ class CacheChannel:
         print "Channel Name =%s,type=%s,interp=%s,sampleType=%s,rate=%d,start=%d,end=%d\n"%(channelName,channelType,interpretation,samplingType,samplingRate,startTime,endTime)
 
 class CacheFile:
-    m_baseFileName = ""
-    m_directory = ""
-    m_cacheType = ""
-    m_cacheStartTime = 0
-    m_cacheEndTime = 0
-    m_timePerFrame = 0
-    m_version = 0.0
-    m_channels = []
-    m_printChunkInfo = False
-    m_tagSize = 4
-    m_blockTypeSize = 4
-    m_glCount = 0
-    m_numFramesToPrint = 5
-
-    mf_hooker = None
 
     ########################################################################
     #   Description:
@@ -162,6 +147,23 @@ class CacheFile:
     #       xml description file before calling parseDescriptionFile()
     #
     def __init__(self,fileName):
+
+        self.m_baseFileName = ""
+        self.m_directory = ""
+        self.m_cacheType = ""
+        self.m_cacheStartTime = 0
+        self.m_cacheEndTime = 0
+        self.m_timePerFrame = 0
+        self.m_version = 0.0
+        self.m_channels = []
+        self.m_printChunkInfo = False
+        self.m_tagSize = 4
+        self.m_blockTypeSize = 4
+        self.m_glCount = 0
+        self.m_numFramesToPrint = 5
+
+        self.m_hooker = None
+
         # fileName can be the full path to the .xml description file,
         # or just the filename of the .xml file, with or without extension
         # if it is in the current directory
@@ -450,8 +452,8 @@ class CacheFile:
             else:
                 fileFormatError()
 
-            if self.mf_hooker:
-                self.mf_hooker(channelName, arrayLength, doubleArray)
+            if self.m_hooker:
+                self.m_hooker.data_hooker(channelName, arrayLength, doubleArray)
 
             #Padding
             sizeToRead = (bufferLength + mask) & (~mask)
@@ -460,7 +462,7 @@ class CacheFile:
                 fd.read(paddingSize)
             bytesRead += paddingSize
             self.m_glCount += bytesRead
-            print "\n"
+            # print "\n"
 
 
     ########################################################################
@@ -517,9 +519,13 @@ class CacheFile:
 
         frameCount = 0
         while frameCount < self.m_numFramesToPrint:
+
+            if self.m_hooker:
+                self.m_hooker.new_frame()
+
             frameCount+=1;
 
-            print "\n\nREAD FRAME %d" % (frameCount)
+            print "READ FRAME %d" % (frameCount)
 
             #From now on the file is organized in blocks of time
             #Each block holds the data for all the channels at that
@@ -575,7 +581,7 @@ class CacheFile:
             self.m_glCount += bytesRead
             self.printTime( self.m_glCount, time )
 
-            print "--------------------------------------------------------------\n"
+            print "--------------------------------------------------------------"
             print "Data found at time %f seconds:\n"%(time)
 
             self.readData( fd, bytesRead, dataBlockSize, needSwap, tagFOR )
@@ -693,7 +699,7 @@ def importFile(fileName, hooker):
     #         fileName = a
 
     cacheFile = CacheFile(fileName)
-    cacheFile.mf_hooker = hooker
+    cacheFile.m_hooker = hooker
 
     if cacheFile.m_version > 2.0:
         print "Error: this script can only parse cache files of version 2 or lower\n"
