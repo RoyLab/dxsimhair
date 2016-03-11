@@ -32,22 +32,24 @@ n_weak_thresh = n_frames * weak_coef
 ptGraph.add_vertices(n_pts)
 ptGraph.es["weight"] = 1.0
 
-for i in range(n_frames):
-
-    kdt = createKDTree(n_pts, frames[i])
+edgeHash = {}
+pbar = ProgressBar().start()
+for i in range(n_frames*20):
+    kdt = createKDTree(n_pts, frames[i%5])
     pairs = kdt.query_pairs(radius)
-    print "process frame %d, with %d edges..." % (i, len(pairs))
 
-    pbar = ProgressBar().start()
-    count = 0
-    l = float(len(pairs))
+    # print "process frame %d, with %d edges..." % (i, len(pairs))
+    pbar.update(((i/(n_frames*20.0-1))*100))
+
+    if i == 0:
+        edgeHash = dict.fromkeys(pairs, 1)
+        continue
+
     for pair in pairs:
-        ptGraph[pair[0], pair[1]] += 1
-        if count % 100 == 0:
-            pbar.update(int((count/(l-1))*100))
-        count += 1
+        edgeHash.setdefault(pair, 0)
+        edgeHash[pair] += 1
 
-    pbar.finish()
+pbar.finish()
 
 weakLinks = ptGraph.es.select(weight_lt = n_weak_thresh)
 ptGraph.delete_edges(weakLinks)
