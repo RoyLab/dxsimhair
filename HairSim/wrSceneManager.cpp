@@ -7,11 +7,11 @@
 #include <DXUTcamera.h>
 #include "wrTypes.h"
 #include "Parameter.h"
-//#include "SphereCollisionObject.h"
 #include "LevelSet.h"
 #include "wrGeo.h"
 
 
+#include "SphereCollisionObject.h"
 
 using namespace DirectX;
 
@@ -33,6 +33,11 @@ struct CB_VS_PER_FRAME
 };
 #pragma pack(pop)
 
+#ifdef _DEBUG
+#define ADF_FILE L"../../models/head_d"
+#else
+#define ADF_FILE L"../../models/head"
+#endif
 
 wrSceneManager::wrSceneManager()
 {
@@ -63,9 +68,11 @@ bool wrSceneManager::init()
     //WR::Polyhedron_3 *P = WRG::readFile<WR::Polyhedron_3>("../../models/head.off");
     //WR::SphereCollisionObject* sphere = new WR::SphereCollisionObject;
     //sphere->setupFromPolyhedron(*P);
+    //pCollisionHead = sphere;
     //delete P;
 
-    pCollisionHead = WR::loadCollisionObject(L"../../models/head");
+    if (APPLY_COLLISION)
+        pCollisionHead = WR::loadCollisionObject(ADF_FILE);
 
     HRESULT hr;
     pHairRenderer = new wrHairRenderer(*pHair);

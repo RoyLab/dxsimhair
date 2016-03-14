@@ -5,6 +5,11 @@
 *.suo
 *.user
 *.sln.docstates
+*.mc
+*.mcx
+*.pyc
+*.lprof
+
 
 # Build results
 [Dd]ebug/
