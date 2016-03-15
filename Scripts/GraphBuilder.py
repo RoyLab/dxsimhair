@@ -2,21 +2,21 @@ import igraph
 from scipy.spatial import cKDTree
 from mcimport import *
 from progressbar import *
-import ipdb
+import crash_on_ipy
 
 radius = 0.02
 weak_coef = 0.3
 
 def createKDTree(n_pts, data):
-    tripples = arrayToTrippleList(data.data)
-    kdt = cKDTree(tripples)
+    # tripples = arrayToTrippleList(data.data)
+    kdt = cKDTree(data.data)
     return kdt
 
-def arrayToTrippleList(arr):
-    res = []
-    for i in range(len(arr)/3):
-        res.append((arr[3*i], arr[3*i+1], arr[3*i+2]))
-    return res
+# def arrayToTrippleList(arr):
+#     res = []
+#     for i in range(len(arr)/3):
+#         res.append((arr[3*i], arr[3*i+1], arr[3*i+2]))
+#     return res
 
 # @profile
 def createInitGraph(frames):
@@ -26,7 +26,9 @@ def createInitGraph(frames):
     edgeHash = {}
     pbar = ProgressBar().start()
     for i in range(n_frames):
-        kdt = createKDTree(n_pts, frames[i%5])
+        frame = frames[i]
+        frame.computeMotionMatrix(frames[0])
+        kdt = createKDTree(n_pts, frames[i])
         pairs = kdt.query_pairs(radius)
         pbar.update(((i/(n_frames-1.0))*100))
         if i == 0:
@@ -50,7 +52,8 @@ def filterEdges(edges, thresh):
 
     return edges
 
-data = importFile("../../maya cache/03074/hair_nRigidShape1.xml")
-graph = createInitGraph(data)
-n_weak_thresh = len(data) * weak_coef
+frames = importFile("../../maya cache/03074/hair_nRigidShape1.xml")
+graph = createInitGraph(frames)
+n_weak_thresh = len(frames) * weak_coef
 filterEdges(graph, n_weak_thresh)
+frames
