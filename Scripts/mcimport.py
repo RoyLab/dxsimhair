@@ -76,7 +76,10 @@ class Frame:
             spline, u = interpolate.splprep(data, s=0)
             derive = interpolate.splev(u_axis, spline, der=1)
 
-            directions.append(derive)
+            derive = np.matrix(derive).T
+            for j in range(n_particle_per_strand):
+                directions.append(derive[j] / np.linalg.norm(derive[j]))
+
             self.hairspline.append(spline)
 
         self.particle_direction = np.array(directions)
@@ -85,8 +88,10 @@ class Frame:
         ref = self.reference
         for i in range(self.n_particle):
             trans = self.data[i] - ref.data[i]
-            rot = non_normal_rotation(ref.particle_direction[i], self.particle_direction[i])
-            self.particle_motions.append((trans, rot))
+            rot = vector_rotation_3D(self.particle_direction[i], ref.particle_direction[i])
+            self.particle_motions.append((rot, trans))
+
+        ipdb.set_trace()
 
 
     def computeMotionMatrix(self, reference):

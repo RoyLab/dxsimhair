@@ -2,7 +2,11 @@ import igraph
 from scipy.spatial import cKDTree
 from mcimport import *
 from progressbar import *
+
+
 import crash_on_ipy
+np.set_printoptions(suppress=True)
+
 
 radius = 0.02
 weak_coef = 0.3
@@ -27,6 +31,8 @@ def createInitGraph(frames):
     pbar = ProgressBar().start()
     for i in range(n_frames):
         frame = frames[i]
+        # if i == 2:
+        #     ipdb.set_trace()
         frame.computeMotionMatrix(frames[0])
         kdt = createKDTree(n_pts, frames[i])
         pairs = kdt.query_pairs(radius)
@@ -56,4 +62,3 @@ frames = importFile("../../maya cache/03074/hair_nRigidShape1.xml")
 graph = createInitGraph(frames)
 n_weak_thresh = len(frames) * weak_coef
 filterEdges(graph, n_weak_thresh)
-frames

@@ -6,19 +6,28 @@ from math import sqrt
 # R = 3x3 rotation matrix
 # t = 3x1 column vector
 
-def non_normal_rotation(A, B):
-    a = matrix(A)
-    b = matrix(B)
+def vector_rotation_3D_non_normalized(cur, ref):
+    a = cur / linalg.norm(cur)
+    b = ref / linalg.norm(ref)
+    return vector_rotation_3D(a, b)
 
-    a /= linalg.norm(a)
-    b /= linalg.norm(b)
+# algorithm: http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+def vector_rotation_3D(cur, ref):
+    v = cross(cur, ref);
+    s = linalg.norm(v)
+    c = dot(cur, ref)
 
-    return b.T * a
+    if s == 0.:
+        if c > 0.:
+            return identity(3)
+        else:
+            return -identity(3)
 
+    vx = matrix([[0, -v[2], v[1]],
+    [v[2], 0, -v[0]], [-v[1], v[0], 0]])
 
-def normal_rotation(A, B):
-    ''' normalized A, B '''
-    return matrix(B).T * matrix(A)
+    R = identity(3) + vx + vx*vx*(1-c)/s/s
+    return R
 
 def rigid_transform_3D(A, B):
     assert len(A) == len(B)
@@ -34,9 +43,7 @@ def rigid_transform_3D(A, B):
 
     # dot is matrix multiplication for array
     H = transpose(AA) * BB
-
     U, S, Vt = linalg.svd(H)
-
     R = Vt.T * U.T
 
     # special reflection case
@@ -46,9 +53,6 @@ def rigid_transform_3D(A, B):
        R = Vt.T * U.T
 
     t = -R*centroid_A.T + centroid_B.T
-
-    # print t
-
     return R, t
 
 # Test with random data
