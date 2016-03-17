@@ -525,7 +525,7 @@ class CacheFile:
 
             frameCount+=1;
 
-            print "READ FRAME %d" % (frameCount)
+            # print "READ FRAME %d" % (frameCount)
 
             #From now on the file is organized in blocks of time
             #Each block holds the data for all the channels at that
@@ -581,8 +581,8 @@ class CacheFile:
             self.m_glCount += bytesRead
             self.printTime( self.m_glCount, time )
 
-            print "--------------------------------------------------------------"
-            print "Data found at time %f seconds:\n"%(time)
+            # print "--------------------------------------------------------------"
+            # print "Data found at time %f seconds:\n"%(time)
 
             self.readData( fd, bytesRead, dataBlockSize, needSwap, tagFOR )
 

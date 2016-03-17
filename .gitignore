@@ -9,6 +9,7 @@
 *.mcx
 *.pyc
 *.lprof
+*.test
 
 
 # Build results

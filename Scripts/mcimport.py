@@ -3,7 +3,6 @@ import numpy as np
 import ipdb
 from rigid_transform import *
 
-
 n_particle_per_strand = 25
 
 def importFile(fileName):
@@ -63,7 +62,8 @@ class Frame:
 
         self.count += 1
 
-    def computeParticleMatrices(self):
+    # @profile
+    def _computeParticleMatrices(self):
         from scipy import interpolate
         u_axis = np.linspace(0, 1, 25)
 
@@ -87,14 +87,38 @@ class Frame:
 
         ref = self.reference
         for i in range(self.n_particle):
-            trans = self.data[i] - ref.data[i]
-            rot = vector_rotation_3D(self.particle_direction[i], ref.particle_direction[i])
+            trans = self.data[i] - (ref.data[i] + self.rigid_motion[1])
+            rot = vector_rotation_3D((ref.particle_direction[i] * self.rigid_motion[0].T).A1, self.particle_direction[i])
             self.particle_motions.append((rot, trans))
 
-        ipdb.set_trace()
+    def applyRigidTrans(vec, rot, trans):
+        return vec * rot.T + trans
 
+    def deviation(self, id0, id1):
+        pos0 = self.data[id0]
+        pos1 = self.data[id1]
+        dir0 = self.particle_direction[id0]
+        dir1 = self.particle_direction[id1]
+
+        t0 = self.particle_motions[id0]
+        t1 = self.particle_motions[id1]
+        t = self.rigid_motion
+
+        posr0 = self.reference.data[id0] + t[1]
+        posr1 = self.reference.data[id1] + t[1]
+        dirr0 = self.reference.particle_direction[id0] * t[0].T
+        dirr1 = self.reference.particle_direction[id1] * t[0].T
+
+        dp01 = pos0-(posr0+t1[1])
+        dp10 = pos1-(posr1+t0[1])
+
+        dr01 = dir0-(dirr0*t1[0].T).A1
+        dr10 = dir1-(dirr1*t0[0].T).A1
+
+        return dp01.dot(dp01) + dp10.dot(dp10) +\
+            dr01.dot(dr01) + dr10.dot(dr10)
 
     def computeMotionMatrix(self, reference):
         self.reference = reference
         self.rigid_motion = rigid_transform_3D(reference.headData, self.headData)
-        self.computeParticleMatrices();
+        self._computeParticleMatrices();

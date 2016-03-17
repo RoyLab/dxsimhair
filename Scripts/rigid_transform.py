@@ -6,18 +6,17 @@ from math import sqrt
 # R = 3x3 rotation matrix
 # t = 3x1 column vector
 
-def vector_rotation_3D_non_normalized(cur, ref):
-    a = cur / linalg.norm(cur)
-    b = ref / linalg.norm(ref)
-    return vector_rotation_3D(a, b)
+def vector_rotation_3D_non_normalized(ref, cur):
+    c = cur / linalg.norm(cur)
+    r = ref / linalg.norm(ref)
+    return vector_rotation_3D(r, c)
 
 # algorithm: http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
-def vector_rotation_3D(cur, ref):
-    v = cross(cur, ref);
+def vector_rotation_3D(ref, cur):
+    v = cross(ref, cur);
     s = linalg.norm(v)
-    c = dot(cur, ref)
-
-    if s == 0.:
+    c = dot(ref, cur)
+    if abs(s - 0.) < 1e-10:
         if c > 0.:
             return identity(3)
         else:
@@ -53,7 +52,7 @@ def rigid_transform_3D(A, B):
        R = Vt.T * U.T
 
     t = -R*centroid_A.T + centroid_B.T
-    return R, t
+    return R, t.A1
 
 # Test with random data
 
