@@ -1,6 +1,8 @@
 import cPickle as pickle
 import metis_graph as mg
 import matplotlib.pyplot as plt
+import guide_hair as gh
+import crash_on_ipy
 
 n_step = 100
 
@@ -18,3 +20,6 @@ for i in range(len(particle_graph.eweights)):
 import pymetis
 _g = particle_graph
 cut, vers = pymetis.part_graph(20, xadj=_g.xadj, adjncy=_g.adjncy, eweights=_g.eweights)
+
+guideHair = gh.GroupedGraph(particle_graph, vers)
+guideHair.solve()

@@ -3,7 +3,6 @@ from scipy.spatial import cKDTree
 from mcimport import *
 from progressbar import *
 
-import crash_on_ipy
 np.set_printoptions(suppress=True)
 
 n_particle_per_strand = 25

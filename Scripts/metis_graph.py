@@ -1,3 +1,62 @@
+
+class UndirectedIterator:
+    def __init__(self, mgraph):
+        self.graph = mgraph
+
+    def __iter__(self):
+        self.i = 0
+        self.j = -1
+        return self
+
+    def next(self): # Python 3: def __next__(self)
+        while 1:
+            self.j += 1
+            if self.j >= len(self.mgraph.adjncy):
+                raise StopIteration
+            while self.j >= self.graph.xadj[self.i+1]:
+                self.i += 1
+            if self.i < self.graph.adjncy[self.j]:
+                break
+        return self.i, self.graph.adjncy[self.j], self.graph.eweights[self.j]
+
+
+
+class DirectedIterator:
+    def __init__(self, mgraph):
+        self.graph = mgraph
+
+    def __iter__(self):
+        self.i = 0
+        self.j = -1
+        return self
+
+    def next(self): # Python 3: def __next__(self)
+        while 1:
+            self.j += 1
+            if self.j >= len(self.mgraph.adjncy):
+                raise StopIteration
+            while self.j >= self.graph.xadj[self.i+1]:
+                self.i += 1
+        return self.i, self.graph.adjncy[self.j], self.graph.eweights[self.j]
+
+
+class EdgeIterator:
+    def __init__(self, mgraph, node):
+        self.graph = mgraph
+        self.node = node
+        self.start = mgraph.xadj[node]-1
+        self.end = mgraph.xadj[node+1]
+
+    def __iter__(self):
+        self.cur = self.start
+        return self
+
+    def next(self): # Python 3: def __next__(self)
+        self.cur += 1
+        if self.cur >= self.end:
+            raise StopIteration
+        return self.graph.adjncy[self.cur], self.graph.eweights[self.cur]
+
 class MetisGraph:
     def __init__(self, mygraph = None, n_vertices = 0):
         if mygraph == None:
