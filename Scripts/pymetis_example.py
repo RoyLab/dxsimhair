@@ -28,11 +28,7 @@ import numpy as np
 import pymetis
 import pytest
 
-# import ipdb
-# ipdb.set_trace()
-
-
-def test_tet_mesh(visualize=True):
+def test_tet_mesh(visualize=False):
     from math import pi, cos, sin
     from meshpy.tet import MeshInfo, build
     from meshpy.geometry import GeometryBuilder, generate_surface_of_revolution, EXT_CLOSED_IN_RZ
@@ -77,6 +73,7 @@ def test_tet_mesh(visualize=True):
             adjacency.setdefault(e1, []).append(e2)
             adjacency.setdefault(e2, []).append(e1)
 
+    import ipdb; ipdb.set_trace()
     cuts, part_vert = pymetis.part_graph(17, adjacency)
 
     if visualize:

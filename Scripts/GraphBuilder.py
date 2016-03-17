@@ -6,20 +6,13 @@ from progressbar import *
 import crash_on_ipy
 np.set_printoptions(suppress=True)
 
-
+n_particle_per_strand = 25
 radius = 0.02
 weak_coef = 0.3
 
 def createKDTree(n_pts, data):
-    # tripples = arrayToTrippleList(data.data)
     kdt = cKDTree(data.data)
     return kdt
-
-# def arrayToTrippleList(arr):
-#     res = []
-#     for i in range(len(arr)/3):
-#         res.append((arr[3*i], arr[3*i+1], arr[3*i+2]))
-#     return res
 
 class Edge:
     def __init__(self, number, rec=None):
@@ -27,6 +20,24 @@ class Edge:
         if rec == None:
             rec = []
         self.records = rec
+
+    def __lt__(self, other):
+        return self.value < other.value
+
+    def __le__(self, other):
+        return self.value <= other.value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def __ne__(self, other):
+        return self.value != other.value
+
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __ge__(self, other):
+        return self.value >= other.value
 
 # @profile
 def createInitGraph(frames):
@@ -65,22 +76,10 @@ def filterEdges(edges, thresh):
         del edges[key]
     return edges
 
-frames = importFile("../../maya cache/03074/hair_nRigidShape1.xml")
-graph = createInitGraph(frames)
-n_weak_thresh = len(frames) * weak_coef
-filterEdges(graph, n_weak_thresh)
-
-for k in graph.keys():
-    edge = graph[k]
-    edge.value = 0
-    for fn in edge.records:
-        edge.value -= frames[fn].deviation(k[0], k[1])
-
-
-f = open("data.txt", 'w')
-import cPickle as pkl
-pkl.dump(graph, f)
-f.close()
-
-# keys = graph.keys()
-# print len(graph[keys[253]].records)
+def shrinkGraph(graph):
+    smaller = {}
+    for key in graph.keys():
+        newkey = (key[0]/n_particle_per_strand, key[1]/n_particle_per_strand)
+        smaller.setdefault(newkey, 0.)
+        smaller[newkey] += graph[key]
+    return smaller
