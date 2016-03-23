@@ -18,6 +18,7 @@ class GroupedGraph(mg.MetisGraph):
         self.createLookupTable()
 
     def createLookupTable(self):
+        '''convert the group table into a query link list'''
         self.lookup = []
         for i in range(self.n_group):
             self.lookup.append([])
