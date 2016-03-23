@@ -23,11 +23,15 @@ def func_deriv(x, sign=1.0):
     """ Derivative of objective function """
     return np.array([2*x[0]+2, 2*x[1]+2])
 
+def c(x):
+    return x
+
 cons = ({'type': 'ineq',
-         'fun' : lambda x: x,
-         'jac' : lambda x: 1})
+         'fun' : c,
+         'jac' : lambda x: np.identity(2)
+         })
 
 res = minimize(func, [5.0, 100.0], args=(), jac=func_deriv,
-               method='SLSQP', options={'disp': True}, bounds=[(0, None)]*2)
+               method='SLSQP', options={'disp': True}, constraints=cons)
 
 print(res.x)

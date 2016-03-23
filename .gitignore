@@ -10,6 +10,7 @@
 *.pyc
 *.lprof
 *.test
+*.dump
 
 
 # Build results

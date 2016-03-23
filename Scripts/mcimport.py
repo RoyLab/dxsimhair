@@ -1,13 +1,13 @@
 import nCache
 import numpy as np
-import ipdb
-from rigid_transform import *
+from coordinates import *
+import cPickle as pkl
 
 n_particle_per_strand = 25
 
-def importFile(fileName):
+def importFile(fileName, number=5):
     hk = Hooker()
-    nCache.importFile(fileName, hk)
+    nCache.importFile(fileName, hk, number)
     return hk.get_data()
 
 class Hooker:
@@ -32,24 +32,25 @@ class Frame:
 
     def __init__(self):
         self.count = 0
-        self.data = None
-        self.headData = None
+        self.data = None # 2D array
+        self.headData = None # 2D array
 
         self.n_headVertex = 0
         self.n_hair = 0
         self.n_particle = 0
 
-        self.rigid_motion = None
-        self.particle_motions = []
+        self.rigid_motion = None # matrix R, array t
+        self.particle_motions = None # list of (matrix R, array t)
         self.reference = None
 
         self.hairspline = []
-        self.particle_direction = None
+        self.particle_direction = None  # 2D array
 
     def loadIntoMemory(self, name, sz, data):
         if self.count == 0:
+            # head data
             self.n_headVertex = int(sz)
-            self.headData = np.matrix(data)
+            self.headData = np.array(data)
             self.headData.resize(len(data)/3, 3)
 
         elif self.count == 1:
@@ -57,13 +58,34 @@ class Frame:
             self.n_particle = self.n_hair * n_particle_per_strand
 
         elif self.count == 3:
+            # hair data, array, no need for any retrieval
             self.data = np.array(data)
             self.data.resize(self.n_particle, 3)
 
         self.count += 1
 
-    # @profile
-    def _computeParticleMatrices(self):
+    def calcParticleMotionMatrices(self):
+        ref = self.reference
+        matrices = []
+        for i in range(self.n_particle):
+            trans = self.data[i] - (ref.data[i] + self.rigid_motion[1])
+            rot = vector_rotation_3D((ref.particle_direction[i] * self.rigid_motion[0].T).A1, self.particle_direction[i])
+            matrices.append((rot, trans))
+
+        self.particle_motions = matrices
+
+    def calcSelectedParticleMotionMatrices(self, reference, Ids):
+        ref = reference
+        self.reference = ref
+        matrices = {}
+        for i in Ids:
+            trans = self.data[i] - (ref.data[i] + self.rigid_motion[1])
+            rot = vector_rotation_3D((ref.particle_direction[i] * self.rigid_motion[0].T).A1, self.particle_direction[i])
+            matrices[i] = (rot, trans)
+
+        self.particle_motions = matrices
+
+    def calcParticleDirections(self):
         from scipy import interpolate
         u_axis = np.linspace(0, 1, 25)
 
@@ -79,49 +101,33 @@ class Frame:
             derive = np.matrix(derive).T
             for j in range(n_particle_per_strand):
                 directions.append(derive[j] / np.linalg.norm(derive[j]))
-
             self.hairspline.append(spline)
 
         self.particle_direction = np.array(directions)
         self.particle_direction.resize(self.n_particle, 3)
 
-        ref = self.reference
-        for i in range(self.n_particle):
-            trans = self.data[i] - (ref.data[i] + self.rigid_motion[1])
-            rot = vector_rotation_3D((ref.particle_direction[i] * self.rigid_motion[0].T).A1, self.particle_direction[i])
-            self.particle_motions.append((rot, trans))
-
-    def applyRigidTrans(vec, rot, trans):
-        return vec * rot.T + trans
 
     def deviation(self, id0, id1):
-        pos0 = self.data[id0]
-        pos1 = self.data[id1]
-        dir0 = self.particle_direction[id0]
-        dir1 = self.particle_direction[id1]
+        cur0 = self.data[id0], self.particle_direction[id0]
+        cur1 = self.data[id1], self.particle_direction[id1]
 
         t0 = self.particle_motions[id0]
         t1 = self.particle_motions[id1]
         t = self.rigid_motion
 
-        posr0 = self.reference.data[id0] + t[1]
-        posr1 = self.reference.data[id1] + t[1]
-        dirr0 = self.reference.particle_direction[id0] * t[0].T
-        dirr1 = self.reference.particle_direction[id1] * t[0].T
+        ref0 = rigid_trans(t, self.reference.data[id0]),\
+            self.reference.particle_direction[id0] * t[0].T
+        ref1 = rigid_trans(t, self.reference.data[id1]),\
+            self.reference.particle_direction[id1] * t[0].T
 
-        dp01 = pos0-(posr0+t1[1])
-        dp10 = pos1-(posr1+t0[1])
-
-        dr01 = dir0-(dirr0*t1[0].T).A1
-        dr10 = dir1-(dirr1*t0[0].T).A1
-
-        return dp01.dot(dp01) + dp10.dot(dp10) +\
-            dr01.dot(dr01) + dr10.dot(dr10)
+        return squared_diff(point_trans(t0, ref1), cur1) + \
+            squared_diff(point_trans(t1, ref0), cur0)
 
     def computeMotionMatrix(self, reference):
         self.reference = reference
-        self.rigid_motion = rigid_transform_3D(reference.headData, self.headData)
-        self._computeParticleMatrices();
+        self.rigid_motion = rigid_transform_3D(matrix(reference.headData), matrix(self.headData))
+        self.calcParticleDirections();
+        self.calcParticleMotionMatrices();
 
     def clearMotionMatrix(self):
         del self.particle_motions
@@ -129,3 +135,9 @@ class Frame:
         del self.particle_direction
         del self.hairspline
 
+    def cacheInfo(self, f):
+        pkl.dump((self.rigid_motion, self.particle_direction), f, 2)
+
+    def loadCache(self, f):
+        self.rigid_motion, self.particle_direction = \
+            pkl.load(f)

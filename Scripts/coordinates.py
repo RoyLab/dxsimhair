@@ -18,9 +18,9 @@ def vector_rotation_3D(ref, cur):
     c = dot(ref, cur)
     if abs(s - 0.) < 1e-10:
         if c > 0.:
-            return identity(3)
+            return matrix(identity(3))
         else:
-            return -identity(3)
+            return -matrix(identity(3))
 
     vx = matrix([[0, -v[2], v[1]],
     [v[2], 0, -v[0]], [-v[1], v[0], 0]])
@@ -29,6 +29,7 @@ def vector_rotation_3D(ref, cur):
     return R
 
 def rigid_transform_3D(A, B):
+    '''A=reference state, B=current state'''
     assert len(A) == len(B)
 
     N = A.shape[0]; # total points
@@ -54,56 +55,22 @@ def rigid_transform_3D(A, B):
     t = -R*centroid_A.T + centroid_B.T
     return R, t.A1
 
-# Test with random data
+def rigid_trans(trans, row_vec):
+    return (matrix(row_vec) * trans[0].T).A1 + trans[1]
 
-# Random rotation and translation
-# R = mat(random.rand(3,3))
-# t = mat(random.rand(3,1))
-#
-# # make R a proper rotation matrix, force orthonormal
-# U, S, Vt = linalg.svd(R)
-# R = U*Vt
-#
-# # remove reflection
-# if linalg.det(R) < 0:
-#    Vt[2,:] *= -1
-#    R = U*Vt
-#
-# # number of points
-# n = 10
-#
-# A = mat(random.rand(n,3));
-# B = R*A.T + tile(t, (1, n))
-# B = B.T;
-#
-# # recover the transformation
-# ret_R, ret_t = rigid_transform_3D(A, B)
-#
-# A2 = (ret_R*A.T) + tile(ret_t, (1, n))
-# A2 = A2.T
-#
-# # Find the error
-# err = A2 - B
-#
-# err = multiply(err, err)
-# err = sum(err)
-# rmse = sqrt(err/n);
-#
-# print "Points A"
-# print A
-# print ""
-#
-# print "Points B"
-# print B
-# print ""
-#
-# print "Rotation"
-# print R
-# print ""
-#
-# print "Translation"
-# print t
-# print ""
-#
-# print "RMSE:", rmse
-# print "If RMSE is near zero, the function is correct!"
+def rigid_trans_full(trans, state):
+    return (state[0] * trans[0].T).A1 + trans[1], (state[1] * trans[0].T).A1
+
+def point_trans(trans, state):
+    '''trans = (R, t), state = (pos, tan)'''
+    return state[0] + trans[1], (state[1] * trans[0].T).A1
+
+def apply_point_trans(trans, state):
+    '''trans = (R, t), state = (pos, tan)'''
+    state[0] += trans[1]
+    state[1] = tan * trans[0].T
+
+def squared_diff(s0, s1):
+    diff_pos = s0[0] - s1[0]
+    diff_dir = s0[1] - s1[1]
+    return diff_pos.dot(diff_pos) + diff_dir.dot(diff_dir)

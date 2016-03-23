@@ -2,11 +2,9 @@ from scipy.spatial import cKDTree
 from mcimport import *
 from progressbar import *
 
-np.set_printoptions(suppress=True)
-
 n_particle_per_strand = 25
 radius = 0.02
-weak_coef = 0.2
+weak_coef = 0.3
 
 def createKDTree(n_pts, data):
     kdt = cKDTree(data.data)

@@ -2,11 +2,13 @@ from GraphBuilder import *
 import cPickle as pkl
 import getopt
 from progressbar import *
+import crash_on_ipy
 
+n_frame = 5
 
 if __name__ == "__main__":
 
-
+    np.set_printoptions(suppress=True)
     needLoad = False
     try:
         (opts, args) = getopt.getopt(sys.argv[1:], "f:")
@@ -26,7 +28,7 @@ if __name__ == "__main__":
     if needLoad:
         n_particle, graph = pkl.load(file(fileName, 'r'))
     else:
-        frames = importFile("../../maya cache/03074/hair_nRigidShape1.xml")
+        frames = importFile("../../maya cache/03074/hair_nRigidShape1.xml", n_frame)
         graph = createInitGraph(frames)
         n_weak_thresh = len(frames) * weak_coef
         filterEdges(graph, n_weak_thresh)
@@ -38,6 +40,7 @@ if __name__ == "__main__":
         pbar = ProgressBar().start()
         for fn in range(len(frames)):
             frames[fn].computeMotionMatrix(frames[0])
+            frames[fn].cacheInfo(file(".dump/frame"+str(fn)+".dump", 'wb'))
             for k in graph.keys():
                 graph[k] -= frames[fn].deviation(k[0], k[1])
             if fn > 0:

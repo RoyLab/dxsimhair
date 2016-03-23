@@ -146,7 +146,7 @@ class CacheFile:
     #       Class constructor - tries to figure out full path to cache
     #       xml description file before calling parseDescriptionFile()
     #
-    def __init__(self,fileName):
+    def __init__(self,fileName,maxNum=5):
 
         self.m_baseFileName = ""
         self.m_directory = ""
@@ -160,7 +160,7 @@ class CacheFile:
         self.m_tagSize = 4
         self.m_blockTypeSize = 4
         self.m_glCount = 0
-        self.m_numFramesToPrint = 200
+        self.m_numFramesToPrint = maxNum
 
         self.m_hooker = None
 
@@ -683,7 +683,7 @@ class CacheFile:
 def usage():
     print "Use -f to indicate the cache description file (.xml) you wish to parse\n"
 
-def importFile(fileName, hooker):
+def importFile(fileName, hooker, number=5):
     # try:
     #     (opts, args) = getopt.getopt(sys.argv[1:], "f:")
     # except getopt.error:
@@ -700,22 +700,22 @@ def importFile(fileName, hooker):
     #     if o == "-f":
     #         fileName = a
 
-    cacheFile = CacheFile(fileName)
+    cacheFile = CacheFile(fileName, number)
     cacheFile.m_hooker = hooker
 
     if cacheFile.m_version > 2.0:
         print "Error: this script can only parse cache files of version 2 or lower\n"
         sys.exit(2)
 
-    print "*******************************************************************************\n"
-    print "Maya Cache version %f, Format = %s\n"%(cacheFile.m_version,cacheFile.m_cacheType)
-    print "The cache was originally created at %d FPS\n"%(6000.0/cacheFile.m_timePerFrame)
-    print "Cache has %d channels, starting at time %f seconds and ending at %f seconds\n"%(len(cacheFile.m_channels),cacheFile.m_cacheStartTime/6000.0,cacheFile.m_cacheEndTime/6000.0)
-    for channel in cacheFile.m_channels:
-        print   "Channelname =%s, type=%s, interpretation =%s, sampling Type = %s\n"% (channel.m_channelName,channel.m_channelType,channel.m_channelInterp,channel.m_sampleType)
-        print   "sample rate (for regular sample type only) = %f FPS\n"%(6000.0/channel.m_sampleRate)
-        print   "startTime=%f seconds, endTime=%f seconds\n"%(channel.m_startTime/6000.0,channel.m_endTime/6000.0)
-    print "*******************************************************************************\n"
+    # print "*******************************************************************************\n"
+    # print "Maya Cache version %f, Format = %s\n"%(cacheFile.m_version,cacheFile.m_cacheType)
+    # print "The cache was originally created at %d FPS\n"%(6000.0/cacheFile.m_timePerFrame)
+    # print "Cache has %d channels, starting at time %f seconds and ending at %f seconds\n"%(len(cacheFile.m_channels),cacheFile.m_cacheStartTime/6000.0,cacheFile.m_cacheEndTime/6000.0)
+    # for channel in cacheFile.m_channels:
+    #     print   "Channelname =%s, type=%s, interpretation =%s, sampling Type = %s\n"% (channel.m_channelName,channel.m_channelType,channel.m_channelInterp,channel.m_sampleType)
+    #     print   "sample rate (for regular sample type only) = %f FPS\n"%(6000.0/channel.m_sampleRate)
+    #     print   "startTime=%f seconds, endTime=%f seconds\n"%(channel.m_startTime/6000.0,channel.m_endTime/6000.0)
+    # print "*******************************************************************************\n"
 
     if cacheFile.m_cacheType == "OneFilePerFrame":
         cacheFile.parseDataFilePerFrame()
