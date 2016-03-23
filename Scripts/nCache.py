@@ -160,7 +160,7 @@ class CacheFile:
         self.m_tagSize = 4
         self.m_blockTypeSize = 4
         self.m_glCount = 0
-        self.m_numFramesToPrint = 5
+        self.m_numFramesToPrint = 200
 
         self.m_hooker = None
 
@@ -518,6 +518,8 @@ class CacheFile:
         self.m_glCount += blockSize
 
         frameCount = 0
+
+        print "reading %d frames!" % self.m_numFramesToPrint
         while frameCount < self.m_numFramesToPrint:
 
             if self.m_hooker:

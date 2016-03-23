@@ -1,6 +1,8 @@
 from GraphBuilder import *
 import cPickle as pkl
 import getopt
+from progressbar import *
+
 
 if __name__ == "__main__":
 
@@ -31,8 +33,18 @@ if __name__ == "__main__":
 
         for k in graph.keys():
             graph[k] = 0
-            for fn in range(len(frames)):
+
+        print "compute motion matrix..."
+        pbar = ProgressBar().start()
+        for fn in range(len(frames)):
+            frames[fn].computeMotionMatrix(frames[0])
+            for k in graph.keys():
                 graph[k] -= frames[fn].deviation(k[0], k[1])
+            if fn > 0:
+                frames[fn].clearMotionMatrix()
+            pbar.update(((fn/(len(frames)-1.0))*100))
+        pbar.finish()
+        frames[0].clearMotionMatrix()
 
         pkl.dump(graph, file('data.test', 'w'))
         n_particle = frames[0].n_particle
