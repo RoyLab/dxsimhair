@@ -122,3 +122,10 @@ class Frame:
         self.reference = reference
         self.rigid_motion = rigid_transform_3D(reference.headData, self.headData)
         self._computeParticleMatrices();
+
+    def clearMotionMatrix(self):
+        del self.particle_motions
+        del self.rigid_motion
+        del self.particle_direction
+        del self.hairspline
+
