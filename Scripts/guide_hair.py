@@ -106,10 +106,10 @@ class GroupedGraph(mg.MetisGraph):
     def solve(self):
         self.initSolution()
         count = 0
-        while 1:
-            count += 1
-            if not self.iterate():
-                break
+        # while 1:
+        #     count += 1
+        #     if not self.iterate():
+        #         break
 
         print "\niterators: %d" % count
         print "%d groups:" % len(self.guide)

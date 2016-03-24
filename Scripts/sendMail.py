@@ -5,74 +5,41 @@
 '''
 import smtplib
 from email.mime.text import MIMEText
-mailto_list=["roy_wang109@163.com"]
-mail_host="smtp.sjtu.edu.cn"  #设置服务器
-mail_user="jhcz"    #用户名
-mail_pass="jhcz316,."   #口令
-mail_postfix="sjtu.edu.cn"  #发件箱的后缀
-#-*- encoding: gb2312 -*-
-import os, sys, string
-import smtplib
+gmail_user="roy_wang109"    #用户名
+gmail_pwd="609330246"   #口令
 
-# 邮件服务器地址
-mailserver = "smtp.sjtu.edu.cn"
-# smtp会话过程中的mail from地址
-from_addr = "jhcz@sjtu.edu.cn"
-# smtp会话过程中的rcpt to地址
-to_addr = "roy_wang109@163.com"
-# 信件内容
-msg = "test mail"
-import os, sys, string, socket
-import smtplib
+def send_email(user, pwd, recipient, subject, body):
+    import smtplib
 
+    gmail_user = user
+    gmail_pwd = pwd
+    FROM = user
+    TO = recipient if type(recipient) is list else [recipient]
+    SUBJECT = subject
+    TEXT = body
 
-class SMTP_SSL (smtplib.SMTP):
-    def __init__(self, host='', port=465, local_hostname=None, key=None, cert=None):
-        self.cert = cert
-        self.key = key
-        smtplib.SMTP.__init__(self, host, port, local_hostname)
+    # Prepare actual message
+    message = """\From: %s\nTo: %s\nSubject: %s\n\n%s
+    """ % (FROM, ", ".join(TO), SUBJECT, TEXT)
+    # try:
+    server = smtplib.SMTP("smtp.163.com", 587, timeout=120)
+    server.ehlo()
+    server.starttls()
+    server.login(gmail_user, gmail_pwd)
+    server.sendmail(FROM, TO, message)
+    server.close()
+    print 'successfully sent the mail'
+    # except:
+    #     print "failed to send mail"
 
-    def connect(self, host='localhost', port=465):
-        if not port and (host.find(':') == host.rfind(':')):
-            i = host.rfind(':')
-            if i >= 0:
-                host, port = host[:i], host[i+1:]
-                try: port = int(port)
-                except ValueError:
-                    raise socket.error, "nonnumeric port"
-        if not port: port = 654
-        if self.debuglevel > 0: print>>stderr, 'connect:', (host, port)
-        msg = "getaddrinfo returns an empty list"
-        self.sock = None
-        for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
-            af, socktype, proto, canonname, sa = res
-            try:
-                self.sock = socket.socket(af, socktype, proto)
-                if self.debuglevel > 0: print>>stderr, 'connect:', (host, port)
-                self.sock.connect(sa)
-                # 新增加的创建ssl连接
-                sslobj = socket.ssl(self.sock, self.key, self.cert)
-            except socket.error, msg:
-                if self.debuglevel > 0:
-                    print>>stderr, 'connect fail:', (host, port)
-                if self.sock:
-                    self.sock.close()
-                self.sock = None
-                continue
-            break
-        if not self.sock:
-            raise socket.error, msg
+send_email(gmail_user, gmail_pwd, "jhcz@sjtu.edu.cn", "test", "test")
 
-        # 设置ssl
-        self.sock = smtplib.SSLFakeSocket(self.sock, sslobj)
-        self.file = smtplib.SSLFakeFile(sslobj);
-
-        (code, msg) = self.getreply()
-        if self.debuglevel > 0: print>>stderr, "connect:", msg
-        return (code, msg)
-
-if __name__ == '__main__':
-    smtp = SMTP_SSL('192.168.2.10')
-    smtp.set_debuglevel(1)
-    smtp.sendmail("zzz@xxx.com", "zhaowei@zhaowei.com", "xxxxxxxxxxxxxxxxx")
-    smtp.quit()
+# SMTP_SSL Example
+# server_ssl = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+# server_ssl.ehlo() # optional, called by login()
+# server_ssl.login(gmail_user, gmail_pwd)
+# # ssl server doesn't support or need tls, so don't call server_ssl.starttls()
+# server_ssl.sendmail("mny316@gmail.com", "roy_wang109@163.com", "test")
+# #server_ssl.quit()
+# server_ssl.close()
+# print 'successfully sent the mail'

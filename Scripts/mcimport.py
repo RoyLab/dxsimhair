@@ -115,10 +115,10 @@ class Frame:
         t1 = self.particle_motions[id1]
         t = self.rigid_motion
 
-        ref0 = rigid_trans(t, self.reference.data[id0]),\
-            self.reference.particle_direction[id0] * t[0].T
-        ref1 = rigid_trans(t, self.reference.data[id1]),\
-            self.reference.particle_direction[id1] * t[0].T
+        ref0 = rigid_trans_full(t, (self.reference.data[id0],
+            self.reference.particle_direction[id0]))
+        ref1 = rigid_trans_full(t, (self.reference.data[id1],
+            self.reference.particle_direction[id1]))
 
         return squared_diff(point_trans(t0, ref1), cur1) + \
             squared_diff(point_trans(t1, ref0), cur0)
@@ -139,5 +139,4 @@ class Frame:
         pkl.dump((self.rigid_motion, self.particle_direction), f, 2)
 
     def loadCache(self, f):
-        self.rigid_motion, self.particle_direction = \
-            pkl.load(f)
+        self.rigid_motion, self.particle_direction = pkl.load(f)

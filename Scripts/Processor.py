@@ -42,10 +42,11 @@ pbar = ProgressBar().start()
 for frame in frames:
     frame.loadCache(file(".dump/frame"+str(count)+".dump", 'rb'))
     frame.calcSelectedParticleMotionMatrices(frames[0], hairGroup.guide)
-    pbar.update(((count/(len(frames)-1.0))*100))
+    pbar.update((count/(len(frames)-1.0))*100)
     count += 1
 pbar.finish()
 
 model = wet.SkinModel(frames, hairGroup)
 model.estimate()
-model.dump(file(".dump/weights.dump", 'wb'))
+# model.dump(file(".dump/weights.dump", 'wb'))
+model.assessment()

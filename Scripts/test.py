@@ -1,37 +1,27 @@
-# -*- coding: utf-8 -*-
-# pa = [0, 2, 4, 6]
-# pb = [1,2,0,2,0,1]
-#
 import numpy as np
 from scipy.optimize import minimize
-#
-# def rosen(x):
-#      """The Rosenbrock function"""
-#      return sum(100.0*(x[1:]-x[:-1]**2.0)**2.0 + (1-x[:-1])**2.0)
-#
-# x0 = np.array([1.3, 0.7, 0.8, 1.9, 1.2])
-# res = minimize(rosen, x0, method='nelder-mead',\
-#         options={'xtol': 1e-8, 'disp': True})
 
 
-# minimize
-def func(x, sign=1.0):
-    """ Objective function """
-    return np.array([sign*(x[0]**2+2*x[0]+1+x[1]**2+2*x[1])])
+def evalError(x, inst, s, Ci):
+    t0 = inst.data[0].data[s], inst.data[0].particle_direction[s]
+    n = len(x)
+    sumAAT = np.matrix(np.zeros((n, n)))
+    sumAs = np.matrix(np.zeros(n))
 
-def func_deriv(x, sign=1.0):
-    """ Derivative of objective function """
-    return np.array([2*x[0]+2, 2*x[1]+2])
+    for fn in range(inst.n_frame):
+        A = []
+        frame = inst.data[fn]
+        tref = cd.rigid_trans_full(frame.rigid_motion, t0)
+        treal = np.array([frame.data[s], frame.particle_direction[s]])
+        treal.resize(6)
+        for g in Ci:
+            Bg = frame.particle_motions[g]
+            state = np.array(cd.point_trans(Bg, tref))
+            state.resize(6)
+            A.append(state)
+        A = np.matrix(A)
+        sumAAT += A*A.T
+        sumAs += np.matrix(treal)*A.T
 
-def c(x):
-    return x
-
-cons = ({'type': 'ineq',
-         'fun' : c,
-         'jac' : lambda x: np.identity(2)
-         })
-
-res = minimize(func, [5.0, 100.0], args=(), jac=func_deriv,
-               method='SLSQP', options={'disp': True}, constraints=cons)
-
-print(res.x)
+    inst.cacheMatrices(sumAAT, sumAs);
+    return (x * sumAAT).dot(x) - 2 * sumAs.dot(x)

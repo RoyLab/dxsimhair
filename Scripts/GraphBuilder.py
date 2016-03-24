@@ -10,30 +10,30 @@ def createKDTree(n_pts, data):
     kdt = cKDTree(data.data)
     return kdt
 
-class Edge:
-    def __init__(self, number, rec=None):
-        self.value = number
-        if rec == None:
-            rec = []
-        self.records = rec
-
-    def __lt__(self, other):
-        return self.value < other.value
-
-    def __le__(self, other):
-        return self.value <= other.value
-
-    def __eq__(self, other):
-        return self.value == other.value
-
-    def __ne__(self, other):
-        return self.value != other.value
-
-    def __gt__(self, other):
-        return self.value > other.value
-
-    def __ge__(self, other):
-        return self.value >= other.value
+# class Edge:
+#     def __init__(self, number, rec=None):
+#         self.value = number
+#         if rec == None:
+#             rec = []
+#         self.records = rec
+#
+#     def __lt__(self, other):
+#         return self.value < other.value
+#
+#     def __le__(self, other):
+#         return self.value <= other.value
+#
+#     def __eq__(self, other):
+#         return self.value == other.value
+#
+#     def __ne__(self, other):
+#         return self.value != other.value
+#
+#     def __gt__(self, other):
+#         return self.value > other.value
+#
+#     def __ge__(self, other):
+#         return self.value >= other.value
 
 # @profile
 def createInitGraph(frames):
@@ -50,14 +50,12 @@ def createInitGraph(frames):
         if i == 0:
             edgeHash = dict.fromkeys(pairs, None)
             for key in edgeHash.keys():
-                edgeHash[key] = Edge(1, [0])
+                edgeHash[key] = 1
             continue
 
         for pair in pairs:
-            edgeHash.setdefault(pair, Edge(0))
-            edge = edgeHash[pair]
-            edge.value += 1
-            edge.records.append(i)
+            edgeHash.setdefault(pair, 0)
+            edgeHash[pair] += 1
 
     pbar.finish()
     return edgeHash
@@ -66,7 +64,7 @@ def filterEdges(edges, thresh):
     trash = []
     before = len(edges)
     for key in edges:
-        if edges[key].value < thresh:
+        if edges[key] < thresh:
             trash.append(key)
     for key in trash:
         del edges[key]
