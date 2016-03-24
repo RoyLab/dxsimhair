@@ -55,15 +55,12 @@ def rigid_transform_3D(A, B):
     t = -R*centroid_A.T + centroid_B.T
     return R, t.A1
 
-def rigid_trans(trans, row_vec):
-    return (matrix(row_vec) * trans[0].T).A1 + trans[1]
-
 def rigid_trans_full(trans, state):
-    return (state[0] * trans[0].T).A1 + trans[1], (state[1] * trans[0].T).A1
+    return (state[0] * trans[0].T).A + tile(trans[1], (len(state[0]), 1)), (state[1] * trans[0].T).A
 
 def point_trans(trans, state):
     '''trans = (R, t), state = (pos, tan)'''
-    return state[0] + trans[1], (state[1] * trans[0].T).A1
+    return state[0] + tile(trans[1], (len(state[0]), 1)), (state[1] * trans[0].T).A
 
 def apply_point_trans(trans, state):
     '''trans = (R, t), state = (pos, tan)'''

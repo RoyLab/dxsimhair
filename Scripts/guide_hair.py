@@ -30,13 +30,13 @@ class GroupedGraph(mg.MetisGraph):
         self.guide = [None] * self.n_group
         self.guideVals = [-1] * self.n_group
 
-        for i in range(self.n_strand):
-            s = sum(self.eweights[self.xadj[i]:self.xadj[i+1]])
-            if s > self.guideVals[self.hairGroup[i]]:
-                if s == 0 and self.xadj[i] == self.xadj[i+1]:
-                    continue
-                self.guideVals[self.hairGroup[i]] = s
-                self.guide[self.hairGroup[i]] = i
+        # for i in range(self.n_strand):
+        #     s = sum(self.eweights[self.xadj[i]:self.xadj[i+1]])
+        #     if s > self.guideVals[self.hairGroup[i]]:
+        #         if s == 0 and self.xadj[i] == self.xadj[i+1]:
+        #             continue
+        #         self.guideVals[self.hairGroup[i]] = s
+        #         self.guide[self.hairGroup[i]] = i
 
         for i in range(self.n_group):
             if self.guide[i] == None:
@@ -49,7 +49,7 @@ class GroupedGraph(mg.MetisGraph):
         print "\ninit guides: "
         print "  ", self.guide[:15], "..."
         print "init values: "
-        print "  ", self.energy, "..."
+        print "  ", self.energy
 
     def computeEnergy(self, guide=None):
         if guide == None:
@@ -116,18 +116,16 @@ class GroupedGraph(mg.MetisGraph):
     def solve(self):
         self.initSolution()
         count = 0
-        while 1:
-            count += 1
-            if not self.iterate():
-                break
-            print "\niteration %d" % count
-            print self.energy, self.computeEnergy()    
+        # while 1:
+        #     count += 1
+        #     if not self.iterate():
+        #         break
+        #     print "\niteration %d" % count
+        #     print self.energy, self.computeEnergy()
 
-        print "\niterators: %d" % count
-        print self.energy, self.computeEnergy()
         print "%d groups:" % len(self.guide)
         print "  ", self.guide[:15], "..."
         print "values: "
-        print "  ", self.guideVals[:15], "..."
+        print "  ", self.energy
 
         return self.guide

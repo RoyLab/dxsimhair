@@ -62,23 +62,25 @@ class SkinModel:
 
     @staticmethod
     def evalError(x, inst, s, Ci):
-        t0 = inst.data[0].data[s], inst.data[0].particle_direction[s]
+        npar = 25 # particle per strand
+
+        t0 = inst.data[0].data[s*npar:(s+1)*npar], inst.data[0].particle_direction[s*npar:(s+1)*npar]
         n = len(x)
         sumAAT = np.matrix(np.zeros((n, n)))
         sumAs = np.matrix(np.zeros(n))
-        sumSST = 00.
+        sumSST = 0.0
 
         for fn in range(inst.n_frame):
             A = []
             frame = inst.data[fn]
             tref = cd.rigid_trans_full(frame.rigid_motion, t0)
-            treal = np.array([frame.data[s], frame.particle_direction[s]])
-            treal.resize(6)
+            treal = np.array([frame.data[s*npar:(s+1)*npar], frame.particle_direction[s*npar:(s+1)*npar]])
+            treal.resize(6*npar)
             for g in Ci:
                 Bg = frame.particle_motions[g]
                 # print g, Bg
                 state = np.array(cd.point_trans(Bg, tref))
-                state.resize(6)
+                state.resize(6*npar)
                 A.append(state)
             A = np.matrix(A)
             sumAAT += A*A.T
