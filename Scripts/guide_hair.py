@@ -41,12 +41,15 @@ class GroupedGraph(mg.MetisGraph):
         for i in range(self.n_group):
             if self.guide[i] == None:
                 self.guide[i] = self.hairGroup.index(i)
-            self.guideVals[i] = self.validSum(self.guide[i], self.guide)
+
+        # for i in range(self.n_group):
+        #     self.guideVals[i] = self.validSum(self.guide[i])
+        self.energy = self.computeEnergy()
 
         print "\ninit guides: "
         print "  ", self.guide[:15], "..."
         print "init values: "
-        print "  ", self.guideVals[:15], "..."
+        print "  ", self.energy, "..."
 
     def computeEnergy(self, guide=None):
         if guide == None:
@@ -54,7 +57,7 @@ class GroupedGraph(mg.MetisGraph):
         eitr = mg.UndirectedIterator(self)
         result = 0.
         for i, j, weight in eitr:
-            if validPair(i, j, guide):
+            if self.validPair(i, j, guide):
                 result += weight
         return result
 
@@ -65,39 +68,46 @@ class GroupedGraph(mg.MetisGraph):
         return id == guide[groupId]
 
     def validPair(self, i, j, guide):
-        return (isGuideHair(i, guide) and (not isGuideHair(j, guide))) or \
-            (isGuideHair(j, guide) and (not isGuideHair(i, guide)))
+        return (self.isGuideHair(i, guide) and (not self.isGuideHair(j, guide))) or \
+            (self.isGuideHair(j, guide) and (not self.isGuideHair(i, guide)))
 
-    def validSum(self, i, guide):
+    # def validSum(self, i, guide):
+    #     eitr = mg.EdgeIterator(self, i)
+    #     result = 0
+    #     for j, weight in eitr:
+    #         if not self.isGuideHair(j, guide):
+    #             result += weight
+    #     return result
+
+    def contributeForEnergyAsGuideMinusAsNormal(self, i, guide):
         eitr = mg.EdgeIterator(self, i)
         result = 0
         for j, weight in eitr:
             if not self.isGuideHair(j, guide):
                 result += weight
-        return result
-
-    def validSum1(self, i, guide):
-        eitr = mg.EdgeIterator(self, i)
-        result = 0
-        for j, weight in eitr:
-            if self.isGuideHair(j, guide):
-                print "strand %d need iteration" % i
-            if not self.isGuideHair(j, guide):
-                result += weight
+            else:
+                result -= weight
         return result
 
     def iterate(self):
         changed = False
         for groupId in range(self.n_group):
-            sub = self.validSum(self.guide[groupId], self.guide)
+            sub = self.contributeForEnergyAsGuideMinusAsNormal(self.guide[groupId], self.guide)
+            # n = self.computeEnergy()
+            # n1 = self.energy
+            # sub = self.computeEnergy()
             for curNode in self.lookup[groupId]:
                 origin, self.guide[groupId] = self.guide[groupId], curNode
-                add = self.validSum(curNode, self.guide)
+                add = self.contributeForEnergyAsGuideMinusAsNormal(self.guide[groupId], self.guide)
+                # add = self.computeEnergy()
                 # print add, sub
                 if add > sub:
                     changed = True
-                    self.guideVals[groupId] -= sub
-                    self.guideVals[groupId] += add
+                    self.energy -= sub
+                    self.energy += add
+                    # self.energy = self.computeEnergy()
+                    # print self.energy, self.energy1, n, n1
+                    # import ipdb; ipdb.set_trace()
                     sub = add
                 else:
                     self.guide[groupId] = origin
@@ -106,12 +116,15 @@ class GroupedGraph(mg.MetisGraph):
     def solve(self):
         self.initSolution()
         count = 0
-        # while 1:
-        #     count += 1
-        #     if not self.iterate():
-        #         break
+        while 1:
+            count += 1
+            if not self.iterate():
+                break
+            print "\niteration %d" % count
+            print self.energy, self.computeEnergy()    
 
         print "\niterators: %d" % count
+        print self.energy, self.computeEnergy()
         print "%d groups:" % len(self.guide)
         print "  ", self.guide[:15], "..."
         print "values: "

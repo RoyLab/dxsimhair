@@ -11,7 +11,7 @@ class UndirectedIterator:
     def next(self): # Python 3: def __next__(self)
         while 1:
             self.j += 1
-            if self.j >= len(self.mgraph.adjncy):
+            if self.j >= len(self.graph.adjncy):
                 raise StopIteration
             while self.j >= self.graph.xadj[self.i+1]:
                 self.i += 1
@@ -33,7 +33,7 @@ class DirectedIterator:
     def next(self): # Python 3: def __next__(self)
         while 1:
             self.j += 1
-            if self.j >= len(self.mgraph.adjncy):
+            if self.j >= len(self.graph.adjncy):
                 raise StopIteration
             while self.j >= self.graph.xadj[self.i+1]:
                 self.i += 1

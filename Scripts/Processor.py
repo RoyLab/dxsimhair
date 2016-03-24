@@ -7,11 +7,15 @@ import mcimport
 from progressbar import *
 import numpy as np
 import weight_estimate as wet
+import time
 
 n_step = 100
 n_group = 50
 
 np.set_printoptions(suppress=True)
+
+print "training start at:", \
+	time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
 
 particle_graph = pickle.load(file('mgB.test'))
 minVal = min(particle_graph.eweights)
@@ -22,7 +26,7 @@ print "low %.3f, high %.3f"%(minVal, maxVal)
 
 for i in range(len(particle_graph.eweights)):
     particle_graph.eweights[i] = \
-        int((particle_graph.eweights[i] - minVal + 0.01) / interval * n_step)
+        int((particle_graph.eweights[i] - minVal) / interval * n_step + 1)
 
 import pymetis
 _g = particle_graph
@@ -34,7 +38,7 @@ for i in range(n_group):
 hairGroup = gh.GroupedGraph(particle_graph, vers)
 hairGroup.solve()
 
-frames = mcimport.importFile("../../maya cache/03074/hair_nRigidShape1.xml")
+frames = mcimport.importFile("../../maya cache/03074/hair_nRigidShape1.xml", 200)
 
 count = 0
 print "computing motion matrix of guides..."
@@ -48,5 +52,13 @@ pbar.finish()
 
 model = wet.SkinModel(frames, hairGroup)
 model.estimate()
-# model.dump(file(".dump/weights.dump", 'wb'))
+model.dump(file(".dump/weights.dump", 'wb'))
+
+print "training end at:", \
+	time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
+
 model.assessment()
+
+
+from sendMail import *
+# send_mail(mailto_list, 'training done', 'content')
