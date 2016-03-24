@@ -4,7 +4,7 @@ import getopt
 from progressbar import *
 import crash_on_ipy
 
-n_frame = 5
+n_frame = 200
 
 if __name__ == "__main__":
 

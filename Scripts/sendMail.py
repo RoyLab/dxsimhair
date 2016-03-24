@@ -26,13 +26,12 @@ def send_mail(to_list, sub, content):
         server.login(mail_user, mail_pass)
         server.sendmail(me, to_list, msg.as_string())
         server.close()
-        print "Success!"
+        print "Email sent!"
         return True
     except Exception, e:
-        #print "Failed!"
         print str(e)
         return False
 
+
 if __name__ == '__main__':
-    print "Sending E-mail!"
-    send_mail(mailto_list, 'submit', 'content')
+        send_mail(mailto_list, 'submit', 'content')
