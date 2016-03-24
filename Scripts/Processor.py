@@ -11,6 +11,7 @@ import time
 
 n_step = 100
 n_group = 50
+n_frame = 200
 
 np.set_printoptions(suppress=True)
 
@@ -38,7 +39,7 @@ for i in range(n_group):
 hairGroup = gh.GroupedGraph(particle_graph, vers)
 hairGroup.solve()
 
-frames = mcimport.importFile("../../maya cache/03074/hair_nRigidShape1.xml", 200)
+frames = mcimport.importFile("../../maya cache/03074/hair_nRigidShape1.xml", n_frame)
 
 count = 0
 print "computing motion matrix of guides..."

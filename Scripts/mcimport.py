@@ -68,8 +68,9 @@ class Frame:
         ref = self.reference
         matrices = []
         for i in range(self.n_particle):
-            trans = self.data[i] - (ref.data[i] + self.rigid_motion[1])
-            rot = vector_rotation_3D((ref.particle_direction[i] * self.rigid_motion[0].T).A1, self.particle_direction[i])
+            refstate = rigid_trans_full(self.rigid_motion, (ref.data[i], ref.particle_direction[i]))
+            trans = self.data[i] - refstate[0]
+            rot = vector_rotation_3D(refstate[1], self.particle_direction[i])
             matrices.append((rot, trans))
 
         self.particle_motions = matrices
@@ -79,9 +80,14 @@ class Frame:
         self.reference = ref
         matrices = {}
         for i in Ids:
-            trans = self.data[i] - (ref.data[i] + self.rigid_motion[1])
-            rot = vector_rotation_3D((ref.particle_direction[i] * self.rigid_motion[0].T).A1, self.particle_direction[i])
-            matrices[i] = (rot, trans)
+            transes = []
+            for j in range(n_particle_per_strand):
+                ii = n_particle_per_strand * i + j
+                refstate = rigid_trans_full(self.rigid_motion, (ref.data[ii], ref.particle_direction[ii]))
+                trans = self.data[ii] - refstate[0]
+                rot = vector_rotation_3D(refstate[1], self.particle_direction[ii])
+                transes.append((rot, trans))
+            matrices[i] = transes
 
         self.particle_motions = matrices
 

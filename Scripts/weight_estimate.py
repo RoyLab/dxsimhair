@@ -61,46 +61,49 @@ class SkinModel:
         return Ci
 
     @staticmethod
-    def evalError(x, inst, s, Ci):
+    def evalError(x, inst, s, Ci, idx = [-1]):
         npar = 25 # particle per strand
+        if idx[0] != s:
+            t0 = inst.data[0].data[s*npar:(s+1)*npar], inst.data[0].particle_direction[s*npar:(s+1)*npar]
+            n = len(x)
+            sumAAT = np.matrix(np.zeros((n, n)))
+            sumAs = np.matrix(np.zeros(n))
+            sumSST = 0.0
 
-        t0 = inst.data[0].data[s*npar:(s+1)*npar], inst.data[0].particle_direction[s*npar:(s+1)*npar]
-        n = len(x)
-        sumAAT = np.matrix(np.zeros((n, n)))
-        sumAs = np.matrix(np.zeros(n))
-        sumSST = 0.0
+            for fn in range(inst.n_frame):
+                A = []
+                frame = inst.data[fn]
+                tref = cd.rigid_trans_batch(frame.rigid_motion, t0)
+                treal = np.array([frame.data[s*npar:(s+1)*npar], frame.particle_direction[s*npar:(s+1)*npar]])
+                treal.resize(6*npar)
+                for g in Ci:
+                    Bg = frame.particle_motions[g]
+                    state = np.array(cd.point_trans_batch(Bg, tref))
+                    state.resize(6*npar)
+                    A.append(state)
+                A = np.matrix(A)
+                sumAAT += A*A.T
+                sumAs += np.matrix(treal)*A.T
+                sumSST += treal.dot(treal)
+            inst.cacheMatrices(sumAAT, sumAs, sumSST);
+            idx[0] = s
+        else:
+            sumAAT, sumAs, sumSST = inst.retrieveMatrices()
 
-        for fn in range(inst.n_frame):
-            A = []
-            frame = inst.data[fn]
-            tref = cd.rigid_trans_full(frame.rigid_motion, t0)
-            treal = np.array([frame.data[s*npar:(s+1)*npar], frame.particle_direction[s*npar:(s+1)*npar]])
-            treal.resize(6*npar)
-            for g in Ci:
-                Bg = frame.particle_motions[g]
-                # print g, Bg
-                state = np.array(cd.point_trans(Bg, tref))
-                state.resize(6*npar)
-                A.append(state)
-            A = np.matrix(A)
-            sumAAT += A*A.T
-            sumAs += np.matrix(treal)*A.T
-            sumSST += treal.dot(treal)
-
-        inst.cacheMatrices(sumAAT, sumAs);
         return (x * sumAAT).dot(x) - 2 * sumAs.dot(x) + sumSST
 
     @staticmethod
     def evalDerive(x, inst, s, Ci):
-        AAT, As = inst.retrieveMatrices()
+        AAT, As, SST = inst.retrieveMatrices()
         return (2 * AAT.dot(x) - 2 * As).A1
 
-    def cacheMatrices(self, AAT, As):
+    def cacheMatrices(self, AAT, As, SST):
         self.AAT = AAT
         self.As = As
+        self.SST = SST
 
     def retrieveMatrices(self):
-        return self.AAT, self.As
+        return self.AAT, self.As, self.SST
 
     def dump(self, f):
         pkl.dump(self.weights, f, 2)

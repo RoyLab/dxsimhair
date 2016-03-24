@@ -56,11 +56,25 @@ def rigid_transform_3D(A, B):
     return R, t.A1
 
 def rigid_trans_full(trans, state):
-    return (state[0] * trans[0].T).A + tile(trans[1], (len(state[0]), 1)), (state[1] * trans[0].T).A
+    return (state[0] * trans[0].T).A1 + trans[1], (state[1] * trans[0].T).A1
 
 def point_trans(trans, state):
     '''trans = (R, t), state = (pos, tan)'''
-    return state[0] + tile(trans[1], (len(state[0]), 1)), (state[1] * trans[0].T).A
+    return state[0] + trans[1], (state[1] * trans[0].T).A1
+
+def rigid_trans_batch(trans, state):
+    '''note this is different from point_trans_batch!!!!!'''
+    return (state[0] * trans[0].T).A + tile(trans[1], (len(state[0]), 1)), (state[1] * trans[0].T).A
+
+def point_trans_batch(trans, state):
+    '''trans = (R, t), state = (pos, tan)'''
+    plist = []
+    dlist = []
+    for i in range(len(trans)):
+        p, d = point_trans(trans[i], (state[0][i], state[1][i]))
+        plist.append(p)
+        dlist.append(d)
+    return array(plist), array(dlist)
 
 def apply_point_trans(trans, state):
     '''trans = (R, t), state = (pos, tan)'''

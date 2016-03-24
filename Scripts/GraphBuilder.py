@@ -3,7 +3,7 @@ from mcimport import *
 from progressbar import *
 
 n_particle_per_strand = 25
-radius = 0.03
+radius = 0.05
 weak_coef = 0.1
 
 def createKDTree(n_pts, data):
@@ -80,6 +80,6 @@ def shrinkGraph(graph):
             continue
         smaller.setdefault(newkey, 0.)
         smaller[newkey] += graph[key]
-    print "The graph has only %d edges after shrinkig!" % len(smaller)
+    print "The graph has only %d edges after shrinking!" % len(smaller)
 
     return smaller
