@@ -112,15 +112,17 @@ class SkinModel:
         self.weights = pkl.load(f)
 
     def assessment(self):
-        error = 0.0
-        error0 = 0.0
+        error = []
+        error0 = []
         for i in range(self.n_node):
             if self.graph.isGuideHair(i):
                 continue
 
             Ci = self.weights[i][1]
             nw = len(Ci)
-            error0 += SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
-            error += SkinModel.evalError(self.weights[i][0], self, i, Ci)
+            error0.SkinModel.evalError([1.0/nw]*nw, self, i, Ci))
+            erro.append(SkinModel.evalError(self.weights[i][0], self, i, Ci))
+
+        
 
         print "error decrease from %f to %f." % (error0, error)
