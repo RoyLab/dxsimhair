@@ -26,22 +26,36 @@ class GroupedGraph(mg.MetisGraph):
         for i in range(self.n_strand):
             self.lookup[self.hairGroup[i]].append(i)
 
-    def initGuideHair(self):
-        self.guide = [None] * self.n_group
-        self.guideVals = [100000] * self.n_group
-
-        for i in range(self.n_strand):
-            s = sum(self.eweights[self.xadj[i]:self.xadj[i+1]])
-            if s < self.guideVals[self.hairGroup[i]]:
-                if s == 0 and self.xadj[i] == self.xadj[i+1]:
-                    continue
-                self.guideVals[self.hairGroup[i]] = s
-                self.guide[self.hairGroup[i]] = i
+    def randomInitGuideHair(self):
         import random
         for i in range(self.n_group):
             if self.guide[i] == None:
                 num = self.hairGroup.count(i)
                 self.guide[i] = self.lookup[i][int(num*random.random())]
+
+    def initSubOptimizedGuideHair(self):
+        for i in range(self.n_strand):
+            s = sum(self.eweights[self.xadj[i]:self.xadj[i+1]])
+            if s > self.guideVals[self.hairGroup[i]]:
+                if s == 0 and self.xadj[i] == self.xadj[i+1]:
+                    continue
+                self.guideVals[self.hairGroup[i]] = s
+                self.guide[self.hairGroup[i]] = i
+
+    def initWorstGuideHair(self):
+        self.guideVals = [1e10] * self.n_group
+        for i in range(self.n_strand):
+            s = sum(self.eweights[self.xadj[i]:self.xadj[i+1]])
+            if s < self.guideVals[self.hairGroup[i]]:
+                self.guideVals[self.hairGroup[i]] = s
+                self.guide[self.hairGroup[i]] = i
+
+    def initGuideHair(self):
+        self.guide = [None] * self.n_group
+        self.guideVals = [None] * self.n_group
+
+        self.initSubOptimizedGuideHair();
+        self.randomInitGuideHair();
 
         self.energy = self.computeEnergy()
 
@@ -107,12 +121,12 @@ class GroupedGraph(mg.MetisGraph):
     def solve(self):
         self.initSolution()
         count = 0
-        # while 1:
-        #     count += 1
-        #     if not self.iterate():
-        #         break
-        #     print "\niteration %d" % count
-        #     print self.energy, self.computeEnergy()
+        while 1:
+            count += 1
+            if not self.iterate():
+                break
+            print "\niteration %d" % count
+            print self.energy, self.computeEnergy()
 
         print "%d groups:" % len(self.guide)
         print "  ", self.guide[:15], "..."

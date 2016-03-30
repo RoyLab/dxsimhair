@@ -707,15 +707,15 @@ def importFile(fileName, hooker, number=5):
         print "Error: this script can only parse cache files of version 2 or lower\n"
         sys.exit(2)
 
-    # print "*******************************************************************************\n"
-    # print "Maya Cache version %f, Format = %s\n"%(cacheFile.m_version,cacheFile.m_cacheType)
-    # print "The cache was originally created at %d FPS\n"%(6000.0/cacheFile.m_timePerFrame)
-    # print "Cache has %d channels, starting at time %f seconds and ending at %f seconds\n"%(len(cacheFile.m_channels),cacheFile.m_cacheStartTime/6000.0,cacheFile.m_cacheEndTime/6000.0)
-    # for channel in cacheFile.m_channels:
-    #     print   "Channelname =%s, type=%s, interpretation =%s, sampling Type = %s\n"% (channel.m_channelName,channel.m_channelType,channel.m_channelInterp,channel.m_sampleType)
-    #     print   "sample rate (for regular sample type only) = %f FPS\n"%(6000.0/channel.m_sampleRate)
-    #     print   "startTime=%f seconds, endTime=%f seconds\n"%(channel.m_startTime/6000.0,channel.m_endTime/6000.0)
-    # print "*******************************************************************************\n"
+    print "*******************************************************************************\n"
+    print "Maya Cache version %f, Format = %s\n"%(cacheFile.m_version,cacheFile.m_cacheType)
+    print "The cache was originally created at %d FPS\n"%(6000.0/cacheFile.m_timePerFrame)
+    print "Cache has %d channels, starting at time %f seconds and ending at %f seconds\n"%(len(cacheFile.m_channels),cacheFile.m_cacheStartTime/6000.0,cacheFile.m_cacheEndTime/6000.0)
+    for channel in cacheFile.m_channels:
+        print   "Channelname =%s, type=%s, interpretation =%s, sampling Type = %s\n"% (channel.m_channelName,channel.m_channelType,channel.m_channelInterp,channel.m_sampleType)
+        print   "sample rate (for regular sample type only) = %f FPS\n"%(6000.0/channel.m_sampleRate)
+        print   "startTime=%f seconds, endTime=%f seconds\n"%(channel.m_startTime/6000.0,channel.m_endTime/6000.0)
+    print "*******************************************************************************\n"
 
     if cacheFile.m_cacheType == "OneFilePerFrame":
         cacheFile.parseDataFilePerFrame()

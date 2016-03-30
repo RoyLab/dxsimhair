@@ -3,8 +3,8 @@ from mcimport import *
 from progressbar import *
 
 n_particle_per_strand = 25
-radius = 0.05
-weak_coef = 0.1
+radius = 0.04
+weak_coef = 0.2
 
 def createKDTree(n_pts, data):
     kdt = cKDTree(data.data)

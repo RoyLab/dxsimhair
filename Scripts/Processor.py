@@ -10,15 +10,17 @@ import weight_estimate as wet
 import time
 
 n_step = 100
-n_group = 50
+n_group = 200
 n_frame = 200
+prefix = '329'
 
 np.set_printoptions(suppress=True)
 
 print "training start at:", \
 	time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
+starttime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
 
-particle_graph = pickle.load(file('mgB.test'))
+particle_graph = pickle.load(file(prefix+'mgB.test'))
 minVal = min(particle_graph.eweights)
 maxVal = max(particle_graph.eweights)
 interval = maxVal - minVal
@@ -39,13 +41,13 @@ for i in range(n_group):
 hairGroup = gh.GroupedGraph(particle_graph, vers)
 hairGroup.solve()
 
-frames = mcimport.importFile("../../maya cache/03074/hair_nRigidShape1.xml", n_frame)
+frames = mcimport.importFile("E:/cache/"+prefix+".xml", n_frame)
 
 count = 0
 print "computing motion matrix of guides..."
 pbar = ProgressBar().start()
 for frame in frames:
-    frame.loadCache(file(".dump/frame"+str(count)+".dump", 'rb'))
+    frame.loadCache(file(".dump/"+prefix+"frame"+str(count)+".dump", 'rb'))
     frame.calcSelectedParticleMotionMatrices(frames[0], hairGroup.guide)
     pbar.update((count/(len(frames)-1.0))*100)
     count += 1
@@ -53,13 +55,18 @@ pbar.finish()
 
 model = wet.SkinModel(frames, hairGroup)
 model.estimate()
-model.dump(file(".dump/weights.dump", 'wb'))
+model.dump(file(".dump/"+prefix+"weights2.dump", 'wb'))
 
 print "training end at:", \
 	time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
 
-model.assessment()
+# model.assessment()
 
-
+endtime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
 from sendMail import *
-# send_mail(mailto_list, 'training done', 'content')
+
+content = 'graph generated!\nfrom '+starttime+' to '+endtime+'\n'
+content += 'group %d, prefix %s\n' % (n_group, prefix)
+content += 'guide sum %f, energy from %f t0 %f\n' % (hairGroup.energy, model.error0, model.error)
+send_mail(mailto_list, 'Report in 30/March '+prefix, content)
+

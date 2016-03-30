@@ -20,6 +20,8 @@ class SkinModel:
 
     def estimate(self):
         print "estimating weights..."
+        self.error = 0.0
+        self.error0 = 0.0
         pbar = ProgressBar().start()
         for i in range(self.n_node):
             if self.graph.isGuideHair(i):
@@ -40,12 +42,12 @@ class SkinModel:
              jac=SkinModel.evalDerive, options={'disp': False}, method='SLSQP', constraints=cons)
 
             map(lambda x: 0 if (x < 0.0) else x, res.x)
-            # print res.x
             self.weights[i][0] = res.x
             self.weights[i][1] = Ci
-            # if len(Ci) != 1 and abs(res.x[0]-res.x[1])<0.001:
-                # import ipdb; ipdb.set_trace()
             pbar.update(100*i/(self.n_node-1))
+            
+            self.error0 += SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
+            self.error += SkinModel.evalError(self.weights[i][0], self, i, Ci)
 
         pbar.finish()
 
@@ -112,17 +114,15 @@ class SkinModel:
         self.weights = pkl.load(f)
 
     def assessment(self):
-        error = []
-        error0 = []
+        self.error = 0.0
+        self.error0 = 0.0
         for i in range(self.n_node):
             if self.graph.isGuideHair(i):
                 continue
 
             Ci = self.weights[i][1]
             nw = len(Ci)
-            error0.SkinModel.evalError([1.0/nw]*nw, self, i, Ci))
-            erro.append(SkinModel.evalError(self.weights[i][0], self, i, Ci))
+            self.error0 += SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
+            self.error += SkinModel.evalError(self.weights[i][0], self, i, Ci)
 
-        
-
-        print "error decrease from %f to %f." % (error0, error)
+        print "error decrease from %f to %f." % (self.error0, self.error)
