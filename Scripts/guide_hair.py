@@ -54,9 +54,9 @@ class GroupedGraph(mg.MetisGraph):
         self.guide = [None] * self.n_group
         self.guideVals = [None] * self.n_group
 
-        self.initSubOptimizedGuideHair();
+        # self.initSubOptimizedGuideHair();
+        self.initWorstGuideHair();
         self.randomInitGuideHair();
-
         self.energy = self.computeEnergy()
 
         print "\ninit guides: "
@@ -121,12 +121,12 @@ class GroupedGraph(mg.MetisGraph):
     def solve(self):
         self.initSolution()
         count = 0
-        while 1:
-            count += 1
-            if not self.iterate():
-                break
-            print "\niteration %d" % count
-            print self.energy, self.computeEnergy()
+        # while 1:
+        #     count += 1
+        #     if not self.iterate():
+        #         break
+        #     print "\niteration %d" % count
+        #     print self.energy, self.computeEnergy()
 
         print "%d groups:" % len(self.guide)
         print "  ", self.guide[:15], "..."

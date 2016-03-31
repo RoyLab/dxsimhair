@@ -1,39 +1,13 @@
 from scipy.spatial import cKDTree
-from mcimport import *
 from progressbar import *
 
 n_particle_per_strand = 25
-radius = 0.04
+radius = 0.06
 weak_coef = 0.2
 
 def createKDTree(n_pts, data):
     kdt = cKDTree(data.data)
     return kdt
-
-# class Edge:
-#     def __init__(self, number, rec=None):
-#         self.value = number
-#         if rec == None:
-#             rec = []
-#         self.records = rec
-#
-#     def __lt__(self, other):
-#         return self.value < other.value
-#
-#     def __le__(self, other):
-#         return self.value <= other.value
-#
-#     def __eq__(self, other):
-#         return self.value == other.value
-#
-#     def __ne__(self, other):
-#         return self.value != other.value
-#
-#     def __gt__(self, other):
-#         return self.value > other.value
-#
-#     def __ge__(self, other):
-#         return self.value >= other.value
 
 # @profile
 def createInitGraph(frames):
@@ -44,21 +18,24 @@ def createInitGraph(frames):
     pbar = ProgressBar().start()
     for i in range(n_frames):
         frame = frames[i]
-        kdt = createKDTree(n_pts, frames[i])
-        pairs = kdt.query_pairs(radius)
+        createInitGraph_loop(frame, edgeHash, i)
         pbar.update(((i/(n_frames-1.0))*100))
-        if i == 0:
-            edgeHash = dict.fromkeys(pairs, None)
-            for key in edgeHash.keys():
-                edgeHash[key] = 1
-            continue
-
-        for pair in pairs:
-            edgeHash.setdefault(pair, 0)
-            edgeHash[pair] += 1
 
     pbar.finish()
     return edgeHash
+
+def createInitGraph_loop(frame, edgeHash, i):
+    kdt = createKDTree(frame.n_particle, frame)
+    pairs = kdt.query_pairs(radius)
+    if i == 0:
+        edgeHash = dict.fromkeys(pairs, None)
+        for key in edgeHash.keys():
+            edgeHash[key] = 1
+        return
+    # import ipdb; ipdb.set_trace()
+    for pair in pairs:
+        edgeHash.setdefault(pair, 0)
+        edgeHash[pair] += 1
 
 def filterEdges(edges, thresh):
     trash = []
