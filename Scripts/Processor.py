@@ -25,15 +25,6 @@ starttime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
 
 particle_graph = pickle.load(file(prefix+'mgB.test'))
 print "load mgB!"
-minVal = min(particle_graph.eweights)
-maxVal = max(particle_graph.eweights)
-interval = maxVal - minVal
-
-print "low %.3f, high %.3f"%(minVal, maxVal)
-
-for i in range(len(particle_graph.eweights)):
-    particle_graph.eweights[i] = \
-        int((particle_graph.eweights[i] - minVal) / interval * n_step + 1)
 
 import pymetis
 _g = particle_graph
@@ -65,8 +56,6 @@ model.dump(file(".dump/"+prefix+t+"weights.dump", 'wb'))
 
 print "training end at:", \
 	time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
-
-# model.assessment()
 
 endtime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
 from sendMail import *

@@ -12,10 +12,10 @@ class GroupedGraph(mg.MetisGraph):
         self.n_group = max(group)+1
         self.n_strand = len(group)
 
-    def initSolution(self):
+    def initSolution(self, opt):
 
         self.createLookupTable()
-        self.initGuideHair()
+        self.initGuideHair(opt)
 
     def createLookupTable(self):
         '''convert the group table into a query link list'''
@@ -50,15 +50,22 @@ class GroupedGraph(mg.MetisGraph):
                 self.guideVals[self.hairGroup[i]] = s
                 self.guide[self.hairGroup[i]] = i
 
-    def initGuideHair(self):
+    def initGuideHair(self, opt):
         self.guide = [None] * self.n_group
         self.guideVals = [None] * self.n_group
 
-        # self.initSubOptimizedGuideHair();
-        # self.initWorstGuideHair();
-        self.randomInitGuideHair();
+        if opt == "opt"
+            self.needIteration = True
+            self.initSubOptimizedGuideHair();
+            self.randomInitGuideHair();
+        elif opt == "rand":
+            self.needIteration = False
+            self.randomInitGuideHair();
+        elif opt == "worst"
+            self.needIteration = False
+            self.initWorstGuideHair();
+            self.randomInitGuideHair();
 
-        self.needIteration = False
         self.energy = self.computeEnergy()
 
         print "\ninit guides: "
@@ -112,8 +119,8 @@ class GroupedGraph(mg.MetisGraph):
                     self.guide[groupId] = origin
         return changed
 
-    def solve(self):
-        self.initSolution()
+    def solve(self, opt):
+        self.initSolution(opt)
         count = 0
         if self.needIteration:
             while 1:

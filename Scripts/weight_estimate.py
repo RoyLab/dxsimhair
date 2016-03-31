@@ -7,7 +7,7 @@ from progressbar import *
 
 class SkinModel:
 
-    def __init__(self, frames, graph):
+    def __init__(self, guide, frames, graph):
         self.n_node = frames[0].n_hair
         self.n_frame = len(frames)
 
@@ -41,7 +41,6 @@ class SkinModel:
             n_neigh = len(self.groupNeighMap[i])
             self.groupGuideMap[i] = map(findGuide, [self]*n_neigh, self.groupNeighMap[i])
 
-
     def estimate(self):
         print "estimating weights..."
         self.error = 0.0
@@ -72,8 +71,8 @@ class SkinModel:
 
             self.error0 += SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
             self.error += SkinModel.evalError(self.weights[i][0], self, i, Ci)
-
         pbar.finish()
+        print "error decrease from %f to %f." % (self.error0, self.error)
 
     def collectCi(self, s):
         ti = self.graph.hairGroup[s]
@@ -123,6 +122,9 @@ class SkinModel:
 
     def retrieveMatrices(self):
         return self.AAT, self.As, self.SST
+
+    def getResult(self):
+        return self.weights
 
     def dump(self, f):
         pkl.dump(self.weights, f, 2)

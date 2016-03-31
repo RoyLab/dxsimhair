@@ -137,7 +137,7 @@ class CacheChannel:
         self.m_sampleRate = samplingRate
         self.m_startTime = startTime
         self.m_endTime = endTime
-        print "Channel Name =%s,type=%s,interp=%s,sampleType=%s,rate=%d,start=%d,end=%d\n"%(channelName,channelType,interpretation,samplingType,samplingRate,startTime,endTime)
+        # print "Channel Name =%s,type=%s,interp=%s,sampleType=%s,rate=%d,start=%d,end=%d\n"%(channelName,channelType,interpretation,samplingType,samplingRate,startTime,endTime)
 
 class CacheFile:
 
@@ -453,7 +453,7 @@ class CacheFile:
                 fileFormatError()
 
             if self.m_hooker:
-                self.m_hooker.data_hooker(channelName, arrayLength, doubleArray)
+                self.m_hooker.dataHooker(channelName, arrayLength, doubleArray)
 
             #Padding
             sizeToRead = (bufferLength + mask) & (~mask)
@@ -518,12 +518,10 @@ class CacheFile:
         self.m_glCount += blockSize
 
         frameCount = 0
-
-        print "reading %d frames!" % self.m_numFramesToPrint
         while frameCount < self.m_numFramesToPrint:
 
             if self.m_hooker:
-                self.m_hooker.new_frame()
+                self.m_hooker.newFrame()
 
             frameCount+=1;
 
@@ -588,12 +586,16 @@ class CacheFile:
 
             self.readData( fd, bytesRead, dataBlockSize, needSwap, tagFOR )
 
+            if self.m_hooker:
+                self.m_hooker.postFrame()
+
     ########################################################################
     # Description:
     #   method to parse and display the contents of the data file, for the
     #   file per frame case ("OneFilePerFrame")
     def parseDataFilePerFrame(self):
 
+        raise Exception("not available!")
         allFilesInDir = os.listdir(self.m_directory)
         matcher = re.compile(self.m_baseFileName)
         dataFiles = []
@@ -679,13 +681,11 @@ class CacheFile:
                 fileFormatError()
 
             self.readData( fd, bytesRead, dataBlockSize, needSwap, tagFOR )
-            if self.m_hooker:
-                self.m_hooker.post_frame()
 
 def usage():
     print "Use -f to indicate the cache description file (.xml) you wish to parse\n"
 
-def importFile(fileName, hooker, number=5):
+def loop(fileName, hooker, number):
     # try:
     #     (opts, args) = getopt.getopt(sys.argv[1:], "f:")
     # except getopt.error:
@@ -704,6 +704,7 @@ def importFile(fileName, hooker, number=5):
 
     cacheFile = CacheFile(fileName, number)
     cacheFile.m_hooker = hooker
+    hooker.nFrame = number
 
     if cacheFile.m_version > 2.0:
         print "Error: this script can only parse cache files of version 2 or lower\n"

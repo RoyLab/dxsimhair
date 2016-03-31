@@ -88,7 +88,6 @@ class Frame:
         self.particle_direction = np.array(directions)
         self.particle_direction.resize(self.n_particle, 3)
 
-
     def deviation(self, id0, id1):
         cur0 = self.data[id0], self.particle_direction[id0]
         cur1 = self.data[id1], self.particle_direction[id1]
@@ -105,10 +104,9 @@ class Frame:
         return squared_diff(point_trans(t0, ref1), cur1) + \
             squared_diff(point_trans(t1, ref0), cur0)
 
-    def computeMotionMatrix(self, reference):
+    def calcMotionMatrix(self, reference):
         self.reference = reference
         self.rigid_motion = rigid_transform_3D(matrix(reference.headData), matrix(self.headData))
-        self.calcParticleDirections();
         self.calcParticleMotionMatrices();
 
     def clearMotionMatrix(self):
@@ -118,7 +116,7 @@ class Frame:
         del self.hairspline
 
     def cacheInfo(self, f):
-        pkl.dump((self.rigid_motion, self.particle_direction), f, 2)
+        pkl.dump((self.rigid_motion, self.particle_direction), file(f, 'wb'), 2)
 
     def loadCache(self, f):
-        self.rigid_motion, self.particle_direction = pkl.load(f)
+        self.rigid_motion, self.particle_direction = pkl.load(file(f, 'rb'))

@@ -1,35 +1,78 @@
-import nCache
+from frame import Frame
+from progressbar import *
+from GraphBuilder import *
 
-def importFile(fileName, number=5):
-    hk = Hooker(number)
-    nCache.importFile(fileName, hk, number)
-    hk.bar.finish()
-    return hk.get_data(), hk.hash
+# def importFile(fileName, number=5):
+#     hk = Hooker(number)
+#     nCache.importFile(fileName, hk, number)
+#     hk.bar.finish()
+#     return hk.get_data(), hk.hash
 
-class Hooker:
+class Hooker(object):
+    def __init__(self, number=None):
+        self.nFrame = number
+        self.i = -1
+        return
 
-    def __init__(self, number):
-        self.frames = []
-        self.cframe = None
-        self.hash = {}
-        self.n = number
+    def startLoop(self, title="start loop:"):
+        print title
         self.bar =  ProgressBar().start()
-        self.count = 0
-        self.count4 = 0
+        return
 
-    def data_hooker(self, name, sz, arr):
-        self.cframe.loadIntoMemory(name, sz, arr)
-        self.count4 += 1
+    def endLoop(self):
+        self.bar.finish()
 
-        if self.count4 % 4 == 0:
-            self.count4 = 0
-            createInitGraph_loop(self.cframe, self.hash, self.count)
-            self.count += 1
-            self.bar.update(self.count*100/self.n)
+    def newFrame(self):
+        self.frame = Frame()
+        self.i += 1
+        return
 
-    def new_frame(self):
-        self.cframe = Frame()
-        self.frames.append(self.cframe)
+    def postFrame(self):
+        self.bar.update((self.i+1)*100/self.nFrame)
+        return
 
-    def get_data(self):
-        return self.frames
+    def dataHooker(self, name, sz, arr):
+        self.frame.loadIntoMemory(name, sz, arr)
+        return
+
+class GraphBuildHooker(Hooker):
+    def __init__(self, radius):
+        super(GraphBuildHooker, self).__init__()
+        self.radius = radius
+        self.edges = {}
+
+    def postFrame(self):
+        createInitGraphLoop(self.radius, self.frame, self.edges, self.i)
+        if self.i == 0:
+            self.refFrame = self.frame
+            self.nParticle = self.frame.n_particle
+            self.nStrand = self.frame.n_hair
+        super(GraphBuildHooker, self).postFrame()
+
+    def graph(self):
+        return self.nStrand, self.nParticle, self.edges, self.refFrame
+
+class ConnectionCalcHooker(Hooker):
+    def __init__(self, edges, reference, prefix):
+        super(ConnectionCalcHooker, self).__init__()
+        self.edges = edges
+        self.reference = reference
+        self.prefix = prefix
+        for k in edges.keys():
+            edges[k] = 0
+        import os
+        self.path = ".dump/frame-"+self.prefix+'/'
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+    def postFrame(self):
+        self.frame.calcParticleDirections()
+        self.frame.calcMotionMatrix(self.reference)
+        self.frame.cacheInfo(self.path+"frame"+str(self.i)+".dump")
+
+        for k in self.edges.keys():
+            self.edges[k] -= self.frame.deviation(k[0], k[1])
+        super(ConnectionCalcHooker, self).postFrame()
+
+class GuideHairHooker(Hooker):
+    def __init__(self, reference, prefix, number):
