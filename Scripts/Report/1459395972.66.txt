@@ -1,0 +1,4 @@
+graph generated!
+from 2016-03-31  11h43m46s to 2016-03-31  11h46m12s
+group 50, prefix 
+guide sum 45710.000000, energy from 36312.666084 t0 24159.132415

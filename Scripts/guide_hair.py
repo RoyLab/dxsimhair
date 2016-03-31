@@ -55,9 +55,10 @@ class GroupedGraph(mg.MetisGraph):
         self.guideVals = [None] * self.n_group
 
         # self.initSubOptimizedGuideHair();
-        self.needIteration = False
+        # self.initWorstGuideHair();
         self.randomInitGuideHair();
 
+        self.needIteration = False
         self.energy = self.computeEnergy()
 
         print "\ninit guides: "

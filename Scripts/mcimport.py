@@ -2,23 +2,37 @@ import nCache
 import numpy as np
 from coordinates import *
 import cPickle as pkl
+from GraphBuilder import *
+from progressbar import *
 
 n_particle_per_strand = 25
 
 def importFile(fileName, number=5):
-    hk = Hooker()
+    hk = Hooker(number)
     nCache.importFile(fileName, hk, number)
-    return hk.get_data()
+    hk.bar.finish()
+    return hk.get_data(), hk.hash
 
 class Hooker:
 
-    def __init__(self):
+    def __init__(self, number):
         self.frames = []
         self.cframe = None
+        self.hash = {}
+        self.n = number
+        self.bar =  ProgressBar().start()
+        self.count = 0
+        self.count4 = 0
 
     def data_hooker(self, name, sz, arr):
-        # print sz, arr[0:5], len(arr), name
         self.cframe.loadIntoMemory(name, sz, arr)
+        self.count4 += 1
+
+        if self.count4 % 4 == 0:
+            self.count4 = 0
+            createInitGraph_loop(self.cframe, self.hash, self.count)
+            self.count += 1
+            self.bar.update(self.count*100/self.n)
 
     def new_frame(self):
         self.cframe = Frame()
