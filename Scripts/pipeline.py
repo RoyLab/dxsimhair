@@ -135,6 +135,7 @@ if __name__ == "__main__":
                 content += 'Prefix: %s\n' % prefix[0]
                 content += 'Signature: %s\n' % sign
                 content += 'Guide selection: %s\n' % opts[i0]
+                content += 'Frame number: %d\n' % nFrame
                 content += 'Guide sum %f, energy from %f t0 %f\n' % (hairGroup.energy, error0, error)
 
                 print content
