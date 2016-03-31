@@ -54,14 +54,14 @@ class GroupedGraph(mg.MetisGraph):
         self.guide = [None] * self.n_group
         self.guideVals = [None] * self.n_group
 
-        if opt == "opt"
+        if opt == "opt":
             self.needIteration = True
             self.initSubOptimizedGuideHair();
             self.randomInitGuideHair();
         elif opt == "rand":
             self.needIteration = False
             self.randomInitGuideHair();
-        elif opt == "worst"
+        elif opt == "worst":
             self.needIteration = False
             self.initWorstGuideHair();
             self.randomInitGuideHair();
@@ -135,4 +135,27 @@ class GroupedGraph(mg.MetisGraph):
         print "values: "
         print "  ", self.energy
 
+        self.initGroupNeighbourMap()
+
         return self.guide
+
+    def initGroupNeighbourMap(self):
+        self.groupNeighMap = [None] * self.n_group
+        self.groupGuideMap = [None] * self.n_group
+
+        for i in range(self.n_group):
+            self.groupNeighMap[i] = set([i])
+
+        eItr = mg.UndirectedIterator(self)
+        for i, j, w in eItr:
+            gi = self.hairGroup[i]
+            gj = self.hairGroup[j]
+            self.groupNeighMap[gi].add(gj)
+            self.groupNeighMap[gj].add(gi)
+
+        def findGuide(thiz, id):
+            return thiz.guide[id]
+
+        for i in range(self.n_group):
+            n_neigh = len(self.groupNeighMap[i])
+            self.groupGuideMap[i] = map(findGuide, [self]*n_neigh, self.groupNeighMap[i])

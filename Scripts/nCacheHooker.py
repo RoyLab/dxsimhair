@@ -75,4 +75,57 @@ class ConnectionCalcHooker(Hooker):
         super(ConnectionCalcHooker, self).postFrame()
 
 class GuideHairHooker(Hooker):
-    def __init__(self, reference, prefix, number):
+    def __init__(self, guide, ref, prefix):
+        super(GuideHairHooker, self).__init__()
+        self.data = []
+        self.guide = guide
+        self.refFrame = ref
+        self.prefix = prefix
+
+    def postFrame(self):
+        dumpFile = ".dump/frame-"+self.prefix+"/frame"+str(self.i)+".dump"
+        self.frame.selectGuideHair(self.guide, dumpFile)
+        self.frame.calcSelectedParticleMotionMatrices(self.refFrame, self.guide)
+        self.data.append(self.frame)
+        super(GuideHairHooker, self).postFrame()
+
+    def getResult(self):
+        return self.data
+
+class NormalHairHooker(Hooker):
+    def __init__(self, guideData, ref, prefix, i, split, graph):
+        super(NormalHairHooker, self).__init__()
+
+        self.guide = guideData
+        self.graph = graph
+        self.prefix = prefix
+        self.refFrame = ref
+
+        self.data = []
+
+        nStrand = self.guide[0].n_hair
+        step = nStrand / split
+        self.start = i * step
+        self.end = (i+1) * step
+        if self.end >= nStrand:
+            self.end = nStrand
+
+    def postFrame(self):
+        dumpFile = ".dump/frame-"+self.prefix+"/frame"+str(self.i)+".dump"
+        self.frame.selectNormalHair(self.start, self.end, dumpFile)
+        # if self.start != 0:
+        #     import ipdb; ipdb.set_trace()
+        self.data.append(self.frame)
+        super(NormalHairHooker, self).postFrame()
+
+    def endLoop(self):
+        super(NormalHairHooker, self).endLoop()
+        import weight_estimate as wet
+        model = wet.SkinModel(self.refFrame, self.guide, self.data, self.graph, range(self.start, self.end))
+        model.estimate()
+        self.weights = model.weights
+        self.error0 = model.error0
+        self.error = model.error
+
+    def getResult(self):
+        return self.weights, self.error0, self.error

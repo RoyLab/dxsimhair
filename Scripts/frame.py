@@ -40,6 +40,27 @@ class Frame:
 
         self.count += 1
 
+    def selectGuideHair(self, select, fileName):
+        self.loadCache(fileName)
+        data = {}
+        dirs = {}
+        for i in select:
+            for j in range(n_particle_per_strand):
+                ii = n_particle_per_strand * i + j
+                data[ii] = self.data[ii]
+                dirs[ii] = self.particle_direction[ii]
+        self.data = data
+        self.particle_direction = dirs
+        del self.headData
+
+    def selectNormalHair(self, start, end, fileName):
+        self.loadCache(fileName)
+        self.data = self.data[start*n_particle_per_strand:\
+            end*n_particle_per_strand]
+        self.particle_direction = self.particle_direction[start*n_particle_per_strand:\
+            end*n_particle_per_strand]
+        del self.headData
+
     def calcParticleMotionMatrices(self):
         ref = self.reference
         matrices = []
@@ -120,3 +141,6 @@ class Frame:
 
     def loadCache(self, f):
         self.rigid_motion, self.particle_direction = pkl.load(file(f, 'rb'))
+
+    def importDirections(self, f):
+        return pkl.load(file(f, 'rb'))[1]

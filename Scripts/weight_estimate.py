@@ -7,46 +7,27 @@ from progressbar import *
 
 class SkinModel:
 
-    def __init__(self, guide, frames, graph):
-        self.n_node = frames[0].n_hair
-        self.n_frame = len(frames)
-
+    def __init__(self, ref, guideData, frames, graph, task):
+        self.nFrame = len(frames)
         self.weights = [None] * frames[0].n_hair
         self.data = frames
         self.graph = graph
+        self.guide = guideData
+        self.refFrame = ref
+        self.task = task
+        self.offset = task[0]
 
         for i in range(frames[0].n_hair):
             self.weights[i] = [None, None]
-
-        self.initGroupNeighbourMap()
-
-    def initGroupNeighbourMap(self):
-        self.groupNeighMap = [None] * self.graph.n_group
-        self.groupGuideMap = [None] * self.graph.n_group
-
-        for i in range(self.graph.n_group):
-            self.groupNeighMap[i] = set([])
-
-        eItr = mg.UndirectedIterator(self.graph)
-        for i, j, w in eItr:
-            gi = self.graph.hairGroup[i]
-            gj = self.graph.hairGroup[j]
-            self.groupNeighMap[gi].add(gj)
-            self.groupNeighMap[gj].add(gi)
-
-        def findGuide(thiz, id):
-            return thiz.graph.guide[id]
-
-        for i in range(self.graph.n_group):
-            n_neigh = len(self.groupNeighMap[i])
-            self.groupGuideMap[i] = map(findGuide, [self]*n_neigh, self.groupNeighMap[i])
 
     def estimate(self):
         print "estimating weights..."
         self.error = 0.0
         self.error0 = 0.0
         pbar = ProgressBar().start()
-        for i in range(self.n_node):
+        count = 0
+        for i in self.task:
+            count += 1
             if self.graph.isGuideHair(i):
                 continue
 
@@ -67,7 +48,7 @@ class SkinModel:
             map(lambda x: 0 if (x < 0.0) else x, res.x)
             self.weights[i][0] = res.x
             self.weights[i][1] = Ci
-            pbar.update(100*i/(self.n_node-1))
+            pbar.update(100*(count)/(len(self.task)))
 
             self.error0 += SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
             self.error += SkinModel.evalError(self.weights[i][0], self, i, Ci)
@@ -76,26 +57,29 @@ class SkinModel:
 
     def collectCi(self, s):
         ti = self.graph.hairGroup[s]
-        return self.groupGuideMap[ti]
+        return self.graph.groupGuideMap[ti]
 
     @staticmethod
     def evalError(x, inst, s, Ci, idx = [-1]):
         npar = 25 # particle per strand
         if idx[0] != s:
-            t0 = inst.data[0].data[s*npar:(s+1)*npar], inst.data[0].particle_direction[s*npar:(s+1)*npar]
+            t0 = inst.refFrame.data[s*npar:(s+1)*npar], inst.refFrame.particle_direction[s*npar:(s+1)*npar]
             n = len(x)
             sumAAT = np.matrix(np.zeros((n, n)))
             sumAs = np.matrix(np.zeros(n))
             sumSST = 0.0
 
-            for fn in range(inst.n_frame):
+            for fn in range(inst.nFrame):
                 A = []
                 frame = inst.data[fn]
+                guide = inst.guide[fn]
                 tref = cd.rigid_trans_batch(frame.rigid_motion, t0)
-                treal = np.array([frame.data[s*npar:(s+1)*npar], frame.particle_direction[s*npar:(s+1)*npar]])
+
+                s2 = s - inst.offset
+                treal = np.array([frame.data[s2*npar:(s2+1)*npar], frame.particle_direction[s2*npar:(s2+1)*npar]])
                 treal.resize(6*npar)
                 for g in Ci:
-                    Bg = frame.particle_motions[g]
+                    Bg = guide.particle_motions[g]
                     state = np.array(cd.point_trans_batch(Bg, tref))
                     state.resize(6*npar)
                     A.append(state)
@@ -132,16 +116,16 @@ class SkinModel:
     def load(self, f):
         self.weights = pkl.load(f)
 
-    def assessment(self):
-        self.error = 0.0
-        self.error0 = 0.0
-        for i in range(self.n_node):
-            if self.graph.isGuideHair(i):
-                continue
-
-            Ci = self.weights[i][1]
-            nw = len(Ci)
-            self.error0 += SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
-            self.error += SkinModel.evalError(self.weights[i][0], self, i, Ci)
-
-        print "error decrease from %f to %f." % (self.error0, self.error)
+    # def assessment(self):
+    #     self.error = 0.0
+    #     self.error0 = 0.0
+    #     for i in range(self.n_node):
+    #         if self.graph.isGuideHair(i):
+    #             continue
+    #
+    #         Ci = self.weights[i][1]
+    #         nw = len(Ci)
+    #         self.error0 += SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
+    #         self.error += SkinModel.evalError(self.weights[i][0], self, i, Ci)
+    #
+    #     print "error decrease from %f to %f." % (self.error0, self.error)
