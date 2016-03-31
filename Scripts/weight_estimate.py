@@ -18,6 +18,30 @@ class SkinModel:
         for i in range(frames[0].n_hair):
             self.weights[i] = [None, None]
 
+        self.initGroupNeighbourMap()
+
+    def initGroupNeighbourMap(self):
+        self.groupNeighMap = [None] * self.graph.n_group
+        self.groupGuideMap = [None] * self.graph.n_group
+
+        for i in range(self.graph.n_group):
+            self.groupNeighMap[i] = set([])
+
+        eItr = mg.UndirectedIterator(self.graph)
+        for i, j, w in eItr:
+            gi = self.graph.hairGroup[i]
+            gj = self.graph.hairGroup[j]
+            self.groupNeighMap[gi].add(gj)
+            self.groupNeighMap[gj].add(gi)
+
+        def findGuide(thiz, id):
+            return thiz.graph.guide[id]
+
+        for i in range(self.graph.n_group):
+            n_neigh = len(self.groupNeighMap[i])
+            self.groupGuideMap[i] = map(findGuide, [self]*n_neigh, self.groupNeighMap[i])
+
+
     def estimate(self):
         print "estimating weights..."
         self.error = 0.0
@@ -45,22 +69,15 @@ class SkinModel:
             self.weights[i][0] = res.x
             self.weights[i][1] = Ci
             pbar.update(100*i/(self.n_node-1))
-            
+
             self.error0 += SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
             self.error += SkinModel.evalError(self.weights[i][0], self, i, Ci)
 
         pbar.finish()
 
     def collectCi(self, s):
-        eitr = mg.EdgeIterator(self.graph, s)
-        groups = set([self.graph.hairGroup[s]])
-        for ti in eitr:
-            groups.add(self.graph.hairGroup[ti[0]])
-
-        Ci = []
-        for group in groups:
-            Ci.append(self.graph.guide[group])
-        return Ci
+        ti = self.graph.hairGroup[s]
+        return self.groupGuideMap[ti]
 
     @staticmethod
     def evalError(x, inst, s, Ci, idx = [-1]):
