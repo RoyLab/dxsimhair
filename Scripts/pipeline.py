@@ -14,17 +14,17 @@ if __name__ == "__main__":
     file2 = "../../maya cache/03074/hair_nRigidShape1.xml"
 
     # parameter begin
-    nFrame = 10
+    nFrame = 200
     nStep = 1000 # weight discretization
     nGroup = 300
     radius = 0.06
     frameFilter = 0.2
     prefix = ["test"]
     fileName = file1
-    split=5
+    split=100
     opt = "opt"
     bReport = True
-    bMail = False
+    bMail = True
     # parameter end
 
     needLoad = False

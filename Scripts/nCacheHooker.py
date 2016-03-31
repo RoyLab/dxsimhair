@@ -80,6 +80,7 @@ class GuideHairHooker(Hooker):
         dumpFile = ".dump/frame-"+self.prefix+"/330frame"+str(self.i)+".dump"
         self.frame.selectGuideHair(self.guide, dumpFile)
         self.frame.calcSelectedParticleMotionMatrices(self.refFrame, self.guide)
+        self.frame.clearAsGuideInfo()
         self.data.append(self.frame)
         super(GuideHairHooker, self).postFrame()
 
