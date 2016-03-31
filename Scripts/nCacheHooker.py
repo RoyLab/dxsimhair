@@ -2,12 +2,6 @@ from frame import Frame
 from progressbar import *
 from GraphBuilder import *
 
-# def importFile(fileName, number=5):
-#     hk = Hooker(number)
-#     nCache.importFile(fileName, hk, number)
-#     hk.bar.finish()
-#     return hk.get_data(), hk.hash
-
 class Hooker(object):
     def __init__(self, number=None):
         self.nFrame = number
@@ -83,7 +77,7 @@ class GuideHairHooker(Hooker):
         self.prefix = prefix
 
     def postFrame(self):
-        dumpFile = ".dump/frame-"+self.prefix+"/frame"+str(self.i)+".dump"
+        dumpFile = ".dump/frame-"+self.prefix+"/330frame"+str(self.i)+".dump"
         self.frame.selectGuideHair(self.guide, dumpFile)
         self.frame.calcSelectedParticleMotionMatrices(self.refFrame, self.guide)
         self.data.append(self.frame)
@@ -111,7 +105,7 @@ class NormalHairHooker(Hooker):
             self.end = nStrand
 
     def postFrame(self):
-        dumpFile = ".dump/frame-"+self.prefix+"/frame"+str(self.i)+".dump"
+        dumpFile = ".dump/frame-"+self.prefix+"/330frame"+str(self.i)+".dump"
         self.frame.selectNormalHair(self.start, self.end, dumpFile)
         # if self.start != 0:
         #     import ipdb; ipdb.set_trace()
