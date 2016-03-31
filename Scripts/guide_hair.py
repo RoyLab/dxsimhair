@@ -86,14 +86,6 @@ class GroupedGraph(mg.MetisGraph):
         return (self.isGuideHair(i, guide) and (not self.isGuideHair(j, guide))) or \
             (self.isGuideHair(j, guide) and (not self.isGuideHair(i, guide)))
 
-    # def validSum(self, i, guide):
-    #     eitr = mg.EdgeIterator(self, i)
-    #     result = 0
-    #     for j, weight in eitr:
-    #         if not self.isGuideHair(j, guide):
-    #             result += weight
-    #     return result
-
     def contributeForEnergyAsGuideMinusAsNormal(self, i, guide):
         eitr = mg.EdgeIterator(self, i)
         result = 0

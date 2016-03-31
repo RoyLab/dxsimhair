@@ -679,6 +679,8 @@ class CacheFile:
                 fileFormatError()
 
             self.readData( fd, bytesRead, dataBlockSize, needSwap, tagFOR )
+            if self.m_hooker:
+                self.m_hooker.post_frame()
 
 def usage():
     print "Use -f to indicate the cache description file (.xml) you wish to parse\n"
