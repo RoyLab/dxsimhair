@@ -51,7 +51,6 @@ class Frame:
                 dirs[ii] = self.particle_direction[ii]
         self.data = data
         self.particle_direction = dirs
-        del self.headData
 
     def selectNormalHair(self, start, end, fileName):
         self.loadCache(fileName)
@@ -144,3 +143,8 @@ class Frame:
 
     def importDirections(self, f):
         return pkl.load(file(f, 'rb'))[1]
+
+    def clearAsGuideInfo(self):
+        del self.data
+        del self.particle_direction
+        del self.headData
