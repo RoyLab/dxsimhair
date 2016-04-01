@@ -17,11 +17,11 @@ if __name__ == "__main__":
     nFrame = 200
     nStep = 1000 # weight discretization
     nGroup = 300
-    radius = 0.06
+    radius = 0.1
     frameFilter = 0.2
-    prefix = ["test"]
-    fileName = file1
-    split=100
+    prefix = ["s4000"]
+    fileName = file2
+    split=5
     opt = "opt"
     bReport = True
     bMail = True
