@@ -24,3 +24,6 @@ def test2(a):
                     small += 1
                 count += 1
     print small, '%', count
+
+import os
+os.system('attrib +r test.py')
