@@ -1,0 +1,10 @@
+Processing from 2016-03-31  22h45m19s to 04-01  09h12m23s
+Weight discretization: 1000
+Group number: 300
+Radius : 0.060000
+Frame filter: 0.200000
+Prefix: s15000
+Signature: __04-01  03h55m21s
+Guide selection: rand
+Frame number: 200
+Guide sum 37302115.000000, energy from 4805998.746844 t0 2757793.891311
