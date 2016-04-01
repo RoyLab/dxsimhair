@@ -22,7 +22,7 @@ if __name__ == "__main__":
     prefix = ["s4000"]
     fileName = file2
     split=5
-    opt = "opt"
+    opts = ["rand", "rand"]
     bReport = True
     bMail = True
     # parameter end
@@ -89,11 +89,12 @@ if __name__ == "__main__":
         cut, vers = pymetis.part_graph(nGroup, xadj=_g.xadj, adjncy=_g.adjncy, eweights=_g.eweights)
 
         # rand, opt, worst
-        opts = ["opt", "rand", "worst"]
-        for i0 in range(3):
+        for opt in opts:
+
+            starttime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
             import guide_hair as gh
             hairGroup = gh.GroupedGraph(strandGraph, vers)
-            hairGroup.solve(opts[i0])
+            hairGroup.solve(opt)
 
             sign = time.strftime('__%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
 
