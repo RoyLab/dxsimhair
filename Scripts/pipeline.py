@@ -45,6 +45,10 @@ if __name__ == "__main__":
     import nCacheHooker as ch
     import GraphBuilder as gb
     import metis_graph as mg
+    import os
+
+    def setReadOnly(fileName):
+        os.system('attrib +r '+fileName)
 
     if not needLoad:
         # step 1
@@ -66,7 +70,7 @@ if __name__ == "__main__":
         builder.endLoop()
 
         pkl.dump(edges, file(prefix[0]+'-edges.dump', 'w'))
-
+        setReadOnly(prefix[0]+'-edges.dump')
         #step 2
         strandGraph = gb.shrinkGraph(edges, factor)
 
@@ -76,7 +80,9 @@ if __name__ == "__main__":
         gb.normalize(strandGraph, nStep)
 
         pkl.dump(particleGraph, file(prefix[0]+'mgA.dump', 'w'))
+        setReadOnly(prefix[0]+'mgA.dump')
         pkl.dump(strandGraph, file(prefix[0]+'mgB.dump', 'w'))
+        setReadOnly(prefix[0]+'mgB.dump')
 
         pkl.dump((nStrand, nParticle, factor, refFrame, radius, frameFilter), file(prefix[0]+'info.dump', 'w'))
     else:
@@ -118,11 +124,11 @@ if __name__ == "__main__":
                 error += e
 
             pkl.dump(weights, file(".dump/"+prefix[0]+sign+"weights.dump", 'wb'), 2)
+            setReadOnly(".dump/"+prefix[0]+sign+"weights.dump")
             print "Total: error decrease from %f to %f." % (error0, error)
 
             endtime = time.strftime('%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
             print "end at:", endtime
-
 
             # generate the report
             if bReport:
