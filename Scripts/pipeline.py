@@ -20,9 +20,9 @@ if __name__ == "__main__":
     radius = 0.1
     frameFilter = 0.2
     prefix = ["s4000"]
-    fileName = file2
+    fileName = file1
     split=5
-    opts = ["rand", "rand"]
+    guideOpts = ["rand", "rand"]
     bReport = True
     bMail = True
     # parameter end
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         cut, vers = pymetis.part_graph(nGroup, xadj=_g.xadj, adjncy=_g.adjncy, eweights=_g.eweights)
 
         # rand, opt, worst
-        for opt in opts:
+        for opt in guideOpts:
 
             starttime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
             import guide_hair as gh
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             sign = time.strftime('__%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
 
             guideImporter = ch.GuideHairHooker(hairGroup.guide, refFrame, prefix[0])
-            guideImporter.startLoop("Import guide hair data:")
+            guideImporter.startLoop("Import guide hair data with %d frames:" % nFrame)
             nCache.loop(fileName, guideImporter, nFrame)
             guideImporter.endLoop()
 
@@ -141,9 +141,11 @@ if __name__ == "__main__":
                 content += 'Frame filter: %f\n' % frameFilter
                 content += 'Prefix: %s\n' % prefix[0]
                 content += 'Signature: %s\n' % sign
-                content += 'Guide selection: %s\n' % opts[i0]
+                content += 'Guide selection: %s\n' % opt
                 content += 'Frame number: %d\n' % nFrame
                 content += 'Guide sum %f, energy from %f t0 %f\n' % (hairGroup.energy, error0, error)
+                content += 'Guide hair selection:\n'
+                content += repr(hairGroup.guide)
 
                 print content
 

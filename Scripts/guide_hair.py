@@ -53,7 +53,6 @@ class GroupedGraph(mg.MetisGraph):
     def initGuideHair(self, opt):
         self.guide = [None] * self.n_group
         self.guideVals = [None] * self.n_group
-
         if opt == "opt":
             self.needIteration = True
             self.initSubOptimizedGuideHair();
