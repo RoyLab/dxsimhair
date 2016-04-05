@@ -48,9 +48,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wrHairSimulator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="wrSceneManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -115,9 +112,6 @@
     <ClInclude Include="wrStrand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wrHairSimulator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="precompiled.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -179,6 +173,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SphereCollisionObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IHair.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

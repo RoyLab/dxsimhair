@@ -1,19 +1,19 @@
 #include "precompiled.h"
 #include "wrHairRenderer.h"
 #include <DirectXMath.h>
-#include "wrColorGenerator.h"
 #include "wrLogger.h"
 #include "SDKmisc.h"
 #include "linmath.h"
+#include "Parameter.h"
 
 using namespace DirectX;
 
-wrHairRenderer::wrHairRenderer(const WR::Hair& hair) :
-pHair(&hair){}
+wrHairRenderer::wrHairRenderer(const WR::IHair* hair) :
+pHair(hair){}
 
 wrHairRenderer::~wrHairRenderer(){}
 
-bool wrHairRenderer::init()
+bool wrHairRenderer::init(XMFLOAT3* colors)
 {
     HRESULT hr; 
 
@@ -23,14 +23,7 @@ bool wrHairRenderer::init()
     int n_particles = pHair->n_strands() *  N_PARTICLES_PER_STRAND;
 
     // assign random color
-    vInputs = new XMFLOAT3[n_particles];
-    for (int i = 0; i < pHair->n_strands(); i++)
-    {
-        vec3 color;
-        wrColorGenerator::genRandSaturatedColor(color);
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-           memcpy(&vInputs[N_PARTICLES_PER_STRAND*i + j], color, sizeof(vec3));
-    }
+    vInputs = colors;
 
     D3D11_SUBRESOURCE_DATA subRes;
     //ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));

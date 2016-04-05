@@ -1,5 +1,5 @@
 #pragma once
-#include "wrHair.h"
+#include "IHair.h"
 #include "wrSceneManager.h"
 
 
@@ -14,10 +14,10 @@ class wrHairRenderer:
     public wrRendererInterface
 {
 public:
-    wrHairRenderer(const WR::Hair& hair);
+    wrHairRenderer(const WR::IHair* hair);
     ~wrHairRenderer();
 
-    bool init();
+    bool init(DirectX::XMFLOAT3* colors);
     void release();
     void onFrame(double, float){}
     void render(double, float);
@@ -34,5 +34,5 @@ private:
 
     DirectX::XMFLOAT3*      vInputs = nullptr;
 
-    const WR::Hair*            pHair;
+    const WR::IHair*        pHair;
 };

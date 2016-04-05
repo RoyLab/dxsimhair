@@ -3,6 +3,7 @@
 #include "wrTypes.h"
 #include "linmath.h"
 #include "Parameter.h"
+#include "IHair.h"
 #include <list>
 
 
@@ -79,7 +80,8 @@ namespace WR
 
     typedef WR::HairParticle* HairSegment[2];
 
-    class Hair
+    class Hair:
+        public IHair
     {
     public:
         Hair(){}
@@ -89,7 +91,7 @@ namespace WR
 
         // add springs, add tetrahedrons, add segments
         bool init_simulation();
-        void onFrame(Mat3 world, float fTime, float fTimeElapsed, UserData* = nullptr);
+        void onFrame(Mat3 world, float fTime, float fTimeElapsed, void* = nullptr);
 
         void scale(float x);
         void mirror(bool, bool, bool);

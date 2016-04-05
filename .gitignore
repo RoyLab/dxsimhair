@@ -11,6 +11,7 @@
 *.lprof
 *.test
 *.dump
+*/Profile/*
 
 
 # Build results

@@ -1,14 +1,15 @@
 #include "precompiled.h"
 #include "wrSceneManager.h"
 #include "wrHairRenderer.h"
-#include "wrHairSimulator.h"
 #include "wrMeshRenderer.h"
 #include <GeometricPrimitive.h>
 #include <DXUTcamera.h>
 #include "wrTypes.h"
 #include "Parameter.h"
 #include "LevelSet.h"
+#include "wrColorGenerator.h"
 #include "wrGeo.h"
+#include "wrHair.h"
 
 
 #include "SphereCollisionObject.h"
@@ -57,13 +58,14 @@ bool wrSceneManager::init()
     initConstantBuffer();
     init_global_param();
 
-    pHair = WR::loadFile(L"../../models/curly.hair");
-    pHair->scale(0.01f);
-    pHair->mirror(false, true, false);
+    auto hair = WR::loadFile(L"../../models/curly.hair");
+    hair->scale(0.01f);
+    hair->mirror(false, true, false);
+    WR::HairStrand::set_hair(hair);
+    WR::HairParticle::set_hair(hair);
+    hair->init_simulation();
 
-    WR::HairStrand::set_hair(pHair);
-    WR::HairParticle::set_hair(pHair);
-    pHair->init_simulation();
+    pHair = hair;
 
     //WR::Polyhedron_3 *P = WRG::readFile<WR::Polyhedron_3>("../../models/head.off");
     //WR::SphereCollisionObject* sphere = new WR::SphereCollisionObject;
@@ -75,8 +77,18 @@ bool wrSceneManager::init()
         pCollisionHead = WR::loadCollisionObject(ADF_FILE);
 
     HRESULT hr;
-    pHairRenderer = new wrHairRenderer(*pHair);
-    V_RETURN(pHairRenderer->init());
+    pHairRenderer = new wrHairRenderer(hair);
+
+    XMFLOAT3* colors = new DirectX::XMFLOAT3[pHair->n_strands()];
+    for (int i = 0; i < pHair->n_strands(); i++)
+    {
+        vec3 color;
+        wrColorGenerator::genRandSaturatedColor(color);
+        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+            memcpy(&colors[N_PARTICLES_PER_STRAND*i + j], color, sizeof(vec3));
+    }
+
+    V_RETURN(pHairRenderer->init(colors));
 
     pMeshRenderer = new wrMeshRenderer;
     pMeshRenderer->setCamera(pCamera);

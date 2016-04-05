@@ -6,13 +6,12 @@ class wrMeshRenderer;
 
 namespace WR
 {
-    class Hair;
+    class IHair;
     class ICollisionObject;
 }
 
 class wrRendererInterface
 {
-    virtual bool init() = 0;
     virtual void release() = 0;
     virtual void onFrame(double, float) = 0;
     virtual void render(double, float) = 0;
@@ -36,7 +35,7 @@ private:
     bool initConstantBuffer();
 
 private:
-    WR::Hair*                   pHair = nullptr;
+    WR::IHair*                   pHair = nullptr;
     CModelViewerCamera*         pCamera = nullptr;
     wrHairRenderer*             pHairRenderer = nullptr;
     wrMeshRenderer*             pMeshRenderer = nullptr;

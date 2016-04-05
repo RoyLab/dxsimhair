@@ -30,7 +30,7 @@ bool APPLY_PCG = false;
 
 void init_global_param()
 {
-    ConfigReader reader("config.ini");
+    ConfigReader reader("../config.ini");
     MAX_TIME_STEP = std::stof(reader.getValue("timestep"));
     WIND_DAMPING_COEF = std::stof(reader.getValue("winddamping"));
     DAMPING_COEF = std::stof(reader.getValue("springdamping"));

@@ -404,7 +404,6 @@
     <ClCompile Include="wrColorGenerator.cpp" />
     <ClCompile Include="wrHair.cpp" />
     <ClCompile Include="wrHairRenderer.cpp" />
-    <ClCompile Include="wrHairSimulator.cpp" />
     <ClCompile Include="wrStrand.cpp" />
     <ClCompile Include="wrTetrahedron.cpp" />
   </ItemGroup>
@@ -418,6 +417,7 @@
     <ClInclude Include="ConfigReader.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="ICollisionObject.h" />
+    <ClInclude Include="IHair.h" />
     <ClInclude Include="SphereCollisionObject.h" />
     <ClInclude Include="wrMacro.h" />
     <ClInclude Include="linmath.h" />
@@ -427,7 +427,6 @@
     <ClInclude Include="wrGeo.h" />
     <ClInclude Include="wrHair.h" />
     <ClInclude Include="wrHairRenderer.h" />
-    <ClInclude Include="wrHairSimulator.h" />
     <ClInclude Include="wrSpring.h" />
     <ClInclude Include="wrLevelsetOctree.h" />
     <ClInclude Include="wrMeshRenderer.h" />

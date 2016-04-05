@@ -387,10 +387,10 @@ namespace WR
         }
     }
 
-    void Hair::onFrame(Mat3 world, float fTime, float fTimeElapsed, UserData* pData)
+    void Hair::onFrame(Mat3 world, float fTime, float fTimeElapsed, void* pData)
     {
         static Mat3 lastWorld = Mat3::Identity();
-        mp_data = pData;
+        mp_data = reinterpret_cast<UserData*>(pData);
 
         float tStep = fTimeElapsed;
         int nPass = 1;
@@ -407,7 +407,7 @@ namespace WR
         for (int i = 0; i < nPass; i++)
         {
             lastWorld += matStep;
-            step(lastWorld, (start += tStep), tStep, pData);
+            step(lastWorld, (start += tStep), tStep, mp_data);
             //std::cout << std::setprecision(2) << tStep << ' ';
             //Sleep(500);
         }
