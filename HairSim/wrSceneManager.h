@@ -29,6 +29,7 @@ public:
     void release();
     void onFrame(double, float);
     void render(double, float);
+    void onKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext);
 
 private:
     void setPerFrameConstantBuffer(double, float);

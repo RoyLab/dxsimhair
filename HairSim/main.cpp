@@ -349,6 +349,7 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 //--------------------------------------------------------------------------------------
 void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext )
 {
+    g_SceneMngr.onKeyboard(nChar, bKeyDown, bAltDown, pUserContext);
 }
 
 

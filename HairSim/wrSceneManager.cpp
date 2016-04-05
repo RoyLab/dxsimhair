@@ -10,6 +10,7 @@
 #include "wrColorGenerator.h"
 #include "wrGeo.h"
 #include "wrHair.h"
+#include "CacheHair.h"
 
 
 #include "SphereCollisionObject.h"
@@ -58,15 +59,21 @@ bool wrSceneManager::init()
     initConstantBuffer();
     init_global_param();
 
-    auto hair = WR::loadFile(L"../../models/curly.hair");
-    hair->scale(0.01f);
-    hair->mirror(false, true, false);
-    WR::HairStrand::set_hair(hair);
-    WR::HairParticle::set_hair(hair);
-    hair->init_simulation();
+    /* load the Zhou's hair file */
+    //auto hair = WR::loadFile(L"../../models/curly.hair");
+    //hair->scale(0.01f);
+    //hair->mirror(false, true, false);
+    //WR::HairStrand::set_hair(hair);
+    //WR::HairParticle::set_hair(hair);
+    //hair->init_simulation();
+
+    /* load the nCahce converted file */
+    auto hair = new WR::CacheHair;
+    hair->loadFile("D:/data.dumpb", true);
 
     pHair = hair;
 
+    /* make the sphere as the collision object */
     //WR::Polyhedron_3 *P = WRG::readFile<WR::Polyhedron_3>("../../models/head.off");
     //WR::SphereCollisionObject* sphere = new WR::SphereCollisionObject;
     //sphere->setupFromPolyhedron(*P);
@@ -79,7 +86,7 @@ bool wrSceneManager::init()
     HRESULT hr;
     pHairRenderer = new wrHairRenderer(hair);
 
-    XMFLOAT3* colors = new DirectX::XMFLOAT3[pHair->n_strands()];
+    XMFLOAT3* colors = new DirectX::XMFLOAT3[pHair->n_strands() * N_PARTICLES_PER_STRAND];
     for (int i = 0; i < pHair->n_strands(); i++)
     {
         vec3 color;
@@ -184,3 +191,9 @@ bool wrSceneManager::initConstantBuffer()
 
     return true;
 }
+
+void wrSceneManager::onKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
+{
+
+}
+

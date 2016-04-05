@@ -381,6 +381,7 @@
     <None Include="..\DXUT\Optional\directx.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CacheHair.cpp" />
     <ClCompile Include="CFBXLoader.cpp" />
     <ClCompile Include="CFBXRendererDX11.cpp" />
     <ClCompile Include="ConfigReader.cpp" />
@@ -412,6 +413,7 @@
     <None Include="SimpleSample.fx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CacheHair.h" />
     <ClInclude Include="CFBXLoader.h" />
     <ClInclude Include="CFBXRendererDX11.h" />
     <ClInclude Include="ConfigReader.h" />

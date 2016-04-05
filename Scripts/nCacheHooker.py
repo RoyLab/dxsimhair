@@ -87,6 +87,9 @@ class GuideHairHooker(Hooker):
     def getResult(self):
         return self.data
 
+    def export(self):
+        
+
 class NormalHairHooker(Hooker):
     def __init__(self, guideData, ref, prefix, i, split, graph):
         super(NormalHairHooker, self).__init__()
