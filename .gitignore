@@ -12,6 +12,7 @@
 *.test
 *.dump
 */Profile/*
+*.exe
 
 
 # Build results

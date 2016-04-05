@@ -1,3 +1,7 @@
+
+file1 = "E:/cache/329.xml"
+file2 = "../../maya cache/03074/hair_nRigidShape1.xml"
+
 if __name__ == "__main__":
 
     import time
@@ -9,9 +13,6 @@ if __name__ == "__main__":
     import crash_on_ipy
     import numpy as np
     np.set_printoptions(suppress=True)
-
-    file1 = "E:/cache/329.xml"
-    file2 = "../../maya cache/03074/hair_nRigidShape1.xml"
 
     # parameter begin
     nFrame = 200
@@ -67,7 +68,7 @@ if __name__ == "__main__":
         ruler = ch.ConnectionCalcHooker(edges, refFrame, prefix[0])
         ruler.startLoop("Measure the deviation:")
         nCache.loop(fileName, ruler, nFrame)
-        builder.endLoop()
+        ruler.endLoop()
 
         pkl.dump(edges, file(prefix[0]+'-edges.dump', 'w'))
         setReadOnly(prefix[0]+'-edges.dump')
