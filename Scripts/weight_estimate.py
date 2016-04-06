@@ -48,7 +48,7 @@ class SkinModel:
         print "estimating weights..."
         self.error = 0.0
         self.error0 = 0.0
-        # pbar = ProgressBar().start()
+        pbar = ProgressBar().start()
         count = 0
         for i in self.task:
             count += 1
@@ -72,55 +72,16 @@ class SkinModel:
             map(lambda x: 0 if (x < 0.0) else x, res.x)
             self.weights[i][0] = res.x
             self.weights[i][1] = Ci
-            # pbar.update(100*(count)/(len(self.task)))
+            pbar.update(100*(count)/(len(self.task)))
 
             error0 = SkinModel.evalError([1.0/nw]*nw, self, i, Ci)
             error = SkinModel.evalError(self.weights[i][0], self, i, Ci)
 
-            result = self.strandInterpolation(i)
-            ic = i - self.offset
-            error1 = 0.0
-            for fn in range(self.nFrame):
-                ref = np.array([self.data[fn].data[ic*npar:(ic+1)*npar],\
-                    self.data[fn].particle_direction[ic*npar:(ic+1)*npar]])
-                ref = ref.flatten()
-                diff = result[fn] - ref
-                error1 += diff.dot(diff)
-
-            ee = error - error1
-            print ee, error, error1
             self.error0 += error0
             self.error += error
 
-        # pbar.finish()
+        pbar.finish()
         print "error decrease from %f to %f." % (self.error0, self.error)
-
-    def strandInterpolation(self, s, w=None):
-        if w == None:
-            w = self.weights
-
-        t0 = self.refFrame.data[s*npar:(s+1)*npar], self.refFrame.particle_direction[s*npar:(s+1)*npar]
-        result = []
-        Ci = w[s][1]
-        for fn in range(self.nFrame):
-            A = []
-            frame = self.data[fn]
-            guide = self.guide[fn]
-            tref = cd.rigid_trans_batch(frame.rigid_motion, t0)
-
-            s2 = s - self.offset
-            treal = np.array([frame.data[s2*npar:(s2+1)*npar], frame.particle_direction[s2*npar:(s2+1)*npar]])
-            treal.resize(6*npar)
-            for g in Ci:
-                Bg = guide.particle_motions[g]
-                state = np.array(cd.point_trans_batch(Bg, tref))
-                state.resize(6*npar)
-                A.append(state)
-            A = np.matrix(A)
-            state = (A.T * np.matrix(w[s][0]).T).A1
-
-            result.append(state)
-        return result
 
     @staticmethod
     def evalError(x, inst, s, Ci, idx = [-1]):

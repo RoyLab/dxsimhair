@@ -5,6 +5,11 @@
 
 namespace WR
 {
+    CacheHair::~CacheHair()
+    {
+        SAFE_DELETE_ARRAY(position);
+    }
+
     void CacheHair::BinaryHelper::init(size_t &nf, size_t &np)
     {
         char bytes[4];
@@ -75,7 +80,7 @@ namespace WR
             file = std::ifstream(fileName);
             helper = new AsciiHelper(file);
         }
-        if (!file) throw std::exception("file not found!");
+        if (!file.is_open()) throw std::exception("file not found!");
 
         helper->init(m_nFrame, m_nParticle);
 

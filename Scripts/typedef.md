@@ -25,8 +25,9 @@ int a: frame number
 int b: particle number  
 
 For Loop \* a  
-For Loop \* b  
-float \* 3: position
+int: frame id
+* For Loop \* b  
+* float \* 3: position
 
 # Reference, \*.refs
 

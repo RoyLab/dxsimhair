@@ -11,13 +11,13 @@
 *.lprof
 *.test
 *.dump
+*.dumpb
 */Profile/*
 *.exe
 *.weights
 *.guide
 *.info
-*.amin
-
+*.anim
 
 # Build results
 [Dd]ebug/

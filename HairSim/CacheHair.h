@@ -56,7 +56,7 @@ namespace WR
 
     public:
         CacheHair(){}
-        ~CacheHair(){}
+        ~CacheHair();
 
         bool loadFile(const char* fileName, bool binary = true);
         void rewind();

@@ -69,7 +69,7 @@ bool wrSceneManager::init()
 
     /* load the nCahce converted file */
     auto hair = new WR::CacheHair;
-    hair->loadFile("D:/data.dumpb", true);
+    hair->loadFile("D:/s4000.anim", true);
 
     pHair = hair;
 
