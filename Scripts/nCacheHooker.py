@@ -77,7 +77,7 @@ class GuideHairHooker(Hooker):
         self.prefix = prefix
 
     def postFrame(self):
-        dumpFile = ".dump/frame-"+self.prefix+"/330frame"+str(self.i)+".dump"
+        dumpFile = ".dump/frame-"+self.prefix+"/frame"+str(self.i)+".dump"
         self.frame.selectGuideHair(self.guide, dumpFile)
         self.frame.calcSelectedParticleMotionMatrices(self.refFrame, self.guide)
         self.frame.clearAsGuideInfo()
@@ -87,8 +87,30 @@ class GuideHairHooker(Hooker):
     def getResult(self):
         return self.data
 
-    def export(self):
-        
+    def export(self, fileName, factor):
+        f = open(fileName, "wb")
+        import struct
+        f.write(struct.pack('i', len(self.guide)))
+        f.write(struct.pack('i', factor))
+        f.write(struct.pack('i', self.nFrame))
+
+        for idx in self.guide:
+            f.write(struct.pack('i', idx))
+
+        for i in range(self.nFrame):
+            f.write(struct.pack('i', i))
+            for idx in self.guide:
+                trans = self.data[i].particle_motions[idx]
+                for k in range(factor):
+                    R, T = trans[k]
+                    for a in range(3):
+                        for b in range(3):
+                            f.write(struct.pack('f', R[a, b]))
+                    for a in range(3):
+                        f.write(struct.pack('f', T[a]))
+
+        f.close()
+        return
 
 class NormalHairHooker(Hooker):
     def __init__(self, guideData, ref, prefix, i, split, graph):
@@ -109,10 +131,8 @@ class NormalHairHooker(Hooker):
             self.end = nStrand
 
     def postFrame(self):
-        dumpFile = ".dump/frame-"+self.prefix+"/330frame"+str(self.i)+".dump"
+        dumpFile = ".dump/frame-"+self.prefix+"/frame"+str(self.i)+".dump"
         self.frame.selectNormalHair(self.start, self.end, dumpFile)
-        # if self.start != 0:
-        #     import ipdb; ipdb.set_trace()
         self.data.append(self.frame)
         super(NormalHairHooker, self).postFrame()
 
@@ -120,8 +140,8 @@ class NormalHairHooker(Hooker):
         super(NormalHairHooker, self).endLoop()
         import weight_estimate as wet
         model = wet.SkinModel(self.refFrame, self.guide, self.data, self.graph, range(self.start, self.end))
-        model.estimate()
-        self.weights = model.weights
+        model.solve()
+        self.weights = model.weights[self.start:self.end]
         self.error0 = model.error0
         self.error = model.error
 

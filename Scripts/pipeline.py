@@ -15,17 +15,17 @@ if __name__ == "__main__":
     np.set_printoptions(suppress=True)
 
     # parameter begin
-    nFrame = 200
+    nFrame = 2
     nStep = 1000 # weight discretization
     nGroup = 300
     radius = 0.1
     frameFilter = 0.2
     prefix = ["s4000"]
-    fileName = file1
-    split=5
-    guideOpts = ["rand", "rand"]
+    fileName = file2
+    split=10
+    guideOpts = ["rand"]
     bReport = True
-    bMail = True
+    bMail = False
     # parameter end
 
     needLoad = False
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     import os
 
     def setReadOnly(fileName):
-        os.system('attrib +r '+fileName)
+        os.system('attrib +r \"'+fileName+'\"')
 
     if not needLoad:
         # step 1
@@ -102,22 +102,25 @@ if __name__ == "__main__":
             import guide_hair as gh
             hairGroup = gh.GroupedGraph(strandGraph, vers)
             hairGroup.solve(opt)
-
-            sign = time.strftime('__%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
+            sign = prefix[0] + '-'+opt+'-'
+            sign += time.strftime('%m-%d %Hh%Mm%Ss',time.localtime(time.time()))
 
             guideImporter = ch.GuideHairHooker(hairGroup.guide, refFrame, prefix[0])
             guideImporter.startLoop("Import guide hair data with %d frames:" % nFrame)
             nCache.loop(fileName, guideImporter, nFrame)
             guideImporter.endLoop()
 
-            guides = guideImporter.getResult()
+            guideData = guideImporter.getResult()
+            guideExportFileName = sign+".guide"
+            guideImporter.export(guideExportFileName, factor)
+            setReadOnly(guideExportFileName)
 
             weights = []
             error0 = 0.0
             error = 0.0
             for i in range(split):
-                nImporter = ch.NormalHairHooker(guides, refFrame, prefix[0], i, split, hairGroup)
-                nImporter.startLoop("precomputation %d/%d:" % (i+1, split))
+                nImporter = ch.NormalHairHooker(guideData, refFrame, prefix[0], i, split, hairGroup)
+                nImporter.startLoop("precomputation %d / %d:" % (i+1, split))
                 nCache.loop(fileName, nImporter, nFrame)
                 nImporter.endLoop()
                 w, e0, e = nImporter.getResult()
@@ -125,8 +128,8 @@ if __name__ == "__main__":
                 error0 += e0
                 error += e
 
-            pkl.dump(weights, file(".dump/"+prefix[0]+sign+"weights.dump", 'wb'), 2)
-            setReadOnly(".dump/"+prefix[0]+sign+"weights.dump")
+            pkl.dump((hairGroup.guide, weights), file(sign+"-weights.dump", 'wb'), 2)
+            setReadOnly(sign+"-weights.dump")
             print "Total: error decrease from %f to %f." % (error0, error)
 
             endtime = time.strftime('%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
