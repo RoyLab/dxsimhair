@@ -5,6 +5,8 @@
 
 namespace WR
 {
+    const float max_fps = 0.03;
+
     CacheHair::~CacheHair()
     {
         SAFE_DELETE_ARRAY(position);
@@ -113,6 +115,14 @@ namespace WR
 
     void CacheHair::onFrame(Mat3 world, float fTime, float fTimeElapsed, void*)
     {
+        timeBuffer += fTimeElapsed;
+        if (timeBuffer > max_fps)
+        {
+            bNextFrame = true;
+            timeBuffer = 0.f;
+        }
+        else bNextFrame = false;
+
         if (bNextFrame)
         {
             if (hasNextFrame())

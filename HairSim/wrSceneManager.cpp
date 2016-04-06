@@ -16,6 +16,7 @@
 #include "SphereCollisionObject.h"
 
 using namespace DirectX;
+extern std::string CACHE_FILE;
 
 //--------------------------------------------------------------------------------------
 // Constant buffers
@@ -69,7 +70,7 @@ bool wrSceneManager::init()
 
     /* load the nCahce converted file */
     auto hair = new WR::CacheHair;
-    hair->loadFile("D:/s4000.anim", true);
+    hair->loadFile(CACHE_FILE.c_str(), true);
 
     pHair = hair;
 

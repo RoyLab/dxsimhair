@@ -1,5 +1,7 @@
 from weight_estimate import npar
 from struct import pack
+import coordinates as cd
+import numpy as np
 
 class HairInterpolation:
 
@@ -20,7 +22,7 @@ class HairInterpolation:
         for i in range(self.nFrame):
             f.write(pack('i', i))
             for j in range(self.nStrand):
-                s = strandInterpolation(j, i)
+                s = self.strandInterpolation(j, i)
                 for k in range(npar*3):
                     f.write(pack('f', s[k]))
 

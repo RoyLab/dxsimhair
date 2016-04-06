@@ -77,5 +77,6 @@ namespace WR
         float* position = nullptr;
 
         IHelper* helper = nullptr;
+        float timeBuffer = 0.f;
     };
 }

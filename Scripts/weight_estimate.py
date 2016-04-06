@@ -1,7 +1,6 @@
 from scipy.optimize import minimize
 import coordinates as cd
 import numpy as np
-import metis_graph as mg
 import cPickle as pkl
 from progressbar import *
 
