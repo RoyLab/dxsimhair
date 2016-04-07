@@ -3,6 +3,7 @@
 #include "wrHairRenderer.h"
 #include "wrMeshRenderer.h"
 #include <GeometricPrimitive.h>
+#include <fstream>
 #include <DXUTcamera.h>
 #include "wrTypes.h"
 #include "Parameter.h"
@@ -17,6 +18,7 @@
 
 using namespace DirectX;
 extern std::string CACHE_FILE;
+extern std::string GUIDE_FILE;
 
 //--------------------------------------------------------------------------------------
 // Constant buffers
@@ -44,6 +46,7 @@ struct CB_VS_PER_FRAME
 
 wrSceneManager::wrSceneManager()
 {
+    m_bPause = false;
 }
 
 
@@ -90,6 +93,28 @@ bool wrSceneManager::init()
     HRESULT hr;
     pHairRenderer = new wrBiHairRenderer(hair, hair0);
 
+    /* read the guide hair info */
+    std::ifstream file(GUIDE_FILE, std::ios::binary);
+    if (!file.is_open()) throw std::exception("File not found!");
+
+    int nGuide = 0;
+    char buffer[128];
+    file.read(buffer, 4);
+    nGuide = *reinterpret_cast<int*>(buffer);
+
+    file.read(buffer, 8);
+    std::vector<int> guides;
+    std::cout << nGuide << std::endl;
+    for (size_t i = 0; i < nGuide; i++)
+    {
+        file.read(buffer, 4);
+        guides.push_back(*reinterpret_cast<int*>(buffer));
+    }
+
+    file.close();
+
+
+    /* generate guid hair outstanding scheme */
     XMFLOAT3* colors = new DirectX::XMFLOAT3[pHair->n_strands() * N_PARTICLES_PER_STRAND];
     for (int i = 0; i < pHair->n_strands(); i++)
     {
@@ -98,6 +123,57 @@ bool wrSceneManager::init()
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
             memcpy(&colors[N_PARTICLES_PER_STRAND*i + j], color, sizeof(vec3));
     }
+
+    //vec3 red{ 1.0f, 0.0f, 0.0f };
+    //for (int id : guides)
+    //{
+    //    for (size_t i = 0; i < N_PARTICLES_PER_STRAND; i++)
+    //        memcpy(&colors[N_PARTICLES_PER_STRAND*id+i], red, sizeof(vec3));
+    //}
+
+    ///* read the grouping info */
+    //file.open("s4000.group", std::ios::binary);
+    //if (!file.is_open()) throw std::exception("File not found!");
+
+    //file.read(buffer, 4);
+    //int nStrand = *reinterpret_cast<int*>(buffer);
+
+    //std::vector<int> groups(nStrand);
+    //std::cout << nStrand << std::endl;
+    //for (size_t i = 0; i < nStrand; i++)
+    //{
+    //    file.read(buffer, 4);
+    //    groups[i] = (*reinterpret_cast<int*>(buffer));
+    //}
+
+    //file.close();
+
+    ///* generate grouping scheme */
+    //XMFLOAT3* colors = new DirectX::XMFLOAT3[pHair->n_strands() * N_PARTICLES_PER_STRAND];
+    //for (int i = 0; i < pHair->n_strands(); i++)
+    //{
+    //    vec3 color;
+    //    wrColorGenerator::genRandSaturatedColor(color);
+    //    for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+    //        memcpy(&colors[N_PARTICLES_PER_STRAND*i + j], color, sizeof(vec3));
+    //}
+
+    //XMFLOAT3* groupColors = new DirectX::XMFLOAT3[nGuide];
+    //for (int i = 0; i < nGuide; i++)
+    //{
+    //    vec3 color;
+    //    wrColorGenerator::genRandSaturatedColor(color);
+    //    memcpy(&groupColors[i], color, sizeof(vec3));
+    //}
+
+    //for (int i = 0; i < pHair->n_strands(); i++)
+    //{
+    //    vec3 color{ 0.0f, 0.0f, 0.0f };
+    //    for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+    //        memcpy(&colors[N_PARTICLES_PER_STRAND*i + j], i % 5 == 0 ? (void*)(groupColors + groups[i]) : (void*)(color), sizeof(vec3));
+    //}
+
+    //SAFE_DELETE_ARRAY(groupColors);
 
     V_RETURN(pHairRenderer->init(colors));
 
@@ -121,11 +197,13 @@ void wrSceneManager::onFrame(double fTime, float fElapsedTime)
     WR::UserData userData;
     userData.pCollisionHead = pCollisionHead;
 
-    pHair->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
-    pHair0->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
-
+    if (!get_bPause())
+    {
+        pHair->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
+        pHair0->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
+    }
     pHairRenderer->onFrame(fTime, fElapsedTime);
-    pMeshRenderer->onFrame(fTime, fElapsedTime);
+    //pMeshRenderer->onFrame(fTime, fElapsedTime);
 }
 
 
@@ -134,7 +212,7 @@ void wrSceneManager::render(double fTime, float fElapsedTime)
 {
     setPerFrameConstantBuffer(fTime, fElapsedTime);
     pHairRenderer->render(fTime, fElapsedTime);
-    pMeshRenderer->render(fTime, fElapsedTime);
+    //pMeshRenderer->render(fTime, fElapsedTime);
 }
 
 

@@ -23,7 +23,7 @@ if __name__ == "__main__":
     prefix = ["s4000"]
     fileName = file2
     split=10
-    guideOpts = ["rand"]
+    guideOpts = ["rand", "opt", "worst"]
     bReport = True
     bMail = False
     # parameter end
@@ -95,67 +95,73 @@ if __name__ == "__main__":
         import pymetis
         cut, vers = pymetis.part_graph(nGroup, xadj=_g.xadj, adjncy=_g.adjncy, eweights=_g.eweights)
 
+        f = open(prefix[0]+".group","wb")
+        import struct
+        f.write(struct.pack('i', len(vers)))
+        for i in vers:
+            f.write(struct.pack('i', i))
+        f.close()
         # rand, opt, worst
-        for opt in guideOpts:
-
-            starttime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
-            import guide_hair as gh
-            hairGroup = gh.GroupedGraph(strandGraph, vers)
-            hairGroup.solve(opt)
-            sign = prefix[0] + '-'+opt+'-'
-            sign += time.strftime('%m-%d %Hh%Mm%Ss',time.localtime(time.time()))
-
-            guideImporter = ch.GuideHairHooker(hairGroup.guide, refFrame, prefix[0])
-            guideImporter.startLoop("Import guide hair data with %d frames:" % nFrame)
-            nCache.loop(fileName, guideImporter, nFrame)
-            guideImporter.endLoop()
-
-            guideData = guideImporter.getResult()
-            guideExportFileName = sign+".guide"
-            guideImporter.export(guideExportFileName, factor)
-            setReadOnly(guideExportFileName)
-
-            weights = []
-            error0 = 0.0
-            error = 0.0
-            for i in range(split):
-                nImporter = ch.NormalHairHooker(guideData, refFrame, prefix[0], i, split, hairGroup)
-                nImporter.startLoop("precomputation %d / %d:" % (i+1, split))
-                nCache.loop(fileName, nImporter, nFrame)
-                nImporter.endLoop()
-                w, e0, e = nImporter.getResult()
-                weights += w
-                error0 += e0
-                error += e
-
-            pkl.dump((hairGroup.guide, weights), file(sign+"-weights.dump", 'wb'), 2)
-            setReadOnly(sign+"-weights.dump")
-            print "Total: error decrease from %f to %f." % (error0, error)
-
-            endtime = time.strftime('%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
-            print "end at:", endtime
-
-            # generate the report
-            if bReport:
-                from sendMail import *
-                content = 'Processing from '+starttime+' to '+endtime+'\n'
-                content += 'Weight discretization: %d\n' % nStep
-                content += 'Group number: %d\n' % nGroup
-                content += 'Radius : %f\n' % radius
-                content += 'Frame filter: %f\n' % frameFilter
-                content += 'Prefix: %s\n' % prefix[0]
-                content += 'Signature: %s\n' % sign
-                content += 'Guide selection: %s\n' % opt
-                content += 'Frame number: %d\n' % nFrame
-                content += 'Guide sum %f, energy from %f t0 %f\n' % (hairGroup.energy, error0, error)
-                content += 'Guide hair selection:\n'
-                content += repr(hairGroup.guide)
-
-                print content
-
-                f = open("./Report/"+sign+".txt", 'w');
-                f.write(content)
-                f.close()
-
-                if bMail:
-                    send_mail(mailto_list, 'Report in 30/March '+sign+'-'+prefix[0], content)
+        # for opt in guideOpts:
+        #
+        #     starttime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
+        #     import guide_hair as gh
+        #     hairGroup = gh.GroupedGraph(strandGraph, vers)
+        #     hairGroup.solve(opt)
+        #     sign = prefix[0] + '-'+opt+'-'
+        #     sign += time.strftime('%m-%d %Hh%Mm%Ss',time.localtime(time.time()))
+        #
+        #     guideImporter = ch.GuideHairHooker(hairGroup.guide, refFrame, prefix[0])
+        #     guideImporter.startLoop("Import guide hair data with %d frames:" % nFrame)
+        #     nCache.loop(fileName, guideImporter, nFrame)
+        #     guideImporter.endLoop()
+        #
+        #     guideData = guideImporter.getResult()
+        #     guideExportFileName = sign+".guide"
+        #     guideImporter.export(guideExportFileName, factor)
+        #     setReadOnly(guideExportFileName)
+        #
+        #     weights = []
+        #     error0 = 0.0
+        #     error = 0.0
+        #     for i in range(split):
+        #         nImporter = ch.NormalHairHooker(guideData, refFrame, prefix[0], i, split, hairGroup)
+        #         nImporter.startLoop("precomputation %d / %d:" % (i+1, split))
+        #         nCache.loop(fileName, nImporter, nFrame)
+        #         nImporter.endLoop()
+        #         w, e0, e = nImporter.getResult()
+        #         weights += w
+        #         error0 += e0
+        #         error += e
+        #
+        #     pkl.dump((hairGroup.guide, weights), file(sign+"-weights.dump", 'wb'), 2)
+        #     setReadOnly(sign+"-weights.dump")
+        #     print "Total: error decrease from %f to %f." % (error0, error)
+        #
+        #     endtime = time.strftime('%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
+        #     print "end at:", endtime
+        #
+        #     # generate the report
+        #     if bReport:
+        #         from sendMail import *
+        #         content = 'Processing from '+starttime+' to '+endtime+'\n'
+        #         content += 'Weight discretization: %d\n' % nStep
+        #         content += 'Group number: %d\n' % nGroup
+        #         content += 'Radius : %f\n' % radius
+        #         content += 'Frame filter: %f\n' % frameFilter
+        #         content += 'Prefix: %s\n' % prefix[0]
+        #         content += 'Signature: %s\n' % sign
+        #         content += 'Guide selection: %s\n' % opt
+        #         content += 'Frame number: %d\n' % nFrame
+        #         content += 'Guide sum %f, energy from %f t0 %f\n' % (hairGroup.energy, error0, error)
+        #         content += 'Guide hair selection:\n'
+        #         content += repr(hairGroup.guide)
+        #
+        #         print content
+        #
+        #         f = open("./Report/"+sign+".txt", 'w');
+        #         f.write(content)
+        #         f.close()
+        #
+        #         if bMail:
+        #             send_mail(mailto_list, 'Report in 30/March '+sign+'-'+prefix[0], content)

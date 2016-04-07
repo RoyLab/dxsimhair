@@ -1,4 +1,5 @@
 #pragma once
+#include "wrMacro.h"
 
 class CModelViewerCamera;
 class wrHairRenderer;
@@ -19,6 +20,7 @@ class wrRendererInterface
 
 class wrSceneManager
 {
+    COMMON_PROPERTY(bool, bPause);
 public:
     wrSceneManager();
     ~wrSceneManager();

@@ -47,9 +47,9 @@ wrSceneManager              g_SceneMngr;
 // UI control IDs
 //--------------------------------------------------------------------------------------
 #define IDC_TOGGLEFULLSCREEN    1
-#define IDC_TOGGLEREF           2
+#define IDC_PAUSE           2
 #define IDC_CHANGEDEVICE        3
-#define IDC_TOGGLEWARP          4
+#define IDC_STEP          4
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -136,8 +136,8 @@ void InitApp()
     int iYo = 26;
     g_HUD.AddButton( IDC_TOGGLEFULLSCREEN, L"Toggle full screen", 0, iY, 170, 22 );
     g_HUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 0, iY += iYo, 170, 22, VK_F2 );
-    g_HUD.AddButton( IDC_TOGGLEREF, L"Pause (F3)", 0, iY += iYo, 170, 22, VK_F3 );
-    g_HUD.AddButton( IDC_TOGGLEWARP, L"Step (F4)", 0, iY += iYo, 170, 22, VK_F4 );
+    g_HUD.AddButton( IDC_PAUSE, L"Pause (F3)", 0, iY += iYo, 170, 22, VK_F3 );
+    g_HUD.AddButton( IDC_STEP, L"Step (F4)", 0, iY += iYo, 170, 22, VK_F4 );
 
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
 
@@ -193,7 +193,7 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     static const XMVECTORF32 s_vecEye = { 1.0f, 1.0f, -2.0f, 0.f };
     g_Camera.SetViewParams( s_vecEye, g_XMZero );
 
-    g_HUD.GetButton( IDC_TOGGLEWARP )->SetEnabled( true );
+    g_HUD.GetButton( IDC_STEP )->SetEnabled( true );
 
     return S_OK;
 }
@@ -363,11 +363,12 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
         case IDC_TOGGLEFULLSCREEN:
             DXUTToggleFullScreen();
             break;
-        case IDC_TOGGLEREF:
-            DXUTToggleREF();
+        case IDC_PAUSE:
+            g_SceneMngr.set_bPause(!g_SceneMngr.get_bPause());
+            //DXUTToggleREF();
             break;
-        case IDC_TOGGLEWARP:
-            DXUTToggleWARP();
+        case IDC_STEP:
+            //DXUTToggleWARP();
             break;
         case IDC_CHANGEDEVICE:
             g_SettingsDlg.SetActive( !g_SettingsDlg.IsActive() );

@@ -27,6 +27,7 @@ bool APPLY_COLLISION = false;
 bool APPLY_STRAINLIMIT = false;
 bool APPLY_PCG = false;
 std::string CACHE_FILE;
+std::string GUIDE_FILE;
 
 
 void init_global_param()
@@ -43,4 +44,5 @@ void init_global_param()
     APPLY_STRAINLIMIT = std::stoi(reader.getValue("strainlimit"));
     APPLY_PCG = std::stoi(reader.getValue("pcg"));
     CACHE_FILE = reader.getValue("cachefile");
+    GUIDE_FILE = reader.getValue("guidefile");
 }

@@ -187,6 +187,7 @@ bool wrBiHairRenderer::init(DirectX::XMFLOAT3* colors)
 
     V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &pIB0));
     SAFE_DELETE_ARRAY(indices);
+    return true;
 }
 
 void wrBiHairRenderer::release()
