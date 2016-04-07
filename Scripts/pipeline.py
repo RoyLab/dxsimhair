@@ -15,7 +15,7 @@ if __name__ == "__main__":
     np.set_printoptions(suppress=True)
 
     # parameter begin
-    nFrame = 2
+    nFrame = 200
     nStep = 1000 # weight discretization
     nGroup = 300
     radius = 0.1

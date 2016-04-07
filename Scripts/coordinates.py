@@ -66,6 +66,10 @@ def rigid_trans_batch(trans, state):
     '''note this is different from point_trans_batch!!!!!'''
     return (state[0] * trans[0].T).A + tile(trans[1], (len(state[0]), 1)), (state[1] * trans[0].T).A
 
+def rigid_trans_batch_no_dir(trans, state):
+    '''note this is different from point_trans_batch!!!!!'''
+    return (state * trans[0].T).A + tile(trans[1], (len(state), 1))
+
 def point_trans_batch(trans, state):
     '''trans = (R, t), state = (pos, tan)'''
     plist = []
@@ -75,6 +79,14 @@ def point_trans_batch(trans, state):
         plist.append(p)
         dlist.append(d)
     return array(plist), array(dlist)
+
+def point_trans_batch_no_dir(trans, state):
+    '''trans = (R, t), state = (pos, tan)'''
+    plist = []
+    for i in range(len(trans)):
+        p = trans[i][1] + state[i]
+        plist.append(p)
+    return array(plist)
 
 def apply_point_trans(trans, state):
     '''trans = (R, t), state = (pos, tan)'''

@@ -24,7 +24,7 @@ fileb.write(struct.pack('i', nStrand))
 
 guideCount = 0
 for i in range(nStrand):
-    if type(weights[i][0]) != 'list':
+    if weights[i][0] == None:
         fileb.write(struct.pack('i', 1))
         fileb.write(struct.pack('i', i))
         fileb.write(struct.pack('f', 1.0))

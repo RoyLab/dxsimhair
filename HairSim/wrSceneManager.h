@@ -36,7 +36,8 @@ private:
     bool initConstantBuffer();
 
 private:
-    WR::IHair*                   pHair = nullptr;
+    WR::IHair*                  pHair = nullptr;
+    WR::IHair*                  pHair0 = nullptr;
     CModelViewerCamera*         pCamera = nullptr;
     wrHairRenderer*             pHairRenderer = nullptr;
     wrMeshRenderer*             pMeshRenderer = nullptr;

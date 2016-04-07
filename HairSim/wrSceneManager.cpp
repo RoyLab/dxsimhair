@@ -71,8 +71,11 @@ bool wrSceneManager::init()
     /* load the nCahce converted file */
     auto hair = new WR::CacheHair;
     hair->loadFile(CACHE_FILE.c_str(), true);
-
     pHair = hair;
+
+    auto hair0 = new WR::CacheHair;
+    hair0->loadFile("D:/s4000.anim", true);
+    pHair0 = hair0;
 
     /* make the sphere as the collision object */
     //WR::Polyhedron_3 *P = WRG::readFile<WR::Polyhedron_3>("../../models/head.off");
@@ -85,7 +88,7 @@ bool wrSceneManager::init()
         pCollisionHead = WR::loadCollisionObject(ADF_FILE);
 
     HRESULT hr;
-    pHairRenderer = new wrHairRenderer(hair);
+    pHairRenderer = new wrBiHairRenderer(hair, hair0);
 
     XMFLOAT3* colors = new DirectX::XMFLOAT3[pHair->n_strands() * N_PARTICLES_PER_STRAND];
     for (int i = 0; i < pHair->n_strands(); i++)
@@ -119,6 +122,8 @@ void wrSceneManager::onFrame(double fTime, float fElapsedTime)
     userData.pCollisionHead = pCollisionHead;
 
     pHair->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
+    pHair0->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
+
     pHairRenderer->onFrame(fTime, fElapsedTime);
     pMeshRenderer->onFrame(fTime, fElapsedTime);
 }
@@ -144,6 +149,7 @@ void wrSceneManager::release()
     SAFE_DELETE(pCollisionHead);
     SAFE_DELETE(pHairRenderer);
     SAFE_DELETE(pHair);
+    SAFE_DELETE(pHair0);
 }
 
 

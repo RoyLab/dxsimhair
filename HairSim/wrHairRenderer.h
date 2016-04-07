@@ -1,4 +1,5 @@
 #pragma once
+#include "linmath.h"
 #include "IHair.h"
 #include "wrSceneManager.h"
 
@@ -15,14 +16,17 @@ class wrHairRenderer:
 {
 public:
     wrHairRenderer(const WR::IHair* hair);
-    ~wrHairRenderer();
+    virtual ~wrHairRenderer();
 
-    bool init(DirectX::XMFLOAT3* colors);
-    void release();
-    void onFrame(double, float){}
-    void render(double, float);
+    virtual bool init(DirectX::XMFLOAT3* colors);
+    virtual void release();
+    virtual void onFrame(double, float){}
+    virtual void render(double, float);
 
-private:
+protected:
+    void render(const WR::IHair* hair, ID3D11Buffer* vb, 
+        ID3D11Buffer* ib, DirectX::XMFLOAT3* colors, float* offset);
+
     ID3D11Device*           pd3dDevice = nullptr;
     ID3D11DeviceContext*    pd3dImmediateContext = nullptr;
 
@@ -35,4 +39,21 @@ private:
     DirectX::XMFLOAT3*      vInputs = nullptr;
 
     const WR::IHair*        pHair;
+};
+
+
+class wrBiHairRenderer :
+    public wrHairRenderer
+{
+public:
+    wrBiHairRenderer(const WR::IHair* hair1, const WR::IHair* hair0):
+        wrHairRenderer(hair1), pHair0(hair0){}
+    bool init(DirectX::XMFLOAT3* colors);
+    void release();
+    void render(double, float);
+
+protected:
+    ID3D11Buffer*           pVB0 = nullptr;
+    ID3D11Buffer*           pIB0 = nullptr;
+    const WR::IHair*        pHair0;
 };
