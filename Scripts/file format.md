@@ -29,9 +29,16 @@ int: frame id
 * For Loop \* b  
 * float \* 3: position
 
-# Reference, \*.refs
 
-int b: particle number
-float \* 3: position
+---
 
-__似乎没有必要__
+# Ground Truth, \*.anim2
+
+* INT b: particle number  
+* *For Loop* \* a  
+  * INT: frame id
+  * FLOAT * 16: rigid motion
+  * *For Loop* \* b  
+    * FLOAT \* 3: position
+  * *For Loop* \* b  
+    * FLOAT \* 3: direction

@@ -2,10 +2,11 @@ import cPickle as pkl
 import struct
 
 fileName = ".dump/s400004-06  02h45m59sweights.dump"
-needMerge = True
+needMerge = False
 factor = 5
 weights = pkl.load(file(fileName, 'rb'))
 
+# if it is an old type of dump
 if needMerge:
     n = len(weights)
     nStrand = n/factor

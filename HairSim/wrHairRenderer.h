@@ -6,8 +6,10 @@
 
 struct wrHairVertexInput
 {
-    DirectX::XMFLOAT3 pos;
-    DirectX::XMFLOAT3 color;
+    int                 seq;
+    DirectX::XMFLOAT3   pos;
+    DirectX::XMFLOAT3   direction;
+    DirectX::XMFLOAT3   color;
 };
 
 

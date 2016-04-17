@@ -129,6 +129,13 @@ class Frame:
         self.rigid_motion = rigid_transform_3D(matrix(reference.headData), matrix(self.headData))
         self.calcParticleMotionMatrices();
 
+    def calcRigidMotionMatrix(self, reference):
+        self.reference = reference
+        rigid = rigid_transform_3D(matrix(reference.headData), matrix(self.headData))
+        self.rigid_motion = rigid
+        trans3x4 = np.vstack([rigid[0].T, rigid[1]]).
+        self.rigidMotionMatrix = np.matrix(np.vstack([trans3x4, np.array([0,0,0,1])]))
+
     def clearMotionMatrix(self):
         del self.particle_motions
         del self.rigid_motion
