@@ -71,7 +71,7 @@ namespace WR
         virtual void onFrame(Mat3 world, float fTime, float fTimeElapsed, void* = nullptr);
 
     protected:
-        void readFrame();
+        virtual void readFrame();
         bool hasNextFrame();
 
         std::streampos firstFrame = 0;

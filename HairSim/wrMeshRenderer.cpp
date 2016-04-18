@@ -16,6 +16,7 @@ ID3DUserDefinedAnnotation*            g_pUserAnotation = nullptr;
 
 wrMeshRenderer::wrMeshRenderer()
 {
+    translation = DirectX::XMMatrixIdentity();
 }
 
 
@@ -35,7 +36,7 @@ bool wrMeshRenderer::init()
     shape = GeometricPrimitive::CreateTeapot(pd3dImmediateContext, 1, 8u, false);
 
     g_pFbxDX11 = new FBX_LOADER::CFBXRenderDX11;
-    V_RETURN(g_pFbxDX11->LoadFBX("../../models/head 2.7k.fbx", pd3dDevice, pd3dImmediateContext));
+    V_RETURN(g_pFbxDX11->LoadFBX("../../models/headdemo.fbx", pd3dDevice, pd3dImmediateContext));
 
     pEffect->EnableDefaultLighting();
 
@@ -63,7 +64,7 @@ void wrMeshRenderer::release()
 
 void wrMeshRenderer::render(double fTime, float fTimeElapsed)
 {
-    pEffect->SetWorld(pCamera->GetWorldMatrix());
+    pEffect->SetWorld(enableControl ? pCamera->GetWorldMatrix()*translation : translation);
     pEffect->SetView(pCamera->GetViewMatrix());
     pEffect->SetProjection(pCamera->GetProjMatrix());
 
@@ -99,3 +100,19 @@ void wrMeshRenderer::render(double fTime, float fTimeElapsed)
 
     //pd3dImmediateContext->DrawIndexed(...);
 }
+
+void wrMeshRenderer::setTransformation(const float* trans4x4)
+{
+    using namespace DirectX;
+    auto target = XMMatrixTranspose(XMLoadFloat4x4(&XMFLOAT4X4(trans4x4)));
+    auto trans = XMLoadFloat3(&XMFLOAT3(0.0f, -0.643f, 0.282f));
+    auto scale = XMLoadFloat3(&XMFLOAT3(5.346f, 5.346f, 5.346f));
+    translation = XMMatrixAffineTransformation(scale, XMVectorZero(), XMVectorZero(), trans)*target;
+}
+
+void wrMeshRenderer::setOffset(const float* vec)
+{
+    using namespace DirectX;
+    translation *= XMMatrixTranslation(vec[0], vec[1], vec[2]);
+}
+

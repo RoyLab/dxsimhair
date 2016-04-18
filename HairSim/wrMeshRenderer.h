@@ -1,5 +1,6 @@
 #pragma once
 #include "wrSceneManager.h"
+#include <DirectXMath.h>
 #include <Effects.h>
 
 class wrMeshRenderer:
@@ -18,6 +19,8 @@ public:
 
     void setMatrices();
     void setCamera(CModelViewerCamera* camera) { pCamera = camera; }
+    void setTransformation(const float* trans4x4);
+    void setOffset(const float* vec);
 
 private:
     ID3D11Device*           pd3dDevice = nullptr;
@@ -25,5 +28,8 @@ private:
 
     EffectPtr               pEffect;
     CModelViewerCamera*     pCamera = nullptr;
+    DirectX::XMMATRIX       translation;
+
+    bool                    enableControl = false;
 };
 

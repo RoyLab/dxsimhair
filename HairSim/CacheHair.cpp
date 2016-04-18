@@ -134,7 +134,6 @@ namespace WR
             bNextFrame = true;
             timeBuffer = 0.f;
         }
-        else bNextFrame = false;
 
         if (bNextFrame)
         {
@@ -146,6 +145,7 @@ namespace WR
                 hasNextFrame();
                 readFrame();
             }
+            bNextFrame = false;
         }
     }
 
@@ -161,9 +161,13 @@ namespace WR
 
     bool CacheHair20::loadFile(const char* fileName, bool binary)
     {
-        CacheHair::loadFile(fileName, binary);
-        direction = new float[3 * get_nParticle()];
-        rigidTrans = new float[16];
+        bool result = CacheHair::loadFile(fileName, binary);
+        if (result)
+        {
+            direction = new float[3 * get_nParticle()];
+            rigidTrans = new float[16];
+        }
+        return result;
     }
 
     CacheHair20::~CacheHair20()

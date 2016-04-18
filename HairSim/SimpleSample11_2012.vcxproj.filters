@@ -184,5 +184,13 @@
     <ClInclude Include="CacheHair.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HairDebugRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Hair.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

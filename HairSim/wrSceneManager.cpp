@@ -76,8 +76,8 @@ bool wrSceneManager::init()
     hair->loadFile(CACHE_FILE.c_str(), true);
     pHair = hair;
 
-    auto hair0 = new WR::CacheHair;
-    hair0->loadFile("D:/s4000.anim", true);
+    auto hair0 = new WR::CacheHair20;
+    hair0->loadFile("D:/s4000.anim2", true);
     pHair0 = hair0;
 
     /* make the sphere as the collision object */
@@ -203,6 +203,9 @@ void wrSceneManager::onFrame(double fTime, float fElapsedTime)
         pHair0->onFrame(wrmWorld.transpose(), fTime, fElapsedTime, &userData);
     }
     pHairRenderer->onFrame(fTime, fElapsedTime);
+    pMeshRenderer->onFrame(fTime, fElapsedTime);
+
+    //pMeshRenderer->setTransformation();
     //pMeshRenderer->onFrame(fTime, fElapsedTime);
 }
 
@@ -212,7 +215,16 @@ void wrSceneManager::render(double fTime, float fElapsedTime)
 {
     setPerFrameConstantBuffer(fTime, fElapsedTime);
     pHairRenderer->render(fTime, fElapsedTime);
-    //pMeshRenderer->render(fTime, fElapsedTime);
+
+    vec3 offset0{ -2.f, 0, 0 };
+    pMeshRenderer->setTransformation(pHair0->get_rigidMotionMatrix());
+    pMeshRenderer->setOffset(offset0);
+    pMeshRenderer->render(fTime, fElapsedTime);
+
+    vec3 offset1{ 2.f, 0, 0 };
+    pMeshRenderer->setTransformation(pHair0->get_rigidMotionMatrix());
+    pMeshRenderer->setOffset(offset1);
+    pMeshRenderer->render(fTime, fElapsedTime);
 }
 
 
