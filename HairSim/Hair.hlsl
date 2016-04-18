@@ -1,28 +1,22 @@
-cbuffer cbMatrix
+cbuffer cbMatrix : register(b0)
 {
     matrix  g_mViewProjection;
     matrix  g_mWorld;
 }
-
-cbuffer cbLighting
-{
-    float3  direction;
-}
-
 
 struct VS_INPUT
 {
     int    Sequence     : SEQ;
     float4 Position     : POSITION;
     float3 Color        : COLOR;
-    float4 Direction    : DIRECTION;
+    float3 Direction    : DIRECTION;
 };
 
 struct VS_OUTPUT
 {
     float4 Position     : SV_POSITION; // vertex position 
     float4 Color        : COLOR0;      // vertex diffuse color (note that COLOR0 is clamped from 0..1)
-    float4 Direction    : DIRECTION0;
+    float3 Direction    : DIRECTION0;
     float  Sequence     : SEQ0;
 };
 
@@ -38,6 +32,8 @@ VS_OUTPUT VS(VS_INPUT input)
 
     // Calc color    
     Output.Color = float4(input.Color, 0.0);
+    Output.Sequence = float(input.Sequence);
+    Output.Direction = input.Direction;
 
     return Output;
 }
@@ -49,5 +45,5 @@ VS_OUTPUT VS(VS_INPUT input)
 float4 PS(VS_OUTPUT In) : SV_TARGET
 {
     // Lookup mesh texture and modulate it with diffuse
-    return In.Color;
+    return float4(abs(In.Direction), 1.0) * (6+abs(In.Sequence-6))/25.0;
 }

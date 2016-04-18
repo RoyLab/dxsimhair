@@ -13,6 +13,8 @@ namespace WR
 
 class wrRendererInterface
 {
+public:
+    virtual ~wrRendererInterface(){}
     virtual void release() = 0;
     virtual void onFrame(double, float) = 0;
     virtual void render(double, float) = 0;
@@ -41,7 +43,7 @@ private:
     WR::IHair*                  pHair = nullptr;
     WR::IHair*                  pHair0 = nullptr;
     CModelViewerCamera*         pCamera = nullptr;
-    wrHairRenderer*             pHairRenderer = nullptr;
+    wrRendererInterface*        pHairRenderer = nullptr;
     wrMeshRenderer*             pMeshRenderer = nullptr;
 
     ID3D11Device*               pd3dDevice = nullptr;

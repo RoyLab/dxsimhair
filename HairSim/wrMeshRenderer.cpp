@@ -104,15 +104,23 @@ void wrMeshRenderer::render(double fTime, float fTimeElapsed)
 void wrMeshRenderer::setTransformation(const float* trans4x4)
 {
     using namespace DirectX;
-    auto target = XMMatrixTranspose(XMLoadFloat4x4(&XMFLOAT4X4(trans4x4)));
-    auto trans = XMLoadFloat3(&XMFLOAT3(0.0f, -0.643f, 0.282f));
-    auto scale = XMLoadFloat3(&XMFLOAT3(5.346f, 5.346f, 5.346f));
+    auto target0 = XMFLOAT4X4(trans4x4);
+    auto target = XMMatrixTranspose(XMLoadFloat4x4(&target0));
+
+
+    auto trans0 = XMFLOAT3(0.0f, -0.643f, 0.282f);
+    auto trans = XMLoadFloat3(&trans0);
+
+    auto scale0 = XMFLOAT3(5.346f, 5.346f, 5.346f);
+    auto scale = XMLoadFloat3(&scale0);
     translation = XMMatrixAffineTransformation(scale, XMVectorZero(), XMVectorZero(), trans)*target;
 }
 
 void wrMeshRenderer::setOffset(const float* vec)
 {
     using namespace DirectX;
-    translation *= XMMatrixTranslation(vec[0], vec[1], vec[2]);
+    auto tmp0 = translation;
+    auto tmp1 = XMMatrixTranslation(vec[0], vec[1], vec[2]);
+    translation = tmp0 * tmp1;
 }
 

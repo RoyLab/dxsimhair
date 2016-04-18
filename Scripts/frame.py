@@ -126,13 +126,17 @@ class Frame:
 
     def calcMotionMatrix(self, reference):
         self.reference = reference
-        self.rigid_motion = rigid_transform_3D(matrix(reference.headData), matrix(self.headData))
+        self.calcRigidMotionMatrix(reference)
         self.calcParticleMotionMatrices();
 
     def calcRigidMotionMatrix(self, reference):
         self.reference = reference
         rigid = rigid_transform_3D(matrix(reference.headData), matrix(self.headData))
         self.rigid_motion = rigid
+        self._calcRigid();
+
+    def _calcRigid(self):
+        rigid = self.rigid_motion
         trans3x4 = np.vstack([rigid[0].T, rigid[1]]).T
         self.rigidMotionMatrix = np.matrix(np.vstack([trans3x4, np.array([0,0,0,1])]))
 
@@ -145,8 +149,15 @@ class Frame:
     def cacheInfo(self, f):
         pkl.dump((self.rigid_motion, self.particle_direction), file(f, 'wb'), 2)
 
+    def cacheInfo20(self, f):
+        pkl.dump((self.rigidMotionMatrix, self.rigid_motion, self.particle_direction), file(f, 'wb'), 2)
+
     def loadCache(self, f):
         self.rigid_motion, self.particle_direction = pkl.load(file(f, 'rb'))
+        self._calcRigid();
+
+    def loadCache20(self, f):
+        self.rigidMotionMatrix, self.rigid_motion, self.particle_direction = pkl.load(file(f, 'rb'))
 
     def importDirections(self, f):
         return pkl.load(file(f, 'rb'))[1]

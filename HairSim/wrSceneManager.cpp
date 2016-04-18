@@ -12,6 +12,7 @@
 #include "wrGeo.h"
 #include "wrHair.h"
 #include "CacheHair.h"
+#include "HairDebugRenderer.h"
 
 
 #include "SphereCollisionObject.h"
@@ -72,7 +73,7 @@ bool wrSceneManager::init()
     //hair->init_simulation();
 
     /* load the nCahce converted file */
-    auto hair = new WR::CacheHair;
+    auto hair = new WR::CacheHair20;
     hair->loadFile(CACHE_FILE.c_str(), true);
     pHair = hair;
 
@@ -91,7 +92,8 @@ bool wrSceneManager::init()
         pCollisionHead = WR::loadCollisionObject(ADF_FILE);
 
     HRESULT hr;
-    pHairRenderer = new wrBiHairRenderer(hair, hair0);
+    auto hairRenderer = new HairBiDebugRenderer(hair, hair0);
+    pHairRenderer = hairRenderer;
 
     /* read the guide hair info */
     std::ifstream file(GUIDE_FILE, std::ios::binary);
@@ -175,8 +177,7 @@ bool wrSceneManager::init()
 
     //SAFE_DELETE_ARRAY(groupColors);
 
-    V_RETURN(pHairRenderer->init(colors));
-
+    V_RETURN(hairRenderer->init(colors));
     pMeshRenderer = new wrMeshRenderer;
     pMeshRenderer->setCamera(pCamera);
     V_RETURN(pMeshRenderer->init());
