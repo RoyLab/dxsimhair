@@ -18,11 +18,13 @@ namespace WR
         COMMON_PROPERTY(size_t, nFrame);
         COMMON_PROPERTY(size_t, curFrame);
 
+    protected:
         class IHelper
         {
         public:
             virtual void init(size_t &nf, size_t &np) = 0;
             virtual void readFrame(float* pos, size_t np) = 0;
+            virtual void readFrame20(float* rigidTrans, float* pos, float* dir, size_t np){ assert(0); }
             virtual bool hasNextFrame(size_t &id) = 0;
         };
 
@@ -48,6 +50,7 @@ namespace WR
 
             void init(size_t &nf, size_t &np);
             void readFrame(float* pos, size_t np);
+            void readFrame20(float* rigidTrans, float* pos, float* dir, size_t np);
             bool hasNextFrame(size_t &id);
 
         private:
@@ -56,7 +59,7 @@ namespace WR
 
     public:
         CacheHair(){}
-        ~CacheHair();
+        virtual ~CacheHair();
 
         bool loadFile(const char* fileName, bool binary = true);
         void rewind();
@@ -67,7 +70,7 @@ namespace WR
         virtual const float* get_visible_particle_position(size_t i, size_t j) const;
         virtual void onFrame(Mat3 world, float fTime, float fTimeElapsed, void* = nullptr);
 
-    private:
+    protected:
         void readFrame();
         bool hasNextFrame();
 
@@ -78,5 +81,22 @@ namespace WR
 
         IHelper* helper = nullptr;
         float timeBuffer = 0.f;
+    };
+
+    class CacheHair20 :
+        public CacheHair
+    {
+    public:
+        ~CacheHair20();
+
+        bool loadFile(const char* fileName, bool binary = true);
+        const float* get_visible_particle_direction(size_t i, size_t j) const;
+        const float* get_rigidMotionMatrix() const;
+
+    protected:
+        void readFrame();
+
+        float* direction = nullptr;
+        float* rigidTrans = nullptr;
     };
 }

@@ -133,7 +133,7 @@ class Frame:
         self.reference = reference
         rigid = rigid_transform_3D(matrix(reference.headData), matrix(self.headData))
         self.rigid_motion = rigid
-        trans3x4 = np.vstack([rigid[0].T, rigid[1]]).
+        trans3x4 = np.vstack([rigid[0].T, rigid[1]]).T
         self.rigidMotionMatrix = np.matrix(np.vstack([trans3x4, np.array([0,0,0,1])]))
 
     def clearMotionMatrix(self):

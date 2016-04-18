@@ -21,6 +21,19 @@ namespace WR
         file.read(bytes, 4);
         np = *reinterpret_cast<int*>(bytes);
     }
+
+    void CacheHair::BinaryHelper::readFrame20(float* rigidTrans, float* pos, float* dir, size_t np)
+    {
+        char* bytes = reinterpret_cast<char*>(rigidTrans);
+        file.read(bytes, sizeof(float)*16);
+
+        bytes = reinterpret_cast<char*>(pos);
+        file.read(bytes, sizeof(float)*np * 3);
+
+        bytes = reinterpret_cast<char*>(dir);
+        file.read(bytes, sizeof(float)*np * 3);
+    }
+
     void CacheHair::BinaryHelper::readFrame(float* pos, size_t np)
     {
         char* bytes = reinterpret_cast<char*>(pos);
@@ -145,4 +158,33 @@ namespace WR
     {
         return helper->hasNextFrame(m_curFrame);
     }
+
+    bool CacheHair20::loadFile(const char* fileName, bool binary)
+    {
+        CacheHair::loadFile(fileName, binary);
+        direction = new float[3 * get_nParticle()];
+        rigidTrans = new float[16];
+    }
+
+    CacheHair20::~CacheHair20()
+    {
+        SAFE_DELETE_ARRAY(direction);
+        SAFE_DELETE_ARRAY(rigidTrans);
+    }
+
+    void CacheHair20::readFrame()
+    { 
+        helper->readFrame20(rigidTrans, position, direction, get_nParticle());
+    }
+
+    const float* CacheHair20::get_visible_particle_direction(size_t i, size_t j) const
+    {
+        return direction + (i*N_PARTICLES_PER_STRAND + j) * 3;
+    }
+
+    const float* CacheHair20::get_rigidMotionMatrix() const
+    {
+        return rigidTrans;
+    }
+
 }

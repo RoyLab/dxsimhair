@@ -134,10 +134,13 @@ void wrHairRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
     {
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
         {
-            vec3 pos;
+            vec3 pos, dir;
             memcpy(pos, hair->get_visible_particle_position(i, j), sizeof(vec3));
+            //memcpy(dir, hair->get_visible_particle_direction(i, j), sizeof(vec3));
             vec3_add(pos, offset, pos);
+            //pData[N_PARTICLES_PER_STRAND * i + j].seq = j;
             memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].pos, pos, sizeof(vec3));
+            //memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].direction, dir, sizeof(vec3));
             memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &colors[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
         }
     }

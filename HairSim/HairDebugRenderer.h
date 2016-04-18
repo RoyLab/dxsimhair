@@ -1,24 +1,24 @@
 #pragma once
-#include "linmath.h"
+#include <DirectXMath.h>
+#include <d3d11.h>
+
 #include "IHair.h"
-#include "wrSceneManager.h"
 
 
-struct wrHairVertexInput
+struct HairDebugVertex
 {
-    //int                 seq;
+    int                 seq;
     DirectX::XMFLOAT3   pos;
-    //DirectX::XMFLOAT3   direction;
+    DirectX::XMFLOAT3   direction;
     DirectX::XMFLOAT3   color;
 };
 
 
-class wrHairRenderer:
-    public wrRendererInterface
+class HairDebugRenderer
 {
 public:
-    wrHairRenderer(const WR::IHair* hair);
-    virtual ~wrHairRenderer();
+    HairDebugRenderer(const WR::IHair* hair);
+    virtual ~HairDebugRenderer();
 
     virtual bool init(DirectX::XMFLOAT3* colors);
     virtual void release();
@@ -26,7 +26,7 @@ public:
     virtual void render(double, float);
 
 protected:
-    void render(const WR::IHair* hair, ID3D11Buffer* vb, 
+    void render(const WR::IHair* hair, ID3D11Buffer* vb,
         ID3D11Buffer* ib, DirectX::XMFLOAT3* colors, float* offset);
 
     ID3D11Device*           pd3dDevice = nullptr;
@@ -41,21 +41,4 @@ protected:
     DirectX::XMFLOAT3*      vInputs = nullptr;
 
     const WR::IHair*        pHair;
-};
-
-
-class wrBiHairRenderer :
-    public wrHairRenderer
-{
-public:
-    wrBiHairRenderer(const WR::IHair* hair1, const WR::IHair* hair0):
-        wrHairRenderer(hair1), pHair0(hair0){}
-    bool init(DirectX::XMFLOAT3* colors);
-    void release();
-    void render(double, float);
-
-protected:
-    ID3D11Buffer*           pVB0 = nullptr;
-    ID3D11Buffer*           pIB0 = nullptr;
-    const WR::IHair*        pHair0;
 };

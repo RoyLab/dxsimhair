@@ -4,12 +4,13 @@ from pipeline import *
 import struct
 import array
 
+import crash_on_ipy
 
 class ConverterHooker(ch.Hooker):
     def __init__(self, fileName, needDirection=False):
         super(ConverterHooker, self).__init__()
         # self.file = open(fileName, 'w')
-        self.fileb = open(fileName+'b', 'wb')
+        self.fileb = open(fileName, 'wb')
         self.needDirection = needDirection
 
         # if not self.file or not self.fileb:
@@ -39,7 +40,7 @@ class ConverterHooker(ch.Hooker):
 
         self.data.tofile(self.fileb)
         if self.needDirection:
-            array('f', self.frame.directions.flatten()).tofile(self.fileb)
+            array.array('f', self.frame.particle_direction.flatten()).tofile(self.fileb)
         super(ConverterHooker, self).postFrame()
 
     def endLoop(self):
@@ -61,7 +62,7 @@ class ConverterHooker(ch.Hooker):
 
 
 if __name__ == "__main__":
-    conv = ConverterHooker("D:/data2.dump", True)
+    conv = ConverterHooker("D:/s4000.anim2", True)
     conv.startLoop("Convert to anim file:")
-    nCache.loop(file1, conv, 200)
+    nCache.loop(file2, conv, 200)
     conv.endLoop()
