@@ -27,16 +27,16 @@ cbuffer cbMatrix2 : register(b1)
 //////////////
 struct VertexInputType
 {
-    int    Sequence : SEQ;
+    int    Sequence :   SEQ;
     float3 Position     : POSITION;
-    float4 Color        : COLOR;
-    float4 Direction    : DIRECTION;
+    float3 Color        : COLOR;
+    float3 Direction    : DIRECTION;
 };
 
 struct PixelInputType
 {
     float4 position : SV_POSITION;
-    float4 direction : DIRECTION0;
+    float3 direction : DIRECTION0;
     float4 color: COLOR0;
     float4 lightViewPosition : TEXCOORD1;
 };
@@ -58,13 +58,12 @@ PixelInputType VS(VertexInputType input)
     output.position = mul(pos, g_mViewProjection);
     
 	// Calculate the position of the vertice as viewed by the light source.
-    output.lightViewPosition = mul(g_lightProjView, pos);
+    output.lightViewPosition = mul(pos, g_lightProjView);
 
 	// Calculate the normal vector against the world matrix only.
     output.direction = input.Direction;
-    output.direction.w = 1.0f;
 
-    output.color = input.Color;
+    output.color = float4(input.Color, 1.0);
 
 	return output;
 }
@@ -97,13 +96,13 @@ float4 PS(PixelInputType input) : SV_TARGET
     float2 projectTexCoord;
     float depthValue;
     float lightDepthValue;
-
+    float4 diffuse = input.color;
 
     // Set the bias value for fixing the floating point precision issues.
     bias = 0.001f;
 
     // Set the default output color to the ambient light value for all pixels.
-    color = float4(0.1, 0.1, 0.1, 1.0); // ambient
+    color = float4(0.1, 0.1, 0.1, 1.0) * diffuse; // ambient
 
     // Calculate the projected texture coordinates.
     projectTexCoord.x = input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
@@ -112,9 +111,10 @@ float4 PS(PixelInputType input) : SV_TARGET
     // Determine if the projected coordinates are in the 0 to 1 range.  If so then this pixel is in the view of the light.
     if ((saturate(projectTexCoord.x) == projectTexCoord.x) && (saturate(projectTexCoord.y) == projectTexCoord.y))
     {
-        float4 diffuse = input.color;
-
         // Sample the shadow map depth value from the depth texture using the sampler at the projected texture coordinate location.
+        float dvs[4];
+        int w = 512, h = 512;
+
         depthValue = shaderTexture.Sample(SampleTypeClamp, projectTexCoord).r;
 
         // Calculate the depth of the light.

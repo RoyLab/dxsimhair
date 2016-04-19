@@ -22,8 +22,8 @@ struct VS_INPUT
 {
     int    Sequence : SEQ;
     float3 Position     : POSITION;
-    float4 Color        : COLOR;
-    float4 Direction    : DIRECTION;
+    float3 Color        : COLOR;
+    float3 Direction    : DIRECTION;
 };
 
 struct VS_OUTPUT
@@ -40,7 +40,7 @@ VS_OUTPUT VS(VS_INPUT input)
     VS_OUTPUT output;
 
     float4 pos = float4(input.Position, 1.0f);
-    output.Position = mul(g_lightProjView, pos);
+        output.Position = mul(pos, g_lightProjView);
 	
 	return output;
 }

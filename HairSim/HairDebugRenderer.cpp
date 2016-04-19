@@ -11,13 +11,18 @@ using namespace DirectX;
 
 struct ShadowMapConstBuffer
 {
-    XMMATRIX lightProjViewMatrix;
+    XMFLOAT4X4 lightProjViewMatrix;
 };
 
-HairBiDebugRenderer::~HairBiDebugRenderer(){}
+HairBiDebugRenderer::~HairBiDebugRenderer()
+{
+    release();
+}
 
 bool HairBiDebugRenderer::init(XMFLOAT3* colors)
 {
+    bNeedShadow = true;
+
     HRESULT hr;
 
     pd3dDevice = DXUTGetD3D11Device();
@@ -222,10 +227,15 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     /* save the old render target for restoration */
     ID3D11RenderTargetView* pRTV = nullptr;
     ID3D11DepthStencilView* pDSV = nullptr;
+    ID3D11ShaderResourceView* pNull = nullptr;
+    D3D11_VIEWPORT vp;
+    UINT nvp = 1;
     pd3dImmediateContext->OMGetRenderTargets(1, &pRTV, &pDSV);
+    pd3dImmediateContext->RSGetViewports(&nvp, &vp);
 
+    pd3dImmediateContext->PSSetShaderResources(0, 1, &pNull);
     pShadowMap->SetRenderTarget(pd3dImmediateContext);
-    pShadowMap->ClearRenderTarget(pd3dImmediateContext, 0.0f, 0.0f, 0.0f, 1.0f);
+    pShadowMap->ClearRenderTarget(pd3dImmediateContext, 1.0f, /*no use*/0.0f, 0.0f, 0.0f);
 
     pd3dImmediateContext->VSSetConstantBuffers(1, 1, &pCBShadow);
     pd3dImmediateContext->VSSetShader(psmVS, nullptr, 0);
@@ -236,24 +246,25 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
         pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
 
     pd3dImmediateContext->OMSetRenderTargets(1, &pRTV, pDSV);
+    pd3dImmediateContext->RSSetViewports(1, &vp);
     SAFE_RELEASE(pRTV);
     SAFE_RELEASE(pDSV);
 
     auto pTexture = pShadowMap->GetShaderResourceView();
-    pd3dImmediateContext->PSGetShaderResources(0, 1, &pTexture);
+    pd3dImmediateContext->PSSetShaderResources(0, 1, &pTexture);
     pd3dImmediateContext->PSSetSamplers(0, 1, &psampleStateClamp);
     pd3dImmediateContext->VSSetShader(psVS, nullptr, 0);
     pd3dImmediateContext->PSSetShader(psPS, nullptr, 0);
 
-    start = 0;
-    for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
-        pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+    //start = 0;
+    //for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
+    //    pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
 }
 
 bool HairBiDebugRenderer::initWithShadow()
 {
     pShadowMap = new RenderTextureClass();
-    bool result = pShadowMap->Initialize(pd3dDevice, 512, 512, 100.0f, 0.1f);
+    bool result = pShadowMap->Initialize(pd3dDevice, 1024, 704, 100.0f, 0.1f);
     if (!result)
     {
         assert(0);
@@ -330,7 +341,7 @@ bool HairBiDebugRenderer::initWithShadow()
     XMMATRIX viewMat = XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
         XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp));
 
-    smcbuffer.lightProjViewMatrix = proj * viewMat;
+    XMStoreFloat4x4(&smcbuffer.lightProjViewMatrix, XMMatrixTranspose(viewMat*proj));
 
     D3D11_SUBRESOURCE_DATA subRes;
     ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
