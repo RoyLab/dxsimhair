@@ -36,6 +36,7 @@ struct VertexInputType
 struct PixelInputType
 {
     float4 position : SV_POSITION;
+    float  Sequence : SEQ0;
     float3 direction : DIRECTION0;
     float4 color: COLOR0;
     float4 lightViewPosition : TEXCOORD1;
@@ -64,6 +65,7 @@ PixelInputType VS(VertexInputType input)
     output.direction = input.Direction;
 
     output.color = float4(input.Color, 1.0);
+    output.Sequence = float(input.Sequence);
 
 	return output;
 }
@@ -96,7 +98,8 @@ float4 PS(PixelInputType input) : SV_TARGET
     float2 projectTexCoord;
     float depthValue;
     float lightDepthValue;
-    float4 diffuse = input.color;
+    //float4 diffuse = input.color;
+    float4 diffuse = float4(abs(input.direction), 1.0);
 
     // Set the bias value for fixing the floating point precision issues.
     bias = 0.001f;
@@ -112,12 +115,17 @@ float4 PS(PixelInputType input) : SV_TARGET
     if ((saturate(projectTexCoord.x) == projectTexCoord.x) && (saturate(projectTexCoord.y) == projectTexCoord.y))
     {
         // Sample the shadow map depth value from the depth texture using the sampler at the projected texture coordinate location.
-        float dvs[4];
         int w = 1024, h = 704;
         float cw = w * projectTexCoord.x;
         float ch = h * projectTexCoord.y;
 
-        depthValue = shaderTexture.Load(int3(int(round(cw)), int(round(ch)), 0)).r;
+        int2 orgin = int2(int(floor(cw)), int(floor(ch)));
+        float dvs0 = shaderTexture.Load(int3(orgin.x, orgin.y, 0)).r;
+        float dvs1 = shaderTexture.Load(int3(orgin.x, orgin.y + 1, 0)).r;
+        float dvs2 = shaderTexture.Load(int3(orgin.x + 1, orgin.y, 0)).r;
+        float dvs3 = shaderTexture.Load(int3(orgin.x + 1, orgin.y + 1, 0)).r;
+        float4 dvs = float4(dvs0, dvs1, dvs2, dvs3);
+
         //depthValue = shaderTexture.Sample(SampleTypeClamp, projectTexCoord).r;
 
         // Calculate the depth of the light.
@@ -126,16 +134,21 @@ float4 PS(PixelInputType input) : SV_TARGET
         // Subtract the bias from the lightDepthValue.
         lightDepthValue = lightDepthValue - bias;
 
+        bool result[4];
+        for (int i = 0; i < 4; i++)
+            result[i] = (lightDepthValue < dvs[i]) ? 1.0 : 0.0;
+
+        float w1 = (orgin.x + 1 - cw) * result[0] + (cw - orgin.x) * result[2];
+        float w2 = (orgin.x + 1 - cw) * result[1] + (cw - orgin.x) * result[3];
+        float weight = (orgin.y + 1 - ch) * w1 + (ch - orgin.y) * w2;
+
         // Compare the depth of the shadow map value and the depth of the light to determine whether to shadow or to light this pixel.
         // If the light is in front of the object then light the pixel, if not then shadow this pixel since an object (occluder) is casting a shadow on it.
-        if (lightDepthValue < depthValue)
-        {
-            // Determine the final diffuse color based on the diffuse color and the amount of light intensity.
-            color += diffuse;
+        // Determine the final diffuse color based on the diffuse color and the amount of light intensity.
+        color += diffuse * weight * abs(input.direction.x + input.direction.y+ input.direction.z) / 2.0;
 
-            // Saturate the final light color.
-            color = saturate(color);
-        }
+        // Saturate the final light color.
+        color = saturate(color);
     }
 
     return color;
