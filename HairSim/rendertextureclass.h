@@ -27,18 +27,20 @@ public:
 	void SetRenderTarget(ID3D11DeviceContext*);
 	void ClearRenderTarget(ID3D11DeviceContext*, float, float, float, float);
 	ID3D11ShaderResourceView* GetShaderResourceView();
-	void GetProjectionMatrix(DirectX::XMMATRIX&);
-    void GetOrthoMatrix(DirectX::XMMATRIX&);
+    void GetProjectionMatrix(DirectX::XMFLOAT4X4&);
+    void GetOrthoMatrix(DirectX::XMFLOAT4X4&);
 
 private:
+    DirectX::XMFLOAT4X4 m_projectionMatrix;
+    DirectX::XMFLOAT4X4 m_orthoMatrix;
+
 	ID3D11Texture2D* m_renderTargetTexture;
 	ID3D11RenderTargetView* m_renderTargetView;
 	ID3D11ShaderResourceView* m_shaderResourceView;
 	ID3D11Texture2D* m_depthStencilBuffer;
 	ID3D11DepthStencilView* m_depthStencilView;
 	D3D11_VIEWPORT m_viewport;
-    DirectX::XMMATRIX m_projectionMatrix;
-    DirectX::XMMATRIX m_orthoMatrix;
+
 
 };
 

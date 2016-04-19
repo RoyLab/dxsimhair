@@ -8,6 +8,7 @@
 #include "rendertextureclass.h"
 
 using namespace DirectX;
+extern bool hasShadow;
 
 struct ShadowMapConstBuffer
 {
@@ -21,7 +22,7 @@ HairBiDebugRenderer::~HairBiDebugRenderer()
 
 bool HairBiDebugRenderer::init(XMFLOAT3* colors)
 {
-    bNeedShadow = true;
+    bNeedShadow = hasShadow;
 
     HRESULT hr;
 
@@ -263,14 +264,6 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
 
 bool HairBiDebugRenderer::initWithShadow()
 {
-    pShadowMap = new RenderTextureClass();
-    bool result = pShadowMap->Initialize(pd3dDevice, 1024, 704, 100.0f, 0.1f);
-    if (!result)
-    {
-        assert(0);
-        return false;
-    }
-
     HRESULT hr;
     // create vs, ps, layout
     DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -333,15 +326,21 @@ bool HairBiDebugRenderer::initWithShadow()
 
     ShadowMapConstBuffer smcbuffer;
 
-    XMMATRIX proj;  pShadowMap->GetOrthoMatrix(proj);
+    pShadowMap = new RenderTextureClass();
+    bool result = pShadowMap->Initialize(pd3dDevice, 1024, 704, 100.0f, 0.1f);
+    if (!result)
+    {
+        assert(0);
+        return false;
+    }
+
+    XMFLOAT4X4 proj;  pShadowMap->GetOrthoMatrix(proj);
     XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, 10.0f);
     XMFLOAT3 lightTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
     XMFLOAT3 lightUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
 
-    XMMATRIX viewMat = XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
-        XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp));
-
-    XMStoreFloat4x4(&smcbuffer.lightProjViewMatrix, XMMatrixTranspose(viewMat*proj));
+    XMStoreFloat4x4(&smcbuffer.lightProjViewMatrix, XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
+        XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
 
     D3D11_SUBRESOURCE_DATA subRes;
     ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));

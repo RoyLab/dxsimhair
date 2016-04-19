@@ -113,9 +113,12 @@ float4 PS(PixelInputType input) : SV_TARGET
     {
         // Sample the shadow map depth value from the depth texture using the sampler at the projected texture coordinate location.
         float dvs[4];
-        int w = 512, h = 512;
+        int w = 1024, h = 704;
+        float cw = w * projectTexCoord.x;
+        float ch = h * projectTexCoord.y;
 
-        depthValue = shaderTexture.Sample(SampleTypeClamp, projectTexCoord).r;
+        depthValue = shaderTexture.Load(int3(int(round(cw)), int(round(ch)), 0)).r;
+        //depthValue = shaderTexture.Sample(SampleTypeClamp, projectTexCoord).r;
 
         // Calculate the depth of the light.
         lightDepthValue = input.lightViewPosition.z / input.lightViewPosition.w;

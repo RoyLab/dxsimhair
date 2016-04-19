@@ -16,7 +16,7 @@ ID3DUserDefinedAnnotation*            g_pUserAnotation = nullptr;
 
 wrMeshRenderer::wrMeshRenderer()
 {
-    translation = DirectX::XMMatrixIdentity();
+    DirectX::XMStoreFloat4x4(&translation, DirectX::XMMatrixIdentity());
 }
 
 
@@ -64,7 +64,7 @@ void wrMeshRenderer::release()
 
 void wrMeshRenderer::render(double fTime, float fTimeElapsed)
 {
-    pEffect->SetWorld(enableControl ? pCamera->GetWorldMatrix()*translation : translation);
+    pEffect->SetWorld(enableControl ? pCamera->GetWorldMatrix()*DirectX::XMLoadFloat4x4(&translation) : DirectX::XMLoadFloat4x4(&translation));
     pEffect->SetView(pCamera->GetViewMatrix());
     pEffect->SetProjection(pCamera->GetProjMatrix());
 
@@ -105,22 +105,14 @@ void wrMeshRenderer::setTransformation(const float* trans4x4)
 {
     using namespace DirectX;
     auto target0 = XMFLOAT4X4(trans4x4);
-    auto target = XMMatrixTranspose(XMLoadFloat4x4(&target0));
-
-
     auto trans0 = XMFLOAT3(0.0f, -0.643f, 0.282f);
-    auto trans = XMLoadFloat3(&trans0);
-
     auto scale0 = XMFLOAT3(5.346f, 5.346f, 5.346f);
-    auto scale = XMLoadFloat3(&scale0);
-    translation = XMMatrixAffineTransformation(scale, XMVectorZero(), XMVectorZero(), trans)*target;
+    XMStoreFloat4x4(&translation, XMMatrixAffineTransformation(XMLoadFloat3(&scale0), XMVectorZero(), XMVectorZero(), XMLoadFloat3(&trans0))*XMMatrixTranspose(XMLoadFloat4x4(&target0)));
 }
 
 void wrMeshRenderer::setOffset(const float* vec)
 {
     using namespace DirectX;
-    auto tmp0 = translation;
-    auto tmp1 = XMMatrixTranslation(vec[0], vec[1], vec[2]);
-    translation = tmp0 * tmp1;
+    XMStoreFloat4x4(&translation, XMLoadFloat4x4(&translation) * XMMatrixTranslation(vec[0], vec[1], vec[2]));
 }
 
