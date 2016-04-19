@@ -2,12 +2,13 @@ cbuffer cbMatrix : register(b0)
 {
     matrix  g_mViewProjection;
     matrix  g_mWorld;
+    float   g_time;
 }
 
 struct VS_INPUT
 {
     int    Sequence     : SEQ;
-    float4 Position     : POSITION;
+    float3 Position     : POSITION;
     float3 Color        : COLOR;
     float3 Direction    : DIRECTION;
 };
@@ -28,10 +29,10 @@ VS_OUTPUT VS(VS_INPUT input)
     VS_OUTPUT Output;
 
     // Transform the position from object space to homogeneous projection space
-    Output.Position = mul(input.Position, g_mViewProjection);
+    Output.Position = mul(float4(input.Position, 1.0), g_mViewProjection);
 
     // Calc color    
-    Output.Color = float4(input.Color, 0.0);
+    Output.Color = float4(input.Color, 1.0);
     Output.Sequence = float(input.Sequence);
     Output.Direction = input.Direction;
 
@@ -45,5 +46,6 @@ VS_OUTPUT VS(VS_INPUT input)
 float4 PS(VS_OUTPUT In) : SV_TARGET
 {
     // Lookup mesh texture and modulate it with diffuse
-    return float4(abs(In.Direction), 1.0) * (6+abs(In.Sequence-6))/25.0;
+    return In.Color;
+    //return float4(abs(In.Direction), 1.0) * (6 + abs(In.Sequence - 6)) / 25.0;
 }
