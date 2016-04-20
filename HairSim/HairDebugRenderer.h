@@ -26,19 +26,23 @@ public:
         pHair(hair1), pHair0(hair0){}
     virtual ~HairBiDebugRenderer();
 
-    virtual bool init(DirectX::XMFLOAT3* colors);
+    virtual bool init();
     virtual void release();
     virtual void onFrame(double, float){}
     virtual void render(double, float);
+    void nextColorScheme();
 
 protected:
     bool initWithShadow();
+    void initColorSchemes();
 
     void renderWithShadow(const WR::IHair* hair, ID3D11Buffer* vb,
-        ID3D11Buffer* ib, DirectX::XMFLOAT3* colors, float* offset);
+        ID3D11Buffer* ib, const DirectX::XMFLOAT3* colors, float* offset);
 
     void render(const WR::IHair* hair, ID3D11Buffer* vb,
-        ID3D11Buffer* ib, DirectX::XMFLOAT3* colors, float* offset);
+        ID3D11Buffer* ib, const DirectX::XMFLOAT3* colors, float* offset);
+
+    const DirectX::XMFLOAT3* getColorBuffer() const;
 
     ID3D11Device*           pd3dDevice = nullptr;
     ID3D11DeviceContext*    pd3dImmediateContext = nullptr;
@@ -51,7 +55,6 @@ protected:
     ID3D11PixelShader*      pPS = nullptr;
     ID3D11InputLayout*      pLayout = nullptr;
 
-    DirectX::XMFLOAT3*      vInputs = nullptr;
 
     ID3D11Buffer*           pVB0 = nullptr;
     ID3D11Buffer*           pIB0 = nullptr;
@@ -65,4 +68,13 @@ protected:
     ID3D11VertexShader*     psmVS = nullptr, *psVS = nullptr;
     ID3D11PixelShader*      psmPS = nullptr, *psPS = nullptr;
     RenderTextureClass*     pShadowMap = nullptr;
+
+    DirectX::XMFLOAT4X4     lightProjView;
+
+    /* ÅäÉ«·½°¸ */
+    enum COLOR_SCHEME { PSEUDO_COLOR, GUIDE_COLOR, GROUP_COLOR, ERROR_COLOR, DIR_COLOR, NUM_COLOR_SCHEME };
+    void setColorScheme(COLOR_SCHEME s);
+
+    COLOR_SCHEME            colorScheme = PSEUDO_COLOR;
+    DirectX::XMFLOAT3**     colorSet = nullptr;
 };

@@ -18,8 +18,7 @@
 #include "SphereCollisionObject.h"
 
 using namespace DirectX;
-extern std::string CACHE_FILE;
-extern std::string GUIDE_FILE;
+
 
 //--------------------------------------------------------------------------------------
 // Constant buffers
@@ -44,6 +43,8 @@ struct CB_VS_PER_FRAME
 #else
 #define ADF_FILE L"../../models/head"
 #endif
+
+extern std::string CACHE_FILE;
 
 wrSceneManager::wrSceneManager()
 {
@@ -94,90 +95,8 @@ bool wrSceneManager::init()
     HRESULT hr;
     auto hairRenderer = new HairBiDebugRenderer(hair, hair0);
     pHairRenderer = hairRenderer;
+    V_RETURN(hairRenderer->init());
 
-    /* read the guide hair info */
-    std::ifstream file(GUIDE_FILE, std::ios::binary);
-    if (!file.is_open()) throw std::exception("File not found!");
-
-    int nGuide = 0;
-    char buffer[128];
-    file.read(buffer, 4);
-    nGuide = *reinterpret_cast<int*>(buffer);
-
-    file.read(buffer, 8);
-    std::vector<int> guides;
-    std::cout << nGuide << std::endl;
-    for (size_t i = 0; i < nGuide; i++)
-    {
-        file.read(buffer, 4);
-        guides.push_back(*reinterpret_cast<int*>(buffer));
-    }
-
-    file.close();
-
-
-    /* generate guid hair outstanding scheme */
-    XMFLOAT3* colors = new DirectX::XMFLOAT3[pHair->n_strands() * N_PARTICLES_PER_STRAND];
-    for (int i = 0; i < pHair->n_strands(); i++)
-    {
-        vec3 color;
-        wrColorGenerator::genRandSaturatedColor(color);
-        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-            memcpy(&colors[N_PARTICLES_PER_STRAND*i + j], color, sizeof(vec3));
-    }
-
-    //vec3 red{ 1.0f, 0.0f, 0.0f };
-    //for (int id : guides)
-    //{
-    //    for (size_t i = 0; i < N_PARTICLES_PER_STRAND; i++)
-    //        memcpy(&colors[N_PARTICLES_PER_STRAND*id+i], red, sizeof(vec3));
-    //}
-
-    ///* read the grouping info */
-    //file.open("s4000.group", std::ios::binary);
-    //if (!file.is_open()) throw std::exception("File not found!");
-
-    //file.read(buffer, 4);
-    //int nStrand = *reinterpret_cast<int*>(buffer);
-
-    //std::vector<int> groups(nStrand);
-    //std::cout << nStrand << std::endl;
-    //for (size_t i = 0; i < nStrand; i++)
-    //{
-    //    file.read(buffer, 4);
-    //    groups[i] = (*reinterpret_cast<int*>(buffer));
-    //}
-
-    //file.close();
-
-    ///* generate grouping scheme */
-    //XMFLOAT3* colors = new DirectX::XMFLOAT3[pHair->n_strands() * N_PARTICLES_PER_STRAND];
-    //for (int i = 0; i < pHair->n_strands(); i++)
-    //{
-    //    vec3 color;
-    //    wrColorGenerator::genRandSaturatedColor(color);
-    //    for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-    //        memcpy(&colors[N_PARTICLES_PER_STRAND*i + j], color, sizeof(vec3));
-    //}
-
-    //XMFLOAT3* groupColors = new DirectX::XMFLOAT3[nGuide];
-    //for (int i = 0; i < nGuide; i++)
-    //{
-    //    vec3 color;
-    //    wrColorGenerator::genRandSaturatedColor(color);
-    //    memcpy(&groupColors[i], color, sizeof(vec3));
-    //}
-
-    //for (int i = 0; i < pHair->n_strands(); i++)
-    //{
-    //    vec3 color{ 0.0f, 0.0f, 0.0f };
-    //    for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-    //        memcpy(&colors[N_PARTICLES_PER_STRAND*i + j], i % 5 == 0 ? (void*)(groupColors + groups[i]) : (void*)(color), sizeof(vec3));
-    //}
-
-    //SAFE_DELETE_ARRAY(groupColors);
-
-    V_RETURN(hairRenderer->init(colors));
     pMeshRenderer = new wrMeshRenderer;
     pMeshRenderer->setCamera(pCamera);
     V_RETURN(pMeshRenderer->init());
@@ -295,3 +214,8 @@ void wrSceneManager::onKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* 
 
 }
 
+void wrSceneManager::nextColorScheme()
+{
+    auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
+    ptr->nextColorScheme();
+}

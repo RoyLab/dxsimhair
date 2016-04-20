@@ -20,6 +20,7 @@ cbuffer cbMatrix : register(b0)
 cbuffer cbMatrix2 : register(b1)
 {
     matrix g_lightProjView;
+    int mode;
 }
 
 //////////////
@@ -65,6 +66,16 @@ PixelInputType VS(VertexInputType input)
     output.direction = input.Direction;
 
     output.color = float4(input.Color, 1.0);
+    if (mode == 4)
+        output.color = float4(abs(input.Direction), 1.0);
+    
+    if (mode == 3)
+    {
+        float3 diff = input.Position - input.Color;
+        float error = dot(diff, diff) * 50.0;
+        output.color = saturate(float4(1.0 - error, 1, 1, 1.0));
+    }
+
     output.Sequence = float(input.Sequence);
 
 	return output;
@@ -98,14 +109,13 @@ float4 PS(PixelInputType input) : SV_TARGET
     float2 projectTexCoord;
     float depthValue;
     float lightDepthValue;
-    //float4 diffuse = input.color;
-    float4 diffuse = float4(abs(input.direction), 1.0);
+    float4 diffuse = input.color;
 
     // Set the bias value for fixing the floating point precision issues.
     bias = 0.001f;
 
     // Set the default output color to the ambient light value for all pixels.
-    color = float4(0.1, 0.1, 0.1, 1.0) * diffuse; // ambient
+    color = float4(0.2, 0.2, 0.2, 1.0) * diffuse; // ambient
 
     // Calculate the projected texture coordinates.
     projectTexCoord.x = input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
