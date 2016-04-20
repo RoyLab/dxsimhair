@@ -5,16 +5,25 @@
 #include "SDKmisc.h"
 #include "Parameter.h"
 #include "linmath.h"
+#include "rendertextureclass.h"
 
 using namespace DirectX;
+extern bool hasShadow;
 
-HairDebugRenderer::HairDebugRenderer(const WR::IHair* hair) :
-pHair(hair){}
-
-HairDebugRenderer::~HairDebugRenderer(){}
-
-bool HairDebugRenderer::init(XMFLOAT3* colors)
+struct ShadowMapConstBuffer
 {
+    XMFLOAT4X4 lightProjViewMatrix;
+};
+
+HairBiDebugRenderer::~HairBiDebugRenderer()
+{
+    release();
+}
+
+bool HairBiDebugRenderer::init(XMFLOAT3* colors)
+{
+    bNeedShadow = hasShadow;
+
     HRESULT hr;
 
     pd3dDevice = DXUTGetD3D11Device();
@@ -93,8 +102,8 @@ bool HairDebugRenderer::init(XMFLOAT3* colors)
     {
         { "SEQ", 0, DXGI_FORMAT_R32_SINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "DIRECTION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "DIRECTION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     UINT numElements = ARRAYSIZE(layout);
@@ -103,27 +112,68 @@ bool HairDebugRenderer::init(XMFLOAT3* colors)
     SAFE_RELEASE(pVSBlob);
     SAFE_RELEASE(pPSBlob);
 
+    ZeroMemory(&bDesc, sizeof(CD3D11_BUFFER_DESC));
+    bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bDesc.ByteWidth = n_particles * sizeof(HairDebugVertexInput);
+    bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bDesc.Usage = D3D11_USAGE_DYNAMIC;
+
+    V_RETURN(pd3dDevice->CreateBuffer(&bDesc, nullptr, &pVB0));
+
+    ZeroMemory(&bDesc, sizeof(CD3D11_BUFFER_DESC));
+    bDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bDesc.ByteWidth = n_particles * sizeof(DWORD);
+    bDesc.Usage = D3D11_USAGE_DEFAULT;
+
+    ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
+    indices = new DWORD[n_particles];
+    for (int i = 0; i < n_particles; i++)
+        indices[i] = i;
+    subRes.pSysMem = indices;
+
+    V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &pIB0));
+    SAFE_DELETE_ARRAY(indices);
+
+    if (bNeedShadow)
+        initWithShadow();
+
     return true;
 }
 
-void HairDebugRenderer::release()
+void HairBiDebugRenderer::release()
 {
     SAFE_RELEASE(pVB);
     SAFE_RELEASE(pIB);
     SAFE_RELEASE(pVS);
     SAFE_RELEASE(pPS);
     SAFE_RELEASE(pLayout);
+    SAFE_RELEASE(pVB0);
+    SAFE_RELEASE(pIB0);
 
     SAFE_DELETE_ARRAY(vInputs);
+
+    SAFE_RELEASE(pCBShadow);
+    SAFE_RELEASE(psampleStateClamp);
+    SAFE_RELEASE(psmVS);
+    SAFE_RELEASE(psmPS);
+    SAFE_RELEASE(psVS);
+    SAFE_RELEASE(psPS);
+
+    if (pShadowMap)
+        pShadowMap->Shutdown();
+    SAFE_DELETE(pShadowMap);
 }
 
-void HairDebugRenderer::render(double fTime, float fTimeElapsed)
+void HairBiDebugRenderer::render(double fTime, float fTimeElapsed)
 {
-    vec3 offset{ 0, 0, 0 };
-    render(pHair, pVB, pIB, vInputs, offset);
+    vec3 offset0{ -2.f, 0, 0 };
+    HairBiDebugRenderer::render(pHair0, pVB0, pIB0, vInputs, offset0);
+
+    vec3 offset{ 2.f, 0, 0 };
+    HairBiDebugRenderer::render(pHair, pVB, pIB, vInputs, offset);
 }
 
-void HairDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
+void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
     ID3D11Buffer* ib, DirectX::XMFLOAT3* colors, float* offset)
 {
     if (!vb) WR_LOG_ERROR << "No pVB available.\n";
@@ -150,65 +200,177 @@ void HairDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
     }
     pd3dImmediateContext->Unmap(vb, 0);
 
-    UINT strides[1] = { sizeof(HairDebugVertexInput) }, offsets[1] = { 0 };
 
+    UINT strides[1] = { sizeof(HairDebugVertexInput) }, offsets[1] = { 0 };
     pd3dImmediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
     pd3dImmediateContext->IASetVertexBuffers(0, 1, &vb, strides, offsets);
     pd3dImmediateContext->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
     pd3dImmediateContext->IASetInputLayout(pLayout);
-    pd3dImmediateContext->VSSetShader(pVS, nullptr, 0);
-    pd3dImmediateContext->PSSetShader(pPS, nullptr, 0);
+
+    if (bNeedShadow)
+    {
+        renderWithShadow(hair, vb, ib, colors, offset);
+    }
+    else
+    {
+        pd3dImmediateContext->VSSetShader(pVS, nullptr, 0);
+        pd3dImmediateContext->PSSetShader(pPS, nullptr, 0);
+    }
 
     int start = 0;
     for (int i = 0; i < n_strands; i++, start += N_PARTICLES_PER_STRAND)
         pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
 }
 
-bool HairBiDebugRenderer::init(DirectX::XMFLOAT3* colors)
+void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* vb,
+    ID3D11Buffer* ib, DirectX::XMFLOAT3* colors, float* offset)
 {
-    HairDebugRenderer::init(colors);
+    /* save the old render target for restoration */
+    ID3D11RenderTargetView* pRTV = nullptr;
+    ID3D11DepthStencilView* pDSV = nullptr;
+    ID3D11ShaderResourceView* pNull = nullptr;
+    D3D11_VIEWPORT vp;
+    UINT nvp = 1;
+    pd3dImmediateContext->OMGetRenderTargets(1, &pRTV, &pDSV);
+    pd3dImmediateContext->RSGetViewports(&nvp, &vp);
 
+    pd3dImmediateContext->PSSetShaderResources(0, 1, &pNull);
+    pShadowMap->SetRenderTarget(pd3dImmediateContext);
+    pShadowMap->ClearRenderTarget(pd3dImmediateContext, 1.0f, /*no use*/0.0f, 0.0f, 0.0f);
+
+    pd3dImmediateContext->VSSetConstantBuffers(1, 1, &pCBShadow);
+    pd3dImmediateContext->VSSetShader(psmVS, nullptr, 0);
+    pd3dImmediateContext->PSSetShader(psmPS, nullptr, 0);
+
+    int start = 0;
+    for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
+        pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+
+    pd3dImmediateContext->OMSetRenderTargets(1, &pRTV, pDSV);
+    pd3dImmediateContext->RSSetViewports(1, &vp);
+    SAFE_RELEASE(pRTV);
+    SAFE_RELEASE(pDSV);
+
+    auto pTexture = pShadowMap->GetShaderResourceView();
+    pd3dImmediateContext->PSSetShaderResources(0, 1, &pTexture);
+    pd3dImmediateContext->PSSetSamplers(0, 1, &psampleStateClamp);
+    pd3dImmediateContext->VSSetShader(psVS, nullptr, 0);
+    pd3dImmediateContext->PSSetShader(psPS, nullptr, 0);
+
+    //start = 0;
+    //for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
+    //    pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+}
+
+bool HairBiDebugRenderer::initWithShadow()
+{
     HRESULT hr;
-    D3D11_SUBRESOURCE_DATA subRes;
+    // create vs, ps, layout
+    DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+    // Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
+    // Setting this flag improves the shader debugging experience, but still allows 
+    // the shaders to be optimized and to run exactly the way they will run in 
+    // the release configuration of this program.
+    dwShaderFlags |= D3DCOMPILE_DEBUG;
 
-    int n_particles = pHair0->n_strands() *  N_PARTICLES_PER_STRAND;
+    // Disable optimizations to further improve shader debugging
+    dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+    // Compile the shadow hair vertex shader
+    ID3DBlob* pVSBlob = nullptr;
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "VS", "vs_5_0", dwShaderFlags, 0, &pVSBlob));
+
+    hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &psVS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pVSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pVSBlob);
+
+    // Compile the shadow hair pixel shader
+    ID3DBlob* pPSBlob = nullptr;
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "PS", "ps_5_0", dwShaderFlags, 0, &pPSBlob));
+
+    hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &psPS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pPSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pPSBlob);
+
+    // Compile the shadow map vertex shader
+    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "VS", "vs_5_0", dwShaderFlags, 0, &pVSBlob));
+
+    hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &psmVS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pVSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pVSBlob);
+
+    // Compile the shadow map pixel shader
+    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "PS", "ps_5_0", dwShaderFlags, 0, &pPSBlob));
+
+    hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &psmPS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pPSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pPSBlob);
+
+    ShadowMapConstBuffer smcbuffer;
+
+    pShadowMap = new RenderTextureClass();
+    bool result = pShadowMap->Initialize(pd3dDevice, 1024, 704, 100.0f, 0.1f);
+    if (!result)
+    {
+        assert(0);
+        return false;
+    }
+
+    XMFLOAT4X4 proj;  pShadowMap->GetOrthoMatrix(proj);
+    XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, 10.0f);
+    XMFLOAT3 lightTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
+    XMFLOAT3 lightUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
+
+    XMStoreFloat4x4(&smcbuffer.lightProjViewMatrix, XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
+        XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
+
+    D3D11_SUBRESOURCE_DATA subRes;
+    ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
+    subRes.pSysMem = &smcbuffer;
+
     CD3D11_BUFFER_DESC bDesc;
     ZeroMemory(&bDesc, sizeof(CD3D11_BUFFER_DESC));
-    bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bDesc.ByteWidth = n_particles * sizeof(HairDebugVertexInput);
+    bDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bDesc.ByteWidth = sizeof(ShadowMapConstBuffer);
     bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     bDesc.Usage = D3D11_USAGE_DYNAMIC;
+    V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &pCBShadow));
 
-    V_RETURN(pd3dDevice->CreateBuffer(&bDesc, nullptr, &pVB0));
+    CD3D11_SAMPLER_DESC samplerDesc;
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    samplerDesc.BorderColor[0] = 0;
+    samplerDesc.BorderColor[1] = 0;
+    samplerDesc.BorderColor[2] = 0;
+    samplerDesc.BorderColor[3] = 0;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    ZeroMemory(&bDesc, sizeof(CD3D11_BUFFER_DESC));
-    bDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bDesc.ByteWidth = n_particles * sizeof(DWORD);
-    bDesc.Usage = D3D11_USAGE_DEFAULT;
+    // Create the texture sampler state.
+    V_RETURN(pd3dDevice->CreateSamplerState(&samplerDesc, &psampleStateClamp));
 
-    ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
-    DWORD *indices = new DWORD[n_particles];
-    for (int i = 0; i < n_particles; i++)
-        indices[i] = i;
-    subRes.pSysMem = indices;
-
-    V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &pIB0));
-    SAFE_DELETE_ARRAY(indices);
     return true;
-}
-
-void HairBiDebugRenderer::release()
-{
-    HairDebugRenderer::release();
-    SAFE_RELEASE(pVB0);
-    SAFE_RELEASE(pIB0);
-}
-
-void HairBiDebugRenderer::render(double fTime, float fTimeElapsed)
-{
-    vec3 offset0{ -2.f, 0, 0 };
-    HairDebugRenderer::render(pHair0, pVB0, pIB0, vInputs, offset0);
-
-    vec3 offset{ 2.f, 0, 0 };
-    HairDebugRenderer::render(pHair, pVB, pIB, vInputs, offset);
 }

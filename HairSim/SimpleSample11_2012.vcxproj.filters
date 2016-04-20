@@ -34,6 +34,18 @@
     <None Include="Hair.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shadowps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="depthps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ShadowMap.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="HairShadow.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wrColorGenerator.cpp">
@@ -94,6 +106,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HairDebugRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rendertextureclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -191,6 +206,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HairDebugRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rendertextureclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -23,12 +23,12 @@ public:
     void setOffset(const float* vec);
 
 private:
+    DirectX::XMFLOAT4X4     translation;
     ID3D11Device*           pd3dDevice = nullptr;
     ID3D11DeviceContext*    pd3dImmediateContext = nullptr;
 
     EffectPtr               pEffect;
     CModelViewerCamera*     pCamera = nullptr;
-    DirectX::XMMATRIX       translation;
 
     bool                    enableControl = false;
 };

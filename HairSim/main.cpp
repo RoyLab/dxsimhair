@@ -23,7 +23,8 @@
 #include <fcntl.h>
 #include <Windows.h>
 #include <iostream>
-//
+
+// influence the graphic debug
 //#ifdef _DEBUG
 //#include <vld.h>
 //#endif

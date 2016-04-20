@@ -396,6 +396,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Parameter.cpp" />
+    <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="SphereCollisionObject.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="wrSpring.cpp" />
@@ -410,6 +411,10 @@
     <ClCompile Include="wrTetrahedron.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="depthps.hlsl" />
+    <None Include="ShadowMap.hlsl" />
+    <None Include="shadowps.hlsl" />
+    <None Include="HairShadow.hlsl" />
     <None Include="SimpleSample.hlsl" />
     <None Include="SimpleSample.fx" />
   </ItemGroup>
@@ -422,6 +427,7 @@
     <ClInclude Include="HairDebugRenderer.h" />
     <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="IHair.h" />
+    <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="SphereCollisionObject.h" />
     <ClInclude Include="wrMacro.h" />
     <ClInclude Include="linmath.h" />
