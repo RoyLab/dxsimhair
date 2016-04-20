@@ -49,7 +49,10 @@ class ConverterHooker(ch.Hooker):
         super(ConverterHooker, self).endLoop()
 
     def dataHooker(self, name, sz, arr):
-        self.data = arr
+        import re
+        expr = re.compile(".*positions.*", re.I)
+        if (expr.match(name)):
+            self.data = arr
         super(ConverterHooker, self).dataHooker(name, sz, arr)
 
     def computeRigidMotionAndDirection(self):
@@ -62,7 +65,7 @@ class ConverterHooker(ch.Hooker):
 
 
 if __name__ == "__main__":
-    conv = ConverterHooker("D:/s4000.anim2", True)
+    conv = ConverterHooker("E:\\cache\\c0418.anim2", True)
     conv.startLoop("Convert to anim file:")
-    nCache.loop(file2, conv, 200)
+    nCache.loop(file3, conv, 200)
     conv.endLoop()

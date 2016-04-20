@@ -1,6 +1,7 @@
 
 file1 = "E:/cache/329.xml"
 file2 = "../../maya cache/03074/hair_nRigidShape1.xml"
+file3 = "E:/cache/c0418.xml"
 
 if __name__ == "__main__":
 
@@ -17,15 +18,15 @@ if __name__ == "__main__":
     # parameter begin
     nFrame = 200
     nStep = 1000 # weight discretization
-    nGroup = 300
-    radius = 0.1
+    nGroup = 200
+    radius = 0.03
     frameFilter = 0.2
-    prefix = ["s4000"]
-    fileName = file2
-    split=10
+    prefix = ["s15000new"]
+    fileName = file3
+    split=40
     guideOpts = ["rand", "opt", "worst"]
     bReport = True
-    bMail = False
+    bMail = True
     # parameter end
 
     needLoad = False

@@ -7,6 +7,7 @@ def createKDTree(n_pts, data):
 def createInitGraphLoop(radius, frame, edgeHash, i):
     kdt = createKDTree(frame.n_particle, frame)
     pairs = kdt.query_pairs(radius)
+    # import ipdb; ipdb.set_trace()
     if i == 0:
         edgeHash = dict.fromkeys(pairs, None)
         for key in edgeHash.keys():

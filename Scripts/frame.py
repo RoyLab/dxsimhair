@@ -1,8 +1,17 @@
 import numpy as np
 from coordinates import *
 import cPickle as pkl
+from joblib import Parallel, delayed
+from joblib.pool import has_shareable_memory
 
 n_particle_per_strand = 25
+
+
+def frame_work(rigid, refp, refd, cp, cd):
+    refstate = rigid_trans_full(rigid, (refp, refd))
+    trans = cp - refstate[0]
+    rot = vector_rotation_3D(refd, cd)
+    return (rot, trans)
 
 class Frame:
 
@@ -23,17 +32,26 @@ class Frame:
         self.particle_direction = None  # 2D array
 
     def loadIntoMemory(self, name, sz, data):
-        if self.count == 0:
+        import re
+        vertexCounts = re.compile(".*vertexcounts.*", re.I)
+        hairCounts = re.compile(".*haircounts.*", re.I)
+        vertexPositions = re.compile(".*positions.*", re.I)
+        headVertex = re.compile(".*rigid.*", re.I)
+
+        if (headVertex.match(name)):
+        # if self.count == 0:
             # head data
             self.n_headVertex = int(sz)
             self.headData = np.array(data)
             self.headData.resize(len(data)/3, 3)
 
-        elif self.count == 1:
+        elif (hairCounts.match(name)):
+        # elif self.count == 1:
             self.n_hair = int(data[0])
             self.n_particle = self.n_hair * n_particle_per_strand
 
-        elif self.count == 3:
+        elif (vertexPositions.match(name)):
+        # elif self.count == 3:
             # hair data
             self.data = np.array(data)
             self.data.resize(self.n_particle, 3)
@@ -70,6 +88,12 @@ class Frame:
             matrices.append((rot, trans))
 
         self.particle_motions = matrices
+
+    def calcParticleMotionMatrices_parallel(self):
+        ref = self.reference
+        self.particle_motions = Parallel(n_jobs=4, max_nbytes=1e6)(delayed(frame_work)\
+            (self.rigid_motion, ref.data[i], ref.particle_direction[i], self.data[i], self.particle_direction[i])\
+             for i in range(self.n_particle))
 
     def calcSelectedParticleMotionMatrices(self, reference, Ids):
         ref = reference
@@ -127,7 +151,7 @@ class Frame:
     def calcMotionMatrix(self, reference):
         self.reference = reference
         self.calcRigidMotionMatrix(reference)
-        self.calcParticleMotionMatrices();
+        self.calcParticleMotionMatrices_parallel();
 
     def calcRigidMotionMatrix(self, reference):
         self.reference = reference
