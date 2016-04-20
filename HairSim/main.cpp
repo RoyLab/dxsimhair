@@ -51,7 +51,7 @@ wrSceneManager              g_SceneMngr;
 #define IDC_TOGGLEFULLSCREEN    1
 #define IDC_PAUSE           2
 #define IDC_CHANGEDEVICE        3
-#define IDC_STEP          4
+#define IDC_NEXT_COLOR          4
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -139,7 +139,7 @@ void InitApp()
     g_HUD.AddButton( IDC_TOGGLEFULLSCREEN, L"Toggle full screen", 0, iY, 170, 22 );
     g_HUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 0, iY += iYo, 170, 22, VK_F2 );
     g_HUD.AddButton( IDC_PAUSE, L"Pause (F3)", 0, iY += iYo, 170, 22, VK_F3 );
-    g_HUD.AddButton( IDC_STEP, L"Step (F4)", 0, iY += iYo, 170, 22, VK_F4 );
+    g_HUD.AddButton( IDC_NEXT_COLOR, L"Next Color (F4)", 0, iY += iYo, 170, 22, VK_F4 );
 
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
 
@@ -195,7 +195,7 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     static const XMVECTORF32 s_vecEye = { 1.0f, 1.0f, -2.0f, 0.f };
     g_Camera.SetViewParams( s_vecEye, g_XMZero );
 
-    g_HUD.GetButton( IDC_STEP )->SetEnabled( true );
+    g_HUD.GetButton( IDC_NEXT_COLOR )->SetEnabled( true );
 
     return S_OK;
 }
@@ -370,7 +370,8 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
             g_SceneMngr.set_bPause(!g_SceneMngr.get_bPause());
             //DXUTToggleREF();
             break;
-        case IDC_STEP:
+        case IDC_NEXT_COLOR:
+            g_SceneMngr.nextColorScheme();
             //DXUTToggleWARP();
             break;
         case IDC_CHANGEDEVICE:

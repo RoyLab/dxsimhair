@@ -1,4 +1,8 @@
 #include "precompiled.h"
+
+#include <fstream>
+#include <iostream>
+
 #include "HairDebugRenderer.h"
 #include <DirectXMath.h>
 #include "wrLogger.h"
@@ -6,13 +10,19 @@
 #include "Parameter.h"
 #include "linmath.h"
 #include "rendertextureclass.h"
+#include "wrColorGenerator.h"
 
 using namespace DirectX;
+
 extern bool hasShadow;
+extern std::string GUIDE_FILE;
+extern std::string GROUP_FILE;
 
 struct ShadowMapConstBuffer
 {
     XMFLOAT4X4 lightProjViewMatrix;
+    int colorScheme;
+    int padding[3];
 };
 
 HairBiDebugRenderer::~HairBiDebugRenderer()
@@ -20,7 +30,7 @@ HairBiDebugRenderer::~HairBiDebugRenderer()
     release();
 }
 
-bool HairBiDebugRenderer::init(XMFLOAT3* colors)
+bool HairBiDebugRenderer::init()
 {
     bNeedShadow = hasShadow;
 
@@ -30,9 +40,6 @@ bool HairBiDebugRenderer::init(XMFLOAT3* colors)
     pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
     int n_particles = pHair->n_strands() *  N_PARTICLES_PER_STRAND;
-
-    // assign random color
-    vInputs = colors;
 
     D3D11_SUBRESOURCE_DATA subRes;
     //ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
@@ -137,6 +144,7 @@ bool HairBiDebugRenderer::init(XMFLOAT3* colors)
     if (bNeedShadow)
         initWithShadow();
 
+    initColorSchemes();
     return true;
 }
 
@@ -150,8 +158,6 @@ void HairBiDebugRenderer::release()
     SAFE_RELEASE(pVB0);
     SAFE_RELEASE(pIB0);
 
-    SAFE_DELETE_ARRAY(vInputs);
-
     SAFE_RELEASE(pCBShadow);
     SAFE_RELEASE(psampleStateClamp);
     SAFE_RELEASE(psmVS);
@@ -162,19 +168,27 @@ void HairBiDebugRenderer::release()
     if (pShadowMap)
         pShadowMap->Shutdown();
     SAFE_DELETE(pShadowMap);
+
+    if (colorSet)
+    {
+        for (size_t i = 0; i < NUM_COLOR_SCHEME; i++)
+            SAFE_DELETE_ARRAY(colorSet[i]);
+    }
+
+    SAFE_DELETE_ARRAY(colorSet);
 }
 
 void HairBiDebugRenderer::render(double fTime, float fTimeElapsed)
 {
     vec3 offset0{ -2.f, 0, 0 };
-    HairBiDebugRenderer::render(pHair0, pVB0, pIB0, vInputs, offset0);
+    HairBiDebugRenderer::render(pHair0, pVB0, pIB0, getColorBuffer(), offset0);
 
     vec3 offset{ 2.f, 0, 0 };
-    HairBiDebugRenderer::render(pHair, pVB, pIB, vInputs, offset);
+    HairBiDebugRenderer::render(pHair, pVB, pIB, getColorBuffer(), offset);
 }
 
 void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
-    ID3D11Buffer* ib, DirectX::XMFLOAT3* colors, float* offset)
+    ID3D11Buffer* ib, const DirectX::XMFLOAT3* colors, float* offset)
 {
     if (!vb) WR_LOG_ERROR << "No pVB available.\n";
 
@@ -195,7 +209,17 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
             pData[N_PARTICLES_PER_STRAND * i + j].seq = j;
             memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].pos, pos, sizeof(vec3));
             memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].direction, dir, sizeof(vec3));
-            memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &colors[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
+            if (colorScheme != DIR_COLOR)
+            {
+                if (colorScheme != ERROR_COLOR || hair == pHair0)
+                    memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &colors[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
+                else
+                {
+                    memcpy(pos, pHair0->get_visible_particle_position(i, j), sizeof(vec3));
+                    vec3_add(pos, offset, pos);
+                    memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, pos, sizeof(vec3));
+                }
+            }
         }
     }
     pd3dImmediateContext->Unmap(vb, 0);
@@ -223,7 +247,7 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
 }
 
 void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* vb,
-    ID3D11Buffer* ib, DirectX::XMFLOAT3* colors, float* offset)
+    ID3D11Buffer* ib, const DirectX::XMFLOAT3* colors, float* offset)
 {
     /* save the old render target for restoration */
     ID3D11RenderTargetView* pRTV = nullptr;
@@ -237,6 +261,11 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pd3dImmediateContext->PSSetShaderResources(0, 1, &pNull);
     pShadowMap->SetRenderTarget(pd3dImmediateContext);
     pShadowMap->ClearRenderTarget(pd3dImmediateContext, 1.0f, /*no use*/0.0f, 0.0f, 0.0f);
+
+    if (hair == pHair0 && colorScheme == ERROR_COLOR)
+        setColorScheme(GUIDE_COLOR);
+    else
+        setColorScheme(colorScheme);
 
     pd3dImmediateContext->VSSetConstantBuffers(1, 1, &pCBShadow);
     pd3dImmediateContext->VSSetShader(psmVS, nullptr, 0);
@@ -341,6 +370,8 @@ bool HairBiDebugRenderer::initWithShadow()
 
     XMStoreFloat4x4(&smcbuffer.lightProjViewMatrix, XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
         XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
+    lightProjView = smcbuffer.lightProjViewMatrix;
+    smcbuffer.colorScheme = colorScheme;
 
     D3D11_SUBRESOURCE_DATA subRes;
     ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
@@ -374,3 +405,126 @@ bool HairBiDebugRenderer::initWithShadow()
 
     return true;
 }
+
+const DirectX::XMFLOAT3* HairBiDebugRenderer::getColorBuffer() const
+{
+    switch (colorScheme)
+    {
+    case HairBiDebugRenderer::PSEUDO_COLOR:
+        return colorSet[PSEUDO_COLOR];
+    case HairBiDebugRenderer::GUIDE_COLOR:
+        return colorSet[GUIDE_COLOR];
+    case HairBiDebugRenderer::GROUP_COLOR:
+        return colorSet[GROUP_COLOR];
+    case HairBiDebugRenderer::ERROR_COLOR:
+        return colorSet[GUIDE_COLOR];
+    case HairBiDebugRenderer::DIR_COLOR:
+        return nullptr;
+    default:
+        return nullptr;
+    }
+}
+
+void HairBiDebugRenderer::initColorSchemes()
+{
+    colorSet = new XMFLOAT3*[NUM_COLOR_SCHEME];
+
+    size_t nParticle = pHair->n_strands() * N_PARTICLES_PER_STRAND;
+    for (size_t i = 0; i < NUM_COLOR_SCHEME; i++)
+        colorSet[i] = new DirectX::XMFLOAT3[nParticle];
+
+    for (int i = 0; i < pHair->n_strands(); i++)
+    {
+        vec3 color;
+        wrColorGenerator::genRandSaturatedColor(color);
+        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+            memcpy(colorSet[PSEUDO_COLOR] + N_PARTICLES_PER_STRAND*i + j, color, sizeof(vec3));
+    }
+
+    /* read the guide hair info */
+    std::ifstream file(GUIDE_FILE, std::ios::binary);
+    if (!file.is_open()) throw std::exception("File not found!");
+
+    int nGuide = 0;
+    char buffer[128];
+    file.read(buffer, 4);
+    nGuide = *reinterpret_cast<int*>(buffer);
+
+    file.read(buffer, 8);
+    std::vector<int> guides;
+    std::cout << nGuide << std::endl;
+    for (size_t i = 0; i < nGuide; i++)
+    {
+        file.read(buffer, 4);
+        guides.push_back(*reinterpret_cast<int*>(buffer));
+    }
+
+    file.close();
+
+    /* generate guid hair outstanding scheme */
+    for (int i = 0; i < pHair->n_strands(); i++)
+    {
+        vec3 color{ 1, 1, 1 };
+        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+            memcpy(colorSet[GUIDE_COLOR] + N_PARTICLES_PER_STRAND*i + j, color, sizeof(vec3));
+    }
+
+    vec3 red{ 1.0f, 0.0f, 0.0f };
+    for (int id : guides)
+    {
+        for (size_t i = 0; i < N_PARTICLES_PER_STRAND; i++)
+            memcpy(colorSet[GUIDE_COLOR] + N_PARTICLES_PER_STRAND*id + i, red, sizeof(vec3));
+    }
+
+    /* read the grouping info */
+    file.open(GROUP_FILE, std::ios::binary);
+    if (!file.is_open()) throw std::exception("File not found!");
+
+    file.read(buffer, 4);
+    int nStrand = *reinterpret_cast<int*>(buffer);
+
+    std::vector<int> groups(nStrand);
+    for (size_t i = 0; i < nStrand; i++)
+    {
+        file.read(buffer, 4);
+        groups[i] = (*reinterpret_cast<int*>(buffer));
+    }
+
+    file.close();
+
+    /* generate grouping scheme */
+    XMFLOAT3* groupColors = new DirectX::XMFLOAT3[nGuide];
+    for (int i = 0; i < nGuide; i++)
+    {
+        vec3 color;
+        wrColorGenerator::genRandSaturatedColor(color);
+        memcpy(&groupColors[i], color, sizeof(vec3));
+    }
+
+    for (int i = 0; i < pHair->n_strands(); i++)
+    {
+        vec3 color{ 1.0f, 1.0f, 1.0f };
+        for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
+            memcpy(colorSet[GROUP_COLOR] + N_PARTICLES_PER_STRAND*i + j, i % 5 == 0 ? (void*)(groupColors + groups[i]) : (void*)(color), sizeof(vec3));
+    }
+
+    SAFE_DELETE_ARRAY(groupColors);
+}
+
+
+void HairBiDebugRenderer::nextColorScheme()
+{
+    colorScheme = static_cast<COLOR_SCHEME>((colorScheme + 1) % NUM_COLOR_SCHEME);
+}
+
+void HairBiDebugRenderer::setColorScheme(COLOR_SCHEME s)
+{
+    HRESULT hr;
+    D3D11_MAPPED_SUBRESOURCE MappedResource;
+    V(pd3dImmediateContext->Map(pCBShadow, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+    auto pVSPerFrame = reinterpret_cast<ShadowMapConstBuffer*>(MappedResource.pData);
+    pVSPerFrame->lightProjViewMatrix = lightProjView;
+    pVSPerFrame->colorScheme = s;
+    pd3dImmediateContext->Unmap(pCBShadow, 0);
+}
+
