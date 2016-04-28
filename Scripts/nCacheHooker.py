@@ -125,6 +125,7 @@ class NormalHairHooker(Hooker):
 
         nStrand = self.guide[0].n_hair
         step = nStrand / split
+
         self.start = i * step
         self.end = (i+1) * step
         if self.end >= nStrand:

@@ -1,7 +1,7 @@
 
 file1 = "E:/cache/329.xml"
 file2 = "../../maya cache/03074/hair_nRigidShape1.xml"
-file3 = "E:/cache/c0418.xml"
+file3 = "E:/cache/424.xml"
 
 if __name__ == "__main__":
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     nGroup = 200
     radius = 0.03
     frameFilter = 0.2
-    prefix = ["s15000new"]
+    prefix = ["s15000new2"]
     fileName = file3
     split=40
     guideOpts = ["rand", "opt", "worst"]
@@ -103,11 +103,13 @@ if __name__ == "__main__":
         for i in vers:
             f.write(struct.pack('i', i))
         f.close()
+        
         # rand, opt, worst
-        for opt in guideOpts:
+        for iiii in range(3):
+            opt = guideOpts[iiii]
 
-            starttime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
             import guide_hair as gh
+            starttime = time.strftime('%Y-%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
             hairGroup = gh.GroupedGraph(strandGraph, vers)
             hairGroup.solve(opt)
             sign = prefix[0] + '-'+opt+'-'
@@ -123,10 +125,10 @@ if __name__ == "__main__":
             guideImporter.export(guideExportFileName, factor)
             setReadOnly(guideExportFileName)
 
-            weights = []
             error0 = 0.0
             error = 0.0
-            for i in range(split):
+            weights = []
+            for i in range(split+1):
                 nImporter = ch.NormalHairHooker(guideData, refFrame, prefix[0], i, split, hairGroup)
                 nImporter.startLoop("precomputation %d / %d:" % (i+1, split))
                 nCache.loop(fileName, nImporter, nFrame)
@@ -138,6 +140,7 @@ if __name__ == "__main__":
 
             pkl.dump((hairGroup.guide, weights), file(sign+"-weights.dump", 'wb'), 2)
             setReadOnly(sign+"-weights.dump")
+            
             print "Total: error decrease from %f to %f." % (error0, error)
 
             endtime = time.strftime('%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))

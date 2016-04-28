@@ -47,6 +47,36 @@ struct PixelInputType
 ////////////////////////////////////////////////////////////////////////////////
 // Vertex Shader
 ////////////////////////////////////////////////////////////////////////////////
+
+
+float3 GetColour(float v)
+{
+   float3 c = {1.0,1.0,1.0}; // white
+   float dv;
+
+   if (v < 0.0)
+      v = 0.0;
+   if (v > 1.0)
+      v = 1.0;
+   dv = 1.0;
+
+   if (v < (0.25 * dv)) {
+      c.r = 0;
+      c.g = 4 * (v) / dv;
+   } else if (v < (0.5 * dv)) {
+      c.r = 0;
+      c.b = 1 + 4 * (0.25 * dv - v) / dv;
+   } else if (v < (0.75 * dv)) {
+      c.r = 4 * (v - 0.5 * dv) / dv;
+      c.b = 0;
+   } else {
+      c.g = 1 + 4 * (0.75 * dv - v) / dv;
+      c.b = 0;
+   }
+
+   return(c);
+}
+
 PixelInputType VS(VertexInputType input)
 {
     PixelInputType output;
@@ -72,8 +102,8 @@ PixelInputType VS(VertexInputType input)
     if (mode == 3)
     {
         float3 diff = input.Position - input.Color;
-        float error = dot(diff, diff) * 50.0;
-        output.color = saturate(float4(1.0 - error, 1, 1, 1.0));
+        float error = sqrt(dot(diff, diff)) * 3;
+        output.color = saturate(float4(GetColour(error), 1.0));
     }
 
     output.Sequence = float(input.Sequence);
@@ -110,6 +140,11 @@ float4 PS(PixelInputType input) : SV_TARGET
     float depthValue;
     float lightDepthValue;
     float4 diffuse = input.color;
+	
+	if (input.color.x > 0.999 &&
+		input.color.y > 0.999 &&
+		input.color.z > 0.999)
+		discard;
 
     // Set the bias value for fixing the floating point precision issues.
     bias = 0.001f;
