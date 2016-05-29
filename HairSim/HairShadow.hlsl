@@ -141,10 +141,10 @@ float4 PS(PixelInputType input) : SV_TARGET
     float lightDepthValue;
     float4 diffuse = input.color;
 	
-	if (input.color.x > 0.999 &&
+	/*if (input.color.x > 0.999 &&
 		input.color.y > 0.999 &&
 		input.color.z > 0.999)
-		discard;
+		discard;*/
 
     // Set the bias value for fixing the floating point precision issues.
     bias = 0.001f;

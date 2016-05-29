@@ -505,7 +505,7 @@ void HairBiDebugRenderer::initColorSchemes()
     {
         vec3 color{ 1.0f, 1.0f, 1.0f };
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-            memcpy(colorSet[GROUP_COLOR] + N_PARTICLES_PER_STRAND*i + j, i % 5 == 0 ? (void*)(groupColors + groups[i]) : (void*)(color), sizeof(vec3));
+            memcpy(colorSet[GROUP_COLOR] + N_PARTICLES_PER_STRAND*i + j, i % 1 == 0 ? (void*)(groupColors + groups[i]) : (void*)(color), sizeof(vec3));
     }
 
     SAFE_DELETE_ARRAY(groupColors);

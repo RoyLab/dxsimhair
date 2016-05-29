@@ -45,6 +45,7 @@ struct CB_VS_PER_FRAME
 #endif
 
 extern std::string CACHE_FILE;
+extern std::string REF_FILE;
 
 wrSceneManager::wrSceneManager()
 {
@@ -79,7 +80,7 @@ bool wrSceneManager::init()
     pHair = hair;
 
     auto hair0 = new WR::CacheHair20;
-    hair0->loadFile("D:/s4000.anim2", true);
+    hair0->loadFile(REF_FILE.c_str(), true);
     pHair0 = hair0;
 
     /* make the sphere as the collision object */
