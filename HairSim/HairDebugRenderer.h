@@ -15,6 +15,8 @@ struct HairDebugVertexInput
     float               na1;
     DirectX::XMFLOAT3   direction;
     float               na2;
+    DirectX::XMFLOAT3   ref;
+    float               na3;
 };
 
 
@@ -31,6 +33,7 @@ public:
     virtual void onFrame(double, float){}
     virtual void render(double, float);
     void nextColorScheme();
+    void prevColorScheme();
 
 protected:
     bool initWithShadow();
@@ -72,7 +75,7 @@ protected:
     DirectX::XMFLOAT4X4     lightProjView;
 
     /* ÅäÉ«·½°¸ */
-    enum COLOR_SCHEME { PSEUDO_COLOR, GUIDE_COLOR, GROUP_COLOR, ERROR_COLOR, DIR_COLOR, NUM_COLOR_SCHEME };
+    enum COLOR_SCHEME { PSEUDO_COLOR, GUIDE_COLOR, GROUP_COLOR, ERROR_COLOR, DIR_COLOR, ERROR_GROUP_COLOR, NUM_COLOR_SCHEME };
     void setColorScheme(COLOR_SCHEME s);
 
     COLOR_SCHEME            colorScheme = PSEUDO_COLOR;

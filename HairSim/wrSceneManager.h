@@ -35,6 +35,7 @@ public:
     void render(double, float);
     void onKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext);
     void nextColorScheme();
+    void prevColorScheme();
 
 private:
     void setPerFrameConstantBuffer(double, float);

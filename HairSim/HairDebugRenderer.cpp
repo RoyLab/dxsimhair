@@ -110,7 +110,8 @@ bool HairBiDebugRenderer::init()
         { "SEQ", 0, DXGI_FORMAT_R32_SINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "DIRECTION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        { "DIR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "REF", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     UINT numElements = ARRAYSIZE(layout);
@@ -211,13 +212,24 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
             memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].direction, dir, sizeof(vec3));
             if (colorScheme != DIR_COLOR)
             {
-                if (colorScheme != ERROR_COLOR || hair == pHair0)
+                if ((colorScheme != ERROR_COLOR || hair == pHair0) && colorScheme != ERROR_GROUP_COLOR)
                     memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &colors[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
                 else
                 {
-                    memcpy(pos, pHair0->get_visible_particle_position(i, j), sizeof(vec3));
-                    vec3_add(pos, offset, pos);
-                    memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, pos, sizeof(vec3));
+                    if (colorScheme == ERROR_COLOR)
+                    {
+                        memcpy(pos, pHair0->get_visible_particle_position(i, j), sizeof(vec3));
+                        vec3_add(pos, offset, pos);
+                        memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, pos, sizeof(vec3));
+                    }
+
+                    if (colorScheme == ERROR_GROUP_COLOR)
+                    {
+                        memcpy(pos, pHair0->get_visible_particle_position(i, j), sizeof(vec3));
+                        vec3_add(pos, offset, pos);
+                        memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].ref, pos, sizeof(vec3));
+                        memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &colors[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
+                    }
                 }
             }
         }
@@ -262,7 +274,7 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pShadowMap->SetRenderTarget(pd3dImmediateContext);
     pShadowMap->ClearRenderTarget(pd3dImmediateContext, 1.0f, /*no use*/0.0f, 0.0f, 0.0f);
 
-    if (hair == pHair0 && colorScheme == ERROR_COLOR)
+    if (hair == pHair0 && (colorScheme == ERROR_COLOR))
         setColorScheme(GUIDE_COLOR);
     else
         setColorScheme(colorScheme);
@@ -418,6 +430,8 @@ const DirectX::XMFLOAT3* HairBiDebugRenderer::getColorBuffer() const
         return colorSet[GROUP_COLOR];
     case HairBiDebugRenderer::ERROR_COLOR:
         return colorSet[GUIDE_COLOR];
+    case HairBiDebugRenderer::ERROR_GROUP_COLOR:
+        return colorSet[GROUP_COLOR];
     case HairBiDebugRenderer::DIR_COLOR:
         return nullptr;
     default:
@@ -515,6 +529,11 @@ void HairBiDebugRenderer::initColorSchemes()
 void HairBiDebugRenderer::nextColorScheme()
 {
     colorScheme = static_cast<COLOR_SCHEME>((colorScheme + 1) % NUM_COLOR_SCHEME);
+}
+
+void HairBiDebugRenderer::prevColorScheme()
+{
+    colorScheme = static_cast<COLOR_SCHEME>((colorScheme + NUM_COLOR_SCHEME - 1) % NUM_COLOR_SCHEME);
 }
 
 void HairBiDebugRenderer::setColorScheme(COLOR_SCHEME s)

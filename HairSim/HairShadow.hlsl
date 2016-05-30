@@ -32,7 +32,8 @@ struct VertexInputType
     int    Sequence : SEQ;
     float3 Position     : POSITION;
     float3 Color        : COLOR;
-    float3 Direction    : DIRECTION;
+    float3 Direction    : DIR;
+    float3 Reference    : REF;
 };
 
 struct PixelInputType
@@ -138,6 +139,15 @@ PixelInputType VS(VertexInputType input)
         float3 diff = input.Position - input.Color;
         float error = sqrt(dot(diff, diff)) * 3;
         output.color = saturate(float4(GetColour(error), 1.0));
+    }
+
+    if (mode == 5)
+    {
+        float3 diff = abs(input.Position - input.Reference);
+        float error = sqrt(dot(diff, diff))*3;
+        error = saturate(error);
+        output.color *= (1 - error);
+        output.color.w = 1.0;
     }
 
     output.Sequence = float(input.Sequence);
@@ -418,7 +428,7 @@ float3 scattering(float Phi_i, float Phi_r, float Theta_i, float Theta_r, float3
     float m_tt = M_TT(theta_h);
     float n_tt = N_TT(phi, mu_1, mu_2, c);
     float cos2x = cos(theta_d)*cos(theta_d);
-    return rgb * (n_r * m_r / cos2x +
+    return rgb * (n_r * m_r / cos2x /5 +
         m_tt*n_tt / cos2x /10);
     //    M_TRT()*N_TRT() / (cos(theta_d)*cos(theta_d)) * 250;
 }
@@ -454,7 +464,8 @@ float4 PS(PixelInputType input) : SV_TARGET
     float phi_r = acos(dot(-viewVec, vecV));
     if (dot(-viewVec, vecW) < 0) phi_r = -phi_r;
 
-    float3 diffuse =scattering(phi_i, phi_r, theta_i, theta_r, input.color.rgb);
+    float3 diffuse = scattering(phi_i, phi_r, theta_i, theta_r, input.color.rgb);
+    //float3 diffuse = input.color.rgb;
 
     /*if (input.color.x > 0.999 &&
         input.color.y > 0.999 &&
@@ -465,7 +476,7 @@ float4 PS(PixelInputType input) : SV_TARGET
     bias = 0.001f;
 
     // Set the default output color to the ambient light value for all pixels.
-    color = float3(0.3, 0.3, 0.3) * input.color.rgb; // ambient
+    color = float3(0.05, 0.05, 0.05) * input.color.rgb; // ambient
 
     // Calculate the projected texture coordinates.
     projectTexCoord.x = input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
@@ -508,6 +519,7 @@ float4 PS(PixelInputType input) : SV_TARGET
         // 相当于light的方向是（1，1，-1）
         diffuse *= weight;
         color += diffuse;
+        color += 0.8 * weight * input.color.rgb * (1 - abs(input.direction.x + input.direction.y - input.direction.z) / 1.732);
         // Saturate the final light color.
         color = saturate(color);
     }

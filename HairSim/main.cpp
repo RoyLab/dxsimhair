@@ -52,6 +52,7 @@ wrSceneManager              g_SceneMngr;
 #define IDC_PAUSE           2
 #define IDC_CHANGEDEVICE        3
 #define IDC_NEXT_COLOR          4
+#define IDC_PREV_COLOR          5
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -139,7 +140,8 @@ void InitApp()
     g_HUD.AddButton( IDC_TOGGLEFULLSCREEN, L"Toggle full screen", 0, iY, 170, 22 );
     g_HUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 0, iY += iYo, 170, 22, VK_F2 );
     g_HUD.AddButton( IDC_PAUSE, L"Pause (F3)", 0, iY += iYo, 170, 22, VK_F3 );
-    g_HUD.AddButton( IDC_NEXT_COLOR, L"Next Color (F4)", 0, iY += iYo, 170, 22, VK_F4 );
+    g_HUD.AddButton(IDC_NEXT_COLOR, L"Next Color (F4)", 0, iY += iYo, 170, 22, VK_F4);
+    g_HUD.AddButton(IDC_PREV_COLOR, L"Prev Color (F5)", 0, iY += iYo, 170, 22, VK_F5);
 
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
 
@@ -373,6 +375,9 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
         case IDC_NEXT_COLOR:
             g_SceneMngr.nextColorScheme();
             //DXUTToggleWARP();
+            break;
+        case IDC_PREV_COLOR:
+            g_SceneMngr.prevColorScheme();
             break;
         case IDC_CHANGEDEVICE:
             g_SettingsDlg.SetActive( !g_SettingsDlg.IsActive() );

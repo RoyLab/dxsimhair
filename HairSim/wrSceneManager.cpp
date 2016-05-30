@@ -222,3 +222,9 @@ void wrSceneManager::nextColorScheme()
     auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
     ptr->nextColorScheme();
 }
+
+void wrSceneManager::prevColorScheme()
+{
+    auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
+    ptr->prevColorScheme();
+}

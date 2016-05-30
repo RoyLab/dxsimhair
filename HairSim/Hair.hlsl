@@ -10,7 +10,8 @@ struct VS_INPUT
     int    Sequence     : SEQ;
     float3 Position     : POSITION;
     float3 Color        : COLOR;
-    float3 Direction    : DIRECTION;
+    float3 Direction    : DIR;
+    float3 Reference    : REF;
 };
 
 struct VS_OUTPUT
