@@ -133,6 +133,7 @@ class Frame:
         self.particle_direction.resize(self.n_particle, 3)
 
     def deviation(self, id0, id1):
+
         cur0 = self.data[id0], self.particle_direction[id0]
         cur1 = self.data[id1], self.particle_direction[id1]
 
@@ -147,6 +148,24 @@ class Frame:
 
         return squared_diff(point_trans(t0, ref1), cur1) + \
             squared_diff(point_trans(t1, ref0), cur0)
+
+    def deviationVector(self, id0, id1):
+        
+        cur0 = self.data[id0], self.particle_direction[id0]
+        cur1 = self.data[id1], self.particle_direction[id1]
+
+        t0 = self.particle_motions[id0]
+        t1 = self.particle_motions[id1]
+        t = self.rigid_motion
+
+        ref0 = rigid_trans_full(t, (self.reference.data[id0],
+            self.reference.particle_direction[id0]))
+        ref1 = rigid_trans_full(t, (self.reference.data[id1],
+            self.reference.particle_direction[id1]))
+
+        return squared_diff(point_trans(t0, ref1), cur1),\
+            squared_diff(point_trans(t1, ref0), cur0)
+
 
     def calcMotionMatrix(self, reference):
         self.reference = reference

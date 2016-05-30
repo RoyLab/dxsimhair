@@ -29,8 +29,8 @@ struct CB_VS_PER_FRAME
 {
     XMFLOAT4X4  mViewProjection;
     XMFLOAT4X4  mWorld;
-
-    float       time;
+    XMFLOAT3    mViewPoint;
+    float       time, nouse;
 
     XMFLOAT3    lightDir;
     XMFLOAT4    lightDiffuse;
@@ -181,6 +181,7 @@ void wrSceneManager::setPerFrameConstantBuffer(double fTime, float fElapsedTime)
 
     XMStoreFloat4x4(&pVSPerFrame->mViewProjection, XMMatrixTranspose(mViewProjection));
     XMStoreFloat4x4(&pVSPerFrame->mWorld, XMMatrixTranspose(mWorld));
+    XMStoreFloat3(&pVSPerFrame->mViewPoint, pCamera->GetEyePt());
 
     pVSPerFrame->time = (float)fTime;
 
@@ -190,6 +191,7 @@ void wrSceneManager::setPerFrameConstantBuffer(double fTime, float fElapsedTime)
 
     pd3dImmediateContext->Unmap(pcbVSPerFrame, 0);
     pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pcbVSPerFrame);
+    pd3dImmediateContext->PSSetConstantBuffers(0, 1, &pcbVSPerFrame);
 }
 
 

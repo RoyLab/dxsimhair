@@ -26,4 +26,6 @@ def test2(a):
     print small, '%', count
 
 import os
-os.system('attrib +r test.py')
+# os.system('attrib +r test.py')
+print "fdafdfdsafadfa"
+

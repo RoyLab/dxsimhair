@@ -10,6 +10,7 @@ cbuffer cbMatrix : register(b0)
 {
     matrix  g_mViewProjection;
     matrix  g_mWorld;
+    float3  g_viewPoint;
     float   g_time;
 }
 

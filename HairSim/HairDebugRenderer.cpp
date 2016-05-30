@@ -364,7 +364,7 @@ bool HairBiDebugRenderer::initWithShadow()
     }
 
     XMFLOAT4X4 proj;  pShadowMap->GetOrthoMatrix(proj);
-    XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, 10.0f);
+    XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, -10.0f);
     XMFLOAT3 lightTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
     XMFLOAT3 lightUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
 
