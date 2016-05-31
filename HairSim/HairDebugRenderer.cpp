@@ -11,6 +11,7 @@
 #include "linmath.h"
 #include "rendertextureclass.h"
 #include "wrColorGenerator.h"
+#include "wrMath.h"
 
 using namespace DirectX;
 
@@ -442,6 +443,9 @@ const DirectX::XMFLOAT3* HairBiDebugRenderer::getColorBuffer() const
 void HairBiDebugRenderer::initColorSchemes()
 {
     colorSet = new XMFLOAT3*[NUM_COLOR_SCHEME];
+    XMFLOAT3* noise = new XMFLOAT3[pHair->n_strands()];
+    for (int i = 0; i < pHair->n_strands(); i++)
+        noise[i] = XMFLOAT3(0.1*randSignedFloat(), 0.1*randSignedFloat(), 0.1*randf());
 
     size_t nParticle = pHair->n_strands() * N_PARTICLES_PER_STRAND;
     for (size_t i = 0; i < NUM_COLOR_SCHEME; i++)
@@ -478,7 +482,7 @@ void HairBiDebugRenderer::initColorSchemes()
     /* generate guid hair outstanding scheme */
     for (int i = 0; i < pHair->n_strands(); i++)
     {
-        vec3 color{ 1, 1, 1 };
+        vec3 color{ 0.05*(1 + 0.3*randSignedFloat()), 0.05*(1 + 0.3*randSignedFloat()), 0.05*(1 + 0.3*randSignedFloat()) };
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
             memcpy(colorSet[GUIDE_COLOR] + N_PARTICLES_PER_STRAND*i + j, color, sizeof(vec3));
     }
@@ -523,6 +527,7 @@ void HairBiDebugRenderer::initColorSchemes()
     }
 
     SAFE_DELETE_ARRAY(groupColors);
+    SAFE_DELETE_ARRAY(noise);
 }
 
 

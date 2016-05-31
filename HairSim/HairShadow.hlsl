@@ -112,6 +112,12 @@ static const float causticintensity = 0.5;
 static const float mu = 1.55;
 static const float sqrt2pi = sqrt(2 * pi);
 
+float rand_1_05(in float2 uv)
+{
+    float2 noise = (frac(sin(dot(uv, float2(12.9898, 78.233)*2.0)) * 43758.5453));
+        return abs(noise.x + noise.y) * 0.5;
+}
+
 PixelInputType VS(VertexInputType input)
 {
     PixelInputType output;
@@ -147,11 +153,10 @@ PixelInputType VS(VertexInputType input)
         float error = sqrt(dot(diff, diff))*3;
         error = saturate(error);
         output.color *= (1 - error);
-        output.color.w = 1.0;
     }
-
     output.Sequence = float(input.Sequence);
 
+    output.color.w = 1.0;
     return output;
 }
 
