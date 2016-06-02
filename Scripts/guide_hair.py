@@ -158,3 +158,12 @@ class GroupedGraph(mg.MetisGraph):
         for i in range(self.n_group):
             n_neigh = len(self.groupNeighMap[i])
             self.groupGuideMap[i] = map(findGuide, [self]*n_neigh, self.groupNeighMap[i])
+
+    def dumpNeighbourMap(self, fileName):
+        import struct
+        import array
+        with open(fileName+"-"+str(self.n_group)+".neigh", "wb") as out:
+            out.write(struct.pack('i', self.n_group))
+            for i in range(self.n_group):
+                out.write(struct.pack('i', len(self.groupNeighMap[i])))
+                array.array('i', list(self.groupNeighMap[i])).tofile(out)

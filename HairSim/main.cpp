@@ -53,6 +53,9 @@ wrSceneManager              g_SceneMngr;
 #define IDC_CHANGEDEVICE        3
 #define IDC_NEXT_COLOR          4
 #define IDC_PREV_COLOR          5
+#define IDC_UPDATE_GD_PARA          6
+#define IDC_TOGGLE_GD_MODE          7
+#define IDC_STEP_GD_ID          8
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -142,7 +145,9 @@ void InitApp()
     g_HUD.AddButton( IDC_PAUSE, L"Pause (F3)", 0, iY += iYo, 170, 22, VK_F3 );
     g_HUD.AddButton(IDC_NEXT_COLOR, L"Next Color (F4)", 0, iY += iYo, 170, 22, VK_F4);
     g_HUD.AddButton(IDC_PREV_COLOR, L"Prev Color (F5)", 0, iY += iYo, 170, 22, VK_F5);
-
+    g_HUD.AddButton(IDC_UPDATE_GD_PARA, L"update (F6)", 0, iY += iYo, 170, 22, VK_F6);
+    g_HUD.AddButton(IDC_TOGGLE_GD_MODE, L"full/mono (F7)", 0, iY += iYo, 170, 22, VK_F7);
+    g_HUD.AddButton(IDC_STEP_GD_ID, L"step id (F7)", 0, iY += iYo, 170, 22, VK_F8);
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
 
     CreateConsole();
@@ -381,6 +386,15 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
             break;
         case IDC_CHANGEDEVICE:
             g_SettingsDlg.SetActive( !g_SettingsDlg.IsActive() );
+            break;
+        case IDC_UPDATE_GD_PARA:
+            g_SceneMngr.updateGDPara();
+            break;
+        case IDC_TOGGLE_GD_MODE:
+            g_SceneMngr.toggleGDMode();
+            break;
+        case IDC_STEP_GD_ID:
+            g_SceneMngr.stepId();
             break;
     }
 }

@@ -10,14 +10,15 @@
 *.pyc
 *.lprof
 *.test
-*.dump
-*.dumpb
+*.dump*
 */Profile/*
 *.exe
 *.weights
 *.guide
 *.info
-*.anim
+*.anim*
+*.group
+*.neigh
 
 # Build results
 [Dd]ebug/

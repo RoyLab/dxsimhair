@@ -18,6 +18,7 @@ using namespace DirectX;
 extern bool hasShadow;
 extern std::string GUIDE_FILE;
 extern std::string GROUP_FILE;
+extern std::string NEIGH_FILE;
 
 struct ShadowMapConstBuffer
 {
@@ -178,6 +179,9 @@ void HairBiDebugRenderer::release()
     }
 
     SAFE_DELETE_ARRAY(colorSet);
+    SAFE_DELETE_ARRAY(groupIndex);
+    SAFE_DELETE_ARRAY(guideHairs);
+    SAFE_DELETE_ARRAY(neighbourGroups);
 }
 
 void HairBiDebugRenderer::render(double fTime, float fTimeElapsed)
@@ -254,9 +258,7 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
         pd3dImmediateContext->PSSetShader(pPS, nullptr, 0);
     }
 
-    int start = 0;
-    for (int i = 0; i < n_strands; i++, start += N_PARTICLES_PER_STRAND)
-        pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+    drawCall(hair);
 }
 
 void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* vb,
@@ -284,9 +286,7 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pd3dImmediateContext->VSSetShader(psmVS, nullptr, 0);
     pd3dImmediateContext->PSSetShader(psmPS, nullptr, 0);
 
-    int start = 0;
-    for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
-        pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+    drawCall(hair);
 
     pd3dImmediateContext->OMSetRenderTargets(1, &pRTV, pDSV);
     pd3dImmediateContext->RSSetViewports(1, &vp);
@@ -298,10 +298,6 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pd3dImmediateContext->PSSetSamplers(0, 1, &psampleStateClamp);
     pd3dImmediateContext->VSSetShader(psVS, nullptr, 0);
     pd3dImmediateContext->PSSetShader(psPS, nullptr, 0);
-
-    //start = 0;
-    //for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
-    //    pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
 }
 
 bool HairBiDebugRenderer::initWithShadow()
@@ -442,6 +438,8 @@ const DirectX::XMFLOAT3* HairBiDebugRenderer::getColorBuffer() const
 
 void HairBiDebugRenderer::initColorSchemes()
 {
+    n_strand = pHair->n_strands();
+
     colorSet = new XMFLOAT3*[NUM_COLOR_SCHEME];
     XMFLOAT3* noise = new XMFLOAT3[pHair->n_strands()];
     for (int i = 0; i < pHair->n_strands(); i++)
@@ -464,17 +462,36 @@ void HairBiDebugRenderer::initColorSchemes()
     if (!file.is_open()) throw std::exception("File not found!");
 
     int nGuide = 0;
-    char buffer[128];
+    char buffer[1024];
     file.read(buffer, 4);
     nGuide = *reinterpret_cast<int*>(buffer);
 
     file.read(buffer, 8);
-    std::vector<int> guides;
+    n_group = nGuide;
     std::cout << nGuide << std::endl;
+    guideHairs = new int[nGuide];
     for (size_t i = 0; i < nGuide; i++)
     {
         file.read(buffer, 4);
-        guides.push_back(*reinterpret_cast<int*>(buffer));
+        guideHairs[i] = *reinterpret_cast<int*>(buffer);
+    }
+
+    file.close();
+
+    /* read the hair neighbour info */
+    file.open(NEIGH_FILE, std::ios::binary);
+    if (!file.is_open()) throw std::exception("File not found!");
+
+    file.read(buffer, 4);
+    neighbourGroups = new std::vector<int>[nGuide];
+    for (size_t i = 0; i < nGuide; i++)
+    {
+        file.read(buffer, 4);
+        int n = *reinterpret_cast<int*>(buffer);
+        file.read(buffer, 4 * n);
+        int* neighbours = reinterpret_cast<int*>(buffer);
+        for (size_t j = 0; j < n; j++)
+            neighbourGroups[i].push_back(neighbours[j]);
     }
 
     file.close();
@@ -488,7 +505,8 @@ void HairBiDebugRenderer::initColorSchemes()
     }
 
     vec3 red{ 1.0f, 0.0f, 0.0f };
-    for (int id : guides)
+    int id = guideHairs[0];
+    for (int i = 0; i < nGuide; i++, id = guideHairs[i])
     {
         for (size_t i = 0; i < N_PARTICLES_PER_STRAND; i++)
             memcpy(colorSet[GUIDE_COLOR] + N_PARTICLES_PER_STRAND*id + i, red, sizeof(vec3));
@@ -501,11 +519,11 @@ void HairBiDebugRenderer::initColorSchemes()
     file.read(buffer, 4);
     int nStrand = *reinterpret_cast<int*>(buffer);
 
-    std::vector<int> groups(nStrand);
+    groupIndex = new short[n_strand];
     for (size_t i = 0; i < nStrand; i++)
     {
         file.read(buffer, 4);
-        groups[i] = (*reinterpret_cast<int*>(buffer));
+        groupIndex[i] =short(*reinterpret_cast<int*>(buffer));
     }
 
     file.close();
@@ -523,7 +541,7 @@ void HairBiDebugRenderer::initColorSchemes()
     {
         vec3 color{ 1.0f, 1.0f, 1.0f };
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-            memcpy(colorSet[GROUP_COLOR] + N_PARTICLES_PER_STRAND*i + j, i % 1 == 0 ? (void*)(groupColors + groups[i]) : (void*)(color), sizeof(vec3));
+            memcpy(colorSet[GROUP_COLOR] + N_PARTICLES_PER_STRAND*i + j, i % 1 == 0 ? (void*)(groupColors + groupIndex[i]) : (void*)(color), sizeof(vec3));
     }
 
     SAFE_DELETE_ARRAY(groupColors);
@@ -550,5 +568,42 @@ void HairBiDebugRenderer::setColorScheme(COLOR_SCHEME s)
     pVSPerFrame->lightProjViewMatrix = lightProjView;
     pVSPerFrame->colorScheme = s;
     pd3dImmediateContext->Unmap(pCBShadow, 0);
+}
+
+void HairBiDebugRenderer::activateMonoGroup(int idx)
+{
+    if (idx < 0)
+    {
+        isGDActive = false;
+        return;
+    }
+
+    isGDActive = true;
+    GDId = idx;
+}
+
+void HairBiDebugRenderer::drawCall(const WR::IHair* hair)
+{
+    if (isGDActive)
+    {
+        int start = 0;
+        for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
+        {
+            if (groupIndex[i] != GDId)
+            {
+                if (GDMode == 0 && guideHairs[groupIndex[i]] != i) continue;
+                auto &neigh = neighbourGroups[GDId];
+                auto result = std::find(neigh.begin(), neigh.end(), groupIndex[i]);
+                if (result == neigh.end()) continue;
+            }
+            pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+        }
+    }
+    else
+    {
+        int start = 0;
+        for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
+            pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+    }
 }
 

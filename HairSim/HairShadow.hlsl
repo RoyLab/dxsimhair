@@ -177,14 +177,22 @@ Texture2D shaderTexture : register(t0);
 SamplerState SampleTypeClamp : register(s0);
 
 
-float trinormal(float x)
+float normalFromNegPiToPi(float value)
 {
-    while (!(pi >= x && x >= -pi))
-    {
-        if (-pi > x)x = x + 2 * pi;
-        else if (x > pi) x = x - 2 * pi;
-    }
-    return x;
+    if ((value <= pi) == (value >= -pi)) return value;
+    float twopi = 2 * pi;
+    value += pi;
+    float count = floor(value / twopi);
+   return value - count * twopi - pi;
+}
+
+float normalFromZeroTo2Pi(float value)
+{
+    float twopi = 2 * pi;
+    if ((value <= twopi) == (value >= 0)) return value;
+
+    float count = floor(value / twopi);
+    return value - count * twopi;
 }
 
 float testsolve(float x)
@@ -205,25 +213,24 @@ float smoothstep(float a, float b, float x)
     else return (x - b) / (a - b);
 }
 
-float solveTT(float c, float phi)
-{
-    float p = 1;
-    float a = -8.0*p*c / pow(pi, 3);
-    float b = 0;
-    float c2 = 6.0*p*c / pi - 2;
-    float d = -p*pi - phi;
-    float delta = pow(b*c2 / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a), 2) + pow(c2 / (3.0*a) - b*b / (9.0*a*a), 3);
-    float root1;
-    if ((b*c2 / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta)) < 0)
-        root1 = -b / (3.0*a) +
-        pow(b*c2 / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) + sqrt(delta), 1.0 / 3.0) -
-        pow(abs(b*c2 / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta)), 1.0 / 3);
-    else
-        root1 = -b / (3.0*a) + 
-        pow(b*c2 / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) + sqrt(delta), 1.0 / 3.0) +
-        pow(b*c2 / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta), 1.0 / 3);
+float cubeRoot(float d) {
+    if (d < 0.0) {
+        return -pow(-d, 1.0 / 3.0);
+    }
+    else {
+        return pow(d, 1.0 / 3.0);
+    }
+}
 
-    return root1;
+float solveTT(float c0, float phi)
+{
+    float a = -8.0*c0 / pow(pi, 3);
+    float p = (6.0*c0 / pi - 2) / a;
+    float q = (pi - phi) / a;
+
+    float q_div_2 = -q / 2;
+    float delta = sqrt(q_div_2 * q_div_2 + p*p*p / 27.0);
+    return cubeRoot(q_div_2 + delta) + cubeRoot(q_div_2 - delta);
 }
 //
 //float solve(int p)
@@ -323,11 +330,11 @@ float N_R(float phi, float mu_1, float mu_2)
 
 float N_TT(float phi, float mu_1, float mu_2, float c)
 {
-    float gamma_i = solveTT(c, phi);
-    float h = sin(gamma_i);
-    float gamma_t = asin(h / mu_1);
-    //float theta_t = asin(sin(theta_i / mu));
-    float Fa = F(mu_1, mu_2, gamma_i, gamma_t);
+    float normPhi = normalFromZeroTo2Pi(phi);
+    float theta_i = solveTT(c, normPhi);
+    float h = sin(theta_i);
+    float theta_t = asin(h / mu_1);
+    float Fa = F(mu_1, mu_2, theta_i, theta_t);
     float F1_a = 1 - Fa;
     //float atten = pow(e, -(2 * absorptionr / cos(theta_t))*(1 + cos(2 * gamma_t)));
     float atten = 1.0f;
@@ -421,19 +428,26 @@ float3 scattering(float Phi_i, float Phi_r, float Theta_i, float Theta_r, float3
     float phi_r = Phi_r;
     float phi = phi_r - phi_i;
     float phi_h = (phi_r + phi_i) / 2;
+
     float theta_i = Theta_i;
     float theta_r = Theta_r;
     float theta_h = (theta_i + theta_r) / 2;
     float theta_d = (theta_r - theta_i) / 2;
-    float mu_1 = abs(sqrt(mu*mu - sin(theta_i)*sin(theta_i)) / cos(theta_i));
-    float mu_2 = abs(mu*mu*cos(theta_i) / sqrt(mu*mu - sin(theta_i)*sin(theta_i)));
-    float c = asin(1.0 / mu_1);
+
+    float mu_1 = sqrt(mu*mu - sin(theta_i)*sin(theta_i)) / cos(theta_i);
+    float mu_2 = mu*mu*cos(theta_i) / sqrt(mu*mu - sin(theta_i)*sin(theta_i));
+
+    float c = asin(1.0f / mu_1); // < pi/2
+
     float m_r = M_R(theta_h);
     float n_r = N_R(phi, mu_1, mu_2);
+
     float m_tt = M_TT(theta_h);
     float n_tt = N_TT(phi, mu_1, mu_2, c);
+
     float cos2x = cos(theta_d)*cos(theta_d);
-    return rgb * (n_r * m_r / cos2x /5 +
+
+    return rgb * (n_r * m_r / cos2x  +
         m_tt*n_tt / cos2x /10);
     //    M_TRT()*N_TRT() / (cos(theta_d)*cos(theta_d)) * 250;
 }

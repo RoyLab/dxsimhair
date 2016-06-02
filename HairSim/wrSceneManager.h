@@ -36,6 +36,9 @@ public:
     void onKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext);
     void nextColorScheme();
     void prevColorScheme();
+    void updateGDPara();
+    void toggleGDMode();
+    void stepId();
 
 private:
     void setPerFrameConstantBuffer(double, float);

@@ -29,7 +29,7 @@ bool APPLY_PCG = false;
 std::string CACHE_FILE;
 std::string GUIDE_FILE;
 std::string GROUP_FILE;
-std::string REF_FILE;
+std::string REF_FILE, NEIGH_FILE;
 bool hasShadow = false;
 
 
@@ -50,5 +50,6 @@ void init_global_param()
     GUIDE_FILE = reader.getValue("guidefile");
     GROUP_FILE = reader.getValue("groupfile");
     REF_FILE = reader.getValue("reffile");
+    NEIGH_FILE = reader.getValue("neighfile");
     hasShadow = bool(std::stoi(reader.getValue("shadow")));
 }

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # parameter begin
     nFrame = 200
     nStep = 1000 # weight discretization
-    nGroup = 400
+    nGroup = 200
     radius = 0.04
     frameFilter = 0.2
     prefix = ["c0524"]
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
         pkl.dump(edges, file(prefix[0]+'-edges.dump', 'w'))
         setReadOnly(prefix[0]+'-edges.dump')
-        
+
         #step 2
         strandGraph = gb.shrinkGraph(edges, factor)
 
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         for i in vers:
             f.write(struct.pack('i', i))
         f.close()
-        
+
         # rand, opt, worst
         for iiii in range(3):
             opt = guideOpts[iiii]
@@ -114,6 +114,7 @@ if __name__ == "__main__":
             hairGroup.solve(opt)
             sign = prefix[0] + '-'+opt+'-'
             sign += time.strftime('%m-%d %Hh%Mm%Ss',time.localtime(time.time()))
+            hairGroup.dumpNeighbourMap(prefix[0])
 
             guideImporter = ch.GuideHairHooker(hairGroup.guide, refFrame, prefix[0])
             guideImporter.startLoop("Import guide hair data with %d frames:" % nFrame)
@@ -140,7 +141,7 @@ if __name__ == "__main__":
 
             pkl.dump((hairGroup.guide, weights), file(sign+"-weights.dump", 'wb'), 2)
             setReadOnly(sign+"-weights.dump")
-            
+
             print "Total: error decrease from %f to %f." % (error0, error)
 
             endtime = time.strftime('%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
