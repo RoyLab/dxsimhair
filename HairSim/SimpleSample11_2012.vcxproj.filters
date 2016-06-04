@@ -40,10 +40,10 @@
     <None Include="depthps.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="ShadowMap.hlsl">
+    <None Include="HairShadow.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="HairShadow.hlsl">
+    <None Include="example.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

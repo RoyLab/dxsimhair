@@ -12,6 +12,7 @@ cbuffer cbMatrix : register(b0)
     matrix  g_mWorld;
     float3  g_viewPoint;
     float   g_time;
+    float2 g_renderTargetSize;
 }
 
 
@@ -36,6 +37,16 @@ struct VertexInputType
     float3 Reference    : REF;
 };
 
+struct GeometryInputType
+{
+    int    sequence : SEQ;
+    float3 position     : POSITION;
+    float4 color        : COLOR;
+    float3 direction    : DIR;
+    float4 lightViewPosition : TEXCOORD1;
+};
+
+
 struct PixelInputType
 {
     float4 position : SV_POSITION;
@@ -43,18 +54,78 @@ struct PixelInputType
     float3 direction : DIRECTION0;
     float4 color: COLOR0;
     float4 lightViewPosition : TEXCOORD1;
-    float4 position0 : POSITION_0;
-    //float theta_i: THETA_I;
-    //float theta_r: THETA_R;
-    //float phi_i: PHI_I;
-    //float phi_r: PHI_R;
+    float4 position0 : POSITION_0; // not reference, but orginal
+};
+
+struct VS_OUTPUT
+{
+    float4 position     : SV_POSITION; // vertex position 
 };
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Vertex Shader
-////////////////////////////////////////////////////////////////////////////////
+VS_OUTPUT SM_VS(VertexInputType input)
+{
+    VS_OUTPUT output;
 
+    float4 pos = float4(input.Position, 1.0f);
+    output.position = mul(pos, g_lightProjView);
+
+    return output;
+}
+
+float SM_PS(VS_OUTPUT In) : SV_TARGET
+{
+    return In.position.z;
+}
+
+[maxvertexcount(6)]
+void SM_GS(line VS_OUTPUT points[2], inout TriangleStream<VS_OUTPUT> output)
+{
+    float4 p0 = points[0].position;
+        float4 p1 = points[1].position;
+
+        float w0 = p0.w;
+    float w1 = p1.w;
+
+    p0.xyz /= p0.w;
+    p1.xyz /= p1.w;
+
+    float3 line01 = (p1 - p0).xyz;
+        float3 dir = normalize(line01);
+
+        // scale to correct window aspect ratio
+        float3 ratio = float3(g_renderTargetSize.y, g_renderTargetSize.x, 0);
+        ratio = normalize(ratio);
+
+    float3 unit_z = normalize(float3(0, 0, -1));
+        float3 normal = normalize(cross(unit_z, dir) * ratio);
+        float width = 0.05;
+
+    VS_OUTPUT v[4];
+
+    float3 dir_offset = dir * ratio * width;
+     float3 normal_scaled = normal * ratio * width;
+
+    float3 p0_ex = p0 - dir_offset;
+    float3 p1_ex = p1 + dir_offset;
+
+    v[0].position = float4(p0_ex - normal_scaled, 1) * w0;
+    v[1].position = float4(p0_ex + normal_scaled, 1) * w0;
+    v[2].position = float4(p1_ex + normal_scaled, 1) * w1;
+    v[3].position = float4(p1_ex - normal_scaled, 1) * w1;
+
+    output.Append(v[2]);
+    output.Append(v[1]);
+    output.Append(v[0]);
+
+    output.RestartStrip();
+
+    output.Append(v[3]);
+    output.Append(v[2]);
+    output.Append(v[0]);
+
+    output.RestartStrip();
+}
 
 float3 GetColour(float v)
 {
@@ -118,17 +189,16 @@ float rand_1_05(in float2 uv)
         return abs(noise.x + noise.y) * 0.5;
 }
 
-PixelInputType VS(VertexInputType input)
+GeometryInputType VS(VertexInputType input)
 {
-    PixelInputType output;
+    GeometryInputType output;
     float4 worldPosition;
 
     // Change the position vector to be 4 units for proper matrix calculations.
     float4 pos = float4(input.Position, 1.0);
 
     // Calculate the position of the vertex against the world, view, and projection matrices.
-    output.position = mul(pos, g_mViewProjection);
-    output.position0 = pos;
+    output.position = pos;
 
     // Calculate the position of the vertice as viewed by the light source.
     output.lightViewPosition = mul(pos, g_lightProjView);
@@ -154,7 +224,7 @@ PixelInputType VS(VertexInputType input)
         error = saturate(error);
         output.color *= (1 - error);
     }
-    output.Sequence = float(input.Sequence);
+    output.sequence = float(input.Sequence);
 
     output.color.w = 1.0;
     return output;
@@ -186,13 +256,13 @@ float normalFromNegPiToPi(float value)
    return value - count * twopi - pi;
 }
 
-float normalFromZeroTo2Pi(float value)
+float normalFromZeroTo2Pi(float v)
 {
     float twopi = 2 * pi;
-    if ((value <= twopi) == (value >= 0)) return value;
+    if ((v <= twopi) == (v >= 0)) return v            ;
 
-    float count = floor(value / twopi);
-    return value - count * twopi;
+    float count = floor(v / twopi);
+    return v - count * twopi;
 }
 
 float testsolve(float x)
@@ -544,4 +614,68 @@ float4 PS(PixelInputType input) : SV_TARGET
     }
 
     return float4(color, 1.0);
+}
+
+[maxvertexcount(6)]
+void GS(line GeometryInputType points[2], inout TriangleStream<PixelInputType> output)
+{
+    float3 p0 = points[0].position;
+    float3 p1 = points[1].position;
+
+    float3 line01 = (p1 - p0);
+    float3 dir = normalize(line01);
+
+    float3 center = (p1 + p0) / 2.0f;
+    float3 viewDir = normalize(g_viewPoint - center);
+
+    float3 normal = normalize(cross(dir, viewDir));
+    float width = 0.01f;
+
+    PixelInputType v[4];
+
+    float3 dir_offset = dir * width;
+    float3 normal_scaled = -normal * width;
+
+    float3 p0_ex = p0 - 0;
+    float3 p1_ex = p1 + 0;
+
+    v[0].position0 = float4(p0_ex - normal_scaled, 1);
+    v[0].position = mul(v[0].position0, g_mViewProjection);
+    v[0].color = points[0].color;
+    v[0].Sequence = points[0].sequence;
+    v[0].direction = points[0].direction;
+    v[0].lightViewPosition = points[0].lightViewPosition;
+
+    v[1].position0 = float4(p0_ex + normal_scaled, 1);
+    v[1].position = mul(v[1].position0, g_mViewProjection);
+    v[1].color = points[0].color;
+    v[1].Sequence = points[0].sequence;
+    v[1].direction = points[0].direction;
+    v[1].lightViewPosition = points[0].lightViewPosition;
+
+    v[2].position0 = float4(p1_ex + normal_scaled, 1);
+    v[2].position = mul(v[2].position0, g_mViewProjection);
+    v[2].color = points[1].color;
+    v[2].Sequence = points[1].sequence;
+    v[2].direction = points[1].direction;
+    v[2].lightViewPosition = points[1].lightViewPosition;
+
+    v[3].position0 = float4(p1_ex - normal_scaled, 1);
+    v[3].position = mul(v[3].position0, g_mViewProjection);
+    v[3].color = points[1].color;
+    v[3].Sequence = points[1].sequence;
+    v[3].direction = points[1].direction;
+    v[3].lightViewPosition = points[1].lightViewPosition;
+
+    output.Append(v[2]);
+    output.Append(v[1]);
+    output.Append(v[0]);
+
+    output.RestartStrip();
+
+    output.Append(v[3]);
+    output.Append(v[2]);
+    output.Append(v[0]);
+
+    output.RestartStrip();
 }

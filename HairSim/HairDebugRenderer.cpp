@@ -165,8 +165,10 @@ void HairBiDebugRenderer::release()
     SAFE_RELEASE(psampleStateClamp);
     SAFE_RELEASE(psmVS);
     SAFE_RELEASE(psmPS);
+    SAFE_RELEASE(psmGS);
     SAFE_RELEASE(psVS);
     SAFE_RELEASE(psPS);
+    SAFE_RELEASE(psGS);
 
     if (pShadowMap)
         pShadowMap->Shutdown();
@@ -259,6 +261,8 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
     }
 
     drawCall(hair);
+
+    pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 }
 
 void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* vb,
@@ -285,6 +289,7 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pd3dImmediateContext->VSSetConstantBuffers(1, 1, &pCBShadow);
     pd3dImmediateContext->VSSetShader(psmVS, nullptr, 0);
     pd3dImmediateContext->PSSetShader(psmPS, nullptr, 0);
+    pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 
     drawCall(hair);
 
@@ -297,6 +302,7 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pd3dImmediateContext->PSSetShaderResources(0, 1, &pTexture);
     pd3dImmediateContext->PSSetSamplers(0, 1, &psampleStateClamp);
     pd3dImmediateContext->VSSetShader(psVS, nullptr, 0);
+    pd3dImmediateContext->GSSetShader(psGS, nullptr, 0);
     pd3dImmediateContext->PSSetShader(psPS, nullptr, 0);
 }
 
@@ -341,7 +347,7 @@ bool HairBiDebugRenderer::initWithShadow()
     SAFE_RELEASE(pPSBlob);
 
     // Compile the shadow map vertex shader
-    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "VS", "vs_5_0", dwShaderFlags, 0, &pVSBlob));
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "SM_VS", "vs_5_0", dwShaderFlags, 0, &pVSBlob));
 
     hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &psmVS);
     if (FAILED(hr))
@@ -352,7 +358,7 @@ bool HairBiDebugRenderer::initWithShadow()
     SAFE_RELEASE(pVSBlob);
 
     // Compile the shadow map pixel shader
-    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "PS", "ps_5_0", dwShaderFlags, 0, &pPSBlob));
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "SM_PS", "ps_5_0", dwShaderFlags, 0, &pPSBlob));
 
     hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &psmPS);
     if (FAILED(hr))
@@ -361,6 +367,28 @@ bool HairBiDebugRenderer::initWithShadow()
         return hr;
     }
     SAFE_RELEASE(pPSBlob);
+
+    ID3DBlob* pGSBlob = nullptr;
+    // Compile the shadow map geometry shader
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "GS", "gs_5_0", dwShaderFlags, 0, &pGSBlob));
+
+    hr = pd3dDevice->CreateGeometryShader(pGSBlob->GetBufferPointer(), pGSBlob->GetBufferSize(), nullptr, &psGS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pGSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pGSBlob);
+
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "SM_GS", "gs_5_0", dwShaderFlags, 0, &pGSBlob));
+
+    hr = pd3dDevice->CreateGeometryShader(pGSBlob->GetBufferPointer(), pGSBlob->GetBufferSize(), nullptr, &psmGS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pGSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pGSBlob);
 
     ShadowMapConstBuffer smcbuffer;
 

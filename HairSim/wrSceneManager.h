@@ -39,6 +39,7 @@ public:
     void updateGDPara();
     void toggleGDMode();
     void stepId();
+    void resize(int w, int h) { nWidth = w; nHeight = h; }
 
 private:
     void setPerFrameConstantBuffer(double, float);
@@ -56,6 +57,8 @@ private:
 
     ID3D11Buffer*               pcbVSPerFrame = nullptr;
     WR::ICollisionObject*       pCollisionHead = nullptr;
+
+    int nWidth, nHeight;
 };
 
 

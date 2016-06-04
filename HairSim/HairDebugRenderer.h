@@ -75,6 +75,7 @@ protected:
     ID3D11SamplerState*     psampleStateClamp = nullptr;
     ID3D11VertexShader*     psmVS = nullptr, *psVS = nullptr;
     ID3D11PixelShader*      psmPS = nullptr, *psPS = nullptr;
+    ID3D11GeometryShader*     psmGS = nullptr, *psGS = nullptr;
     RenderTextureClass*     pShadowMap = nullptr;
 
     DirectX::XMFLOAT4X4     lightProjView;
