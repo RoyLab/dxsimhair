@@ -629,7 +629,7 @@ void GS(line GeometryInputType points[2], inout TriangleStream<PixelInputType> o
     float3 viewDir = normalize(g_viewPoint - center);
 
     float3 normal = normalize(cross(dir, viewDir));
-    float width = 0.01f;
+    float width = 0.005f;
 
     PixelInputType v[4];
 

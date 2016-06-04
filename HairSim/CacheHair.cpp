@@ -109,11 +109,17 @@ namespace WR
     {
         file.clear();
         file.seekg(firstFrame);
+        set_curFrame(0);
     }
 
     size_t CacheHair::getFrameNumber() const
     {
         return get_nFrame();
+    }
+
+    size_t CacheHair::getCurrentFrame() const
+    {
+        return get_curFrame();
     }
 
     size_t CacheHair::n_strands() const
@@ -152,6 +158,7 @@ namespace WR
     void CacheHair::readFrame()
     {
         helper->readFrame(position, get_nParticle());
+        set_curFrame(get_curFrame() + 1);
     }
 
     bool CacheHair::hasNextFrame()
@@ -179,6 +186,7 @@ namespace WR
     void CacheHair20::readFrame()
     { 
         helper->readFrame20(rigidTrans, position, direction, get_nParticle());
+        set_curFrame(get_curFrame() + 1);
     }
 
     const float* CacheHair20::get_visible_particle_direction(size_t i, size_t j) const
@@ -189,6 +197,20 @@ namespace WR
     const float* CacheHair20::get_rigidMotionMatrix() const
     {
         return rigidTrans;
+    }
+
+    void  CacheHair::jumpTo(int frameNo)
+    {
+        set_curFrame(frameNo);
+        jumpTo();
+    }
+    
+    void CacheHair20::jumpTo()
+    {
+        file.seekg(firstFrame + std::streamoff(get_curFrame()*(sizeof(int)+
+            sizeof(float)*(16 + 3 * 2 * get_nParticle()))));
+        if (hasNextFrame())
+            helper->readFrame20(rigidTrans, position, direction, get_nParticle());
     }
 
 }

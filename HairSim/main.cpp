@@ -14,6 +14,7 @@
 #include "SDKmisc.h"
 #include "SDKmesh.h"
 #include "resource.h"
+#include "CacheHair.h"
 
 #include "wrSceneManager.h"
 
@@ -56,6 +57,7 @@ wrSceneManager              g_SceneMngr;
 #define IDC_UPDATE_GD_PARA          6
 #define IDC_TOGGLE_GD_MODE          7
 #define IDC_STEP_GD_ID          8
+#define IDC_GOTO_FRAME      9
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -148,6 +150,8 @@ void InitApp()
     g_HUD.AddButton(IDC_UPDATE_GD_PARA, L"update (F6)", 0, iY += iYo, 170, 22, VK_F6);
     g_HUD.AddButton(IDC_TOGGLE_GD_MODE, L"full/mono (F7)", 0, iY += iYo, 170, 22, VK_F7);
     g_HUD.AddButton(IDC_STEP_GD_ID, L"step id (F7)", 0, iY += iYo, 170, 22, VK_F8);
+    g_HUD.AddButton(IDC_GOTO_FRAME, L"goto frame (F8)", 0, iY += iYo, 170, 22, VK_F9);
+    
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
 
     CreateConsole();
@@ -166,6 +170,8 @@ void RenderText()
     g_pTxtHelper->SetForegroundColor( Colors::Yellow );
     g_pTxtHelper->DrawTextLine( DXUTGetFrameStats( DXUTIsVsyncEnabled() ) );
     g_pTxtHelper->DrawTextLine( DXUTGetDeviceStats() );
+    auto pHair = dynamic_cast<WR::CacheHair20*>(g_SceneMngr.pHair);
+    g_pTxtHelper->DrawFormattedTextLine(L"Frame: %d / %d", pHair->getCurrentFrame(), pHair->getFrameNumber());
     g_pTxtHelper->End();
 }
 
@@ -397,6 +403,9 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
             break;
         case IDC_STEP_GD_ID:
             g_SceneMngr.stepId();
+            break;
+        case IDC_GOTO_FRAME:
+            g_SceneMngr.redirectTo();
             break;
     }
 }

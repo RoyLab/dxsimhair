@@ -254,15 +254,35 @@ void  wrSceneManager::stepId()
     auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
     std::ifstream file("../id.txt");
     if (!file.is_open()) throw std::exception("File not found!");
-    int id;
+    int id, frame;
     file >> id;
+
+    file >> frame;
     file.close();
 
     ptr->activateMonoGroup(id++);
 
     std::ofstream ofile("../id.txt");
     if (!ofile.is_open()) throw std::exception("File not found!");
-    ofile << id;
+    ofile << id << std::endl;
+    ofile << frame << std::endl;
     ofile.close();
+}
+
+
+void wrSceneManager::redirectTo()
+{
+    auto ptr = reinterpret_cast<WR::CacheHair*>(pHair);
+    auto ptr0 = reinterpret_cast<WR::CacheHair*>(pHair0);
+
+    std::ifstream file("../id.txt");
+    if (!file.is_open()) throw std::exception("File not found!");
+    int id, frame;
+    file >> id;
+    file >> frame;
+    file.close();
+
+    ptr->jumpTo(frame);
+    ptr0->jumpTo(frame);
 }
 

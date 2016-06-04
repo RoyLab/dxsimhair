@@ -40,14 +40,16 @@ public:
     void toggleGDMode();
     void stepId();
     void resize(int w, int h) { nWidth = w; nHeight = h; }
+    void redirectTo();
 
 private:
     void setPerFrameConstantBuffer(double, float);
     bool initConstantBuffer();
 
-private:
+public:
     WR::IHair*                  pHair = nullptr;
     WR::IHair*                  pHair0 = nullptr;
+private:
     CModelViewerCamera*         pCamera = nullptr;
     wrRendererInterface*        pHairRenderer = nullptr;
     wrMeshRenderer*             pMeshRenderer = nullptr;
