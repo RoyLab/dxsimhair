@@ -443,23 +443,29 @@ void HairBiDebugRenderer::initColorSchemes()
 
     /* read the guide hair info */
     std::ifstream file(GUIDE_FILE, std::ios::binary);
-    if (!file.is_open()) throw std::exception("File not found!");
+    //if (!file.is_open())
+        //throw std::exception("File not found!");
 
     int nGuide = 0;
     char buffer[128];
-    file.read(buffer, 4);
-    nGuide = *reinterpret_cast<int*>(buffer);
-
-    file.read(buffer, 8);
     std::vector<int> guides;
-    std::cout << nGuide << std::endl;
-    for (size_t i = 0; i < nGuide; i++)
+
+    if (file.is_open())
     {
         file.read(buffer, 4);
-        guides.push_back(*reinterpret_cast<int*>(buffer));
-    }
+        nGuide = *reinterpret_cast<int*>(buffer);
 
-    file.close();
+        file.read(buffer, 8);
+        std::cout << nGuide << std::endl;
+        for (size_t i = 0; i < nGuide; i++)
+        {
+            file.read(buffer, 4);
+            guides.push_back(*reinterpret_cast<int*>(buffer));
+        }
+
+        file.close();
+    }
+    else nGuide = 0;
 
     /* generate guid hair outstanding scheme */
     for (int i = 0; i < pHair->n_strands(); i++)

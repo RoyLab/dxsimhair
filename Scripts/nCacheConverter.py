@@ -65,7 +65,7 @@ class ConverterHooker(ch.Hooker):
 
 
 if __name__ == "__main__":
-    conv = ConverterHooker("E:\\cache\\c0418.anim2", True)
+    conv = ConverterHooker("E:\\0418.anim2", True)
     conv.startLoop("Convert to anim file:")
     nCache.loop(file3, conv, 200)
     conv.endLoop()

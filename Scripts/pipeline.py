@@ -1,7 +1,8 @@
 
 file1 = "E:/cache/329.xml"
 file2 = "../../maya cache/03074/hair_nRigidShape1.xml"
-file3 = "E:/cache/424.xml"
+file3 = "E:/c0418.xml"
+# file3 = "D:/424.xml"
 
 if __name__ == "__main__":
 
@@ -73,7 +74,7 @@ if __name__ == "__main__":
 
         pkl.dump(edges, file(prefix[0]+'-edges.dump', 'w'))
         setReadOnly(prefix[0]+'-edges.dump')
-        
+
         #step 2
         strandGraph = gb.shrinkGraph(edges, factor)
 
@@ -103,7 +104,7 @@ if __name__ == "__main__":
         for i in vers:
             f.write(struct.pack('i', i))
         f.close()
-        
+
         # rand, opt, worst
         for iiii in range(3):
             opt = guideOpts[iiii]
@@ -140,7 +141,7 @@ if __name__ == "__main__":
 
             pkl.dump((hairGroup.guide, weights), file(sign+"-weights.dump", 'wb'), 2)
             setReadOnly(sign+"-weights.dump")
-            
+
             print "Total: error decrease from %f to %f." % (error0, error)
 
             endtime = time.strftime('%m-%d  %Hh%Mm%Ss',time.localtime(time.time()))
