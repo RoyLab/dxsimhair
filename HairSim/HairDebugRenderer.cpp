@@ -142,7 +142,7 @@ bool HairBiDebugRenderer::init()
     SAFE_DELETE_ARRAY(indices);
 
     if (bNeedShadow)
-        initWithShadow();
+        V_RETURN(initWithShadow());
 
     initColorSchemes();
     return true;
@@ -309,7 +309,7 @@ bool HairBiDebugRenderer::initWithShadow()
 
     // Compile the shadow hair vertex shader
     ID3DBlob* pVSBlob = nullptr;
-    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "VS", "vs_5_0", dwShaderFlags, 0, &pVSBlob));
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "VS", "vs_4_0", dwShaderFlags, 0, &pVSBlob));
 
     hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &psVS);
     if (FAILED(hr))
@@ -321,7 +321,7 @@ bool HairBiDebugRenderer::initWithShadow()
 
     // Compile the shadow hair pixel shader
     ID3DBlob* pPSBlob = nullptr;
-    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "PS", "ps_5_0", dwShaderFlags, 0, &pPSBlob));
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "PS", "ps_4_0", dwShaderFlags, 0, &pPSBlob));
 
     hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &psPS);
     if (FAILED(hr))
@@ -332,7 +332,7 @@ bool HairBiDebugRenderer::initWithShadow()
     SAFE_RELEASE(pPSBlob);
 
     // Compile the shadow map vertex shader
-    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "VS", "vs_5_0", dwShaderFlags, 0, &pVSBlob));
+    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "VS", "vs_4_0", dwShaderFlags, 0, &pVSBlob));
 
     hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &psmVS);
     if (FAILED(hr))
@@ -343,7 +343,7 @@ bool HairBiDebugRenderer::initWithShadow()
     SAFE_RELEASE(pVSBlob);
 
     // Compile the shadow map pixel shader
-    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "PS", "ps_5_0", dwShaderFlags, 0, &pPSBlob));
+    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "PS", "ps_4_0", dwShaderFlags, 0, &pPSBlob));
 
     hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &psmPS);
     if (FAILED(hr))
