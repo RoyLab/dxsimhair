@@ -20,9 +20,9 @@ if __name__ == "__main__":
     nFrame = 200
     nStep = 1000 # weight discretization
     nGroup = 200
-    radius = 0.03
+    radius = 0.04
     frameFilter = 0.2
-    prefix = ["s15000new2"]
+    prefix = ["c0524"]
     fileName = file3
     split=40
     guideOpts = ["rand", "opt", "worst"]
@@ -115,6 +115,7 @@ if __name__ == "__main__":
             hairGroup.solve(opt)
             sign = prefix[0] + '-'+opt+'-'
             sign += time.strftime('%m-%d %Hh%Mm%Ss',time.localtime(time.time()))
+            hairGroup.dumpNeighbourMap(prefix[0])
 
             guideImporter = ch.GuideHairHooker(hairGroup.guide, refFrame, prefix[0])
             guideImporter.startLoop("Import guide hair data with %d frames:" % nFrame)

@@ -29,9 +29,11 @@ struct CB_VS_PER_FRAME
 {
     XMFLOAT4X4  mViewProjection;
     XMFLOAT4X4  mWorld;
-
-    float       time;
-
+    XMFLOAT3    mViewPoint;
+    float               time;
+    XMFLOAT2    renderTargetSize;
+    XMFLOAT2   nouse;
+    float               nouse2;
     XMFLOAT3    lightDir;
     XMFLOAT4    lightDiffuse;
     XMFLOAT4    lightAmbient;
@@ -181,15 +183,18 @@ void wrSceneManager::setPerFrameConstantBuffer(double fTime, float fElapsedTime)
 
     XMStoreFloat4x4(&pVSPerFrame->mViewProjection, XMMatrixTranspose(mViewProjection));
     XMStoreFloat4x4(&pVSPerFrame->mWorld, XMMatrixTranspose(mWorld));
+    XMStoreFloat3(&pVSPerFrame->mViewPoint, pCamera->GetEyePt());
 
     pVSPerFrame->time = (float)fTime;
-
+    pVSPerFrame->renderTargetSize = XMFLOAT2(nWidth, nHeight);
     pVSPerFrame->lightDir = XMFLOAT3(0, 0.707f, -0.707f);
     pVSPerFrame->lightDiffuse = XMFLOAT4(1.f, 1.f, 1.f, 1.f);
     pVSPerFrame->lightAmbient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.f);
 
     pd3dImmediateContext->Unmap(pcbVSPerFrame, 0);
     pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pcbVSPerFrame);
+    pd3dImmediateContext->PSSetConstantBuffers(0, 1, &pcbVSPerFrame);
+    pd3dImmediateContext->GSSetConstantBuffers(0, 1, &pcbVSPerFrame);
 }
 
 
@@ -212,7 +217,13 @@ bool wrSceneManager::initConstantBuffer()
 
 void wrSceneManager::onKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
 {
+    switch (nChar)
+    {
+    case 'A':
+    case 'a':
 
+        break;
+    }
 }
 
 void wrSceneManager::nextColorScheme()
@@ -220,3 +231,64 @@ void wrSceneManager::nextColorScheme()
     auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
     ptr->nextColorScheme();
 }
+
+void wrSceneManager::prevColorScheme()
+{
+    auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
+    ptr->prevColorScheme();
+}
+
+void wrSceneManager::updateGDPara()
+{
+    std::ifstream file("../id.txt");
+    if (!file.is_open()) throw std::exception("File not found!");
+    int id;
+    file >> id;
+    file.close();
+    auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
+    ptr->activateMonoGroup(id);
+}
+
+void  wrSceneManager::toggleGDMode()
+{
+    auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
+    ptr->toggleGDMode();
+}
+
+void  wrSceneManager::stepId()
+{
+    auto ptr = reinterpret_cast<HairBiDebugRenderer*>(pHairRenderer);
+    std::ifstream file("../id.txt");
+    if (!file.is_open()) throw std::exception("File not found!");
+    int id, frame;
+    file >> id;
+
+    file >> frame;
+    file.close();
+
+    ptr->activateMonoGroup(id++);
+
+    std::ofstream ofile("../id.txt");
+    if (!ofile.is_open()) throw std::exception("File not found!");
+    ofile << id << std::endl;
+    ofile << frame << std::endl;
+    ofile.close();
+}
+
+
+void wrSceneManager::redirectTo()
+{
+    auto ptr = reinterpret_cast<WR::CacheHair*>(pHair);
+    auto ptr0 = reinterpret_cast<WR::CacheHair*>(pHair0);
+
+    std::ifstream file("../id.txt");
+    if (!file.is_open()) throw std::exception("File not found!");
+    int id, frame;
+    file >> id;
+    file >> frame;
+    file.close();
+
+    ptr->jumpTo(frame);
+    ptr0->jumpTo(frame);
+}
+

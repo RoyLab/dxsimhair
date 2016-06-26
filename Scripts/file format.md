@@ -14,8 +14,9 @@ float \* a \* a1 \* (6+3): rot, translate
 int b: number of strand  
 
 For Loop \* b  
-int: number of guides  
-(int, float):   guide Id, guide weight
+* int: number of guides  
+* int:   guide Id
+* float:   guide weight
 
 ---
 
@@ -26,19 +27,27 @@ int b: particle number
 
 For Loop \* a  
 int: frame id
-* For Loop \* b  
+* **For Loop** \* b  
 * float \* 3: position
-
 
 ---
 
 # Ground Truth, \*.anim2
 
 * INT b: particle number  
-* *For Loop* \* a  
+* **For Loop** \* a  
   * INT: frame id
   * FLOAT * 16: rigid motion
-  * *For Loop* \* b  
+  * **For Loop** \* b  
     * FLOAT \* 3: position
-  * *For Loop* \* b  
+  * **For Loop** \* b  
     * FLOAT \* 3: direction
+
+---
+
+# Neighbour Map, \*.neigh
+
+* INT a: group number  
+* **For Loop** \* a  
+  * INT b: number of neigh, including itself
+  * int \* b: neigh group id

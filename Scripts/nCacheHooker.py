@@ -1,6 +1,7 @@
 from frame import Frame
 from progressbar import *
 from GraphBuilder import *
+import numpy as np
 
 class Hooker(object):
     def __init__(self, number=None):
@@ -36,11 +37,13 @@ class GraphBuildHooker(Hooker):
         self.edges = {}
 
     def postFrame(self):
-        createInitGraphLoop(self.radius, self.frame, self.edges, self.i)
+        self.edges = createInitGraphLoop(self.radius, self.frame, self.edges, self.i)
         if self.i == 0:
             self.refFrame = self.frame
             self.nParticle = self.frame.n_particle
             self.nStrand = self.frame.n_hair
+            print "There are %d edges in the first frame" % len(self.edges)
+
         super(GraphBuildHooker, self).postFrame()
 
     def graph(self):
@@ -53,7 +56,7 @@ class ConnectionCalcHooker(Hooker):
         self.reference = reference
         self.prefix = prefix
         for k in edges.keys():
-            edges[k] = 0
+            edges[k] = np.zeros(2)
         import os
         self.path = ".dump/frame-"+self.prefix+'/'
         if not os.path.exists(self.path):
@@ -63,10 +66,25 @@ class ConnectionCalcHooker(Hooker):
         self.frame.calcParticleDirections()
         self.frame.calcMotionMatrix(self.reference)
         self.frame.cacheInfo(self.path+"frame"+str(self.i)+".dump")
-
         for k in self.edges.keys():
-            self.edges[k] -= self.frame.deviation(k[0], k[1])
+            self.edges[k] -= np.array(self.frame.deviationVector(k[0], k[1]))
         super(ConnectionCalcHooker, self).postFrame()
+
+    def endLoop(self):
+        c0 = 0.0
+        c1 = 0.0
+        for val in self.edges.values():
+            c0 += val[0]
+            c1 += val[1]
+
+        coef = c0 / c1
+        for k in self.edges.keys():
+            self.edges[k] = self.edges[k][0] + self.edges[k][1] * coef
+
+        super(ConnectionCalcHooker, self).endLoop()
+        print "Coefficients are %f, %f." % (c0, c1)
+
+
 
 class GuideHairHooker(Hooker):
     def __init__(self, guide, ref, prefix):

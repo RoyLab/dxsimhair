@@ -65,12 +65,15 @@ namespace WR
         void rewind();
         void nextFrame() { bNextFrame = true; }
         size_t getFrameNumber() const;
+        size_t getCurrentFrame() const;
+        void jumpTo(int frameNo);
 
         virtual size_t n_strands() const;
         virtual const float* get_visible_particle_position(size_t i, size_t j) const;
         virtual void onFrame(Mat3 world, float fTime, float fTimeElapsed, void* = nullptr);
 
     protected:
+        virtual void jumpTo(){}
         virtual void readFrame();
         bool hasNextFrame();
 
@@ -95,6 +98,7 @@ namespace WR
 
     protected:
         void readFrame();
+        void jumpTo();
 
         float* direction = nullptr;
         float* rigidTrans = nullptr;

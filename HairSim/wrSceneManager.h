@@ -35,14 +35,21 @@ public:
     void render(double, float);
     void onKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext);
     void nextColorScheme();
+    void prevColorScheme();
+    void updateGDPara();
+    void toggleGDMode();
+    void stepId();
+    void resize(int w, int h) { nWidth = w; nHeight = h; }
+    void redirectTo();
 
 private:
     void setPerFrameConstantBuffer(double, float);
     bool initConstantBuffer();
 
-private:
+public:
     WR::IHair*                  pHair = nullptr;
     WR::IHair*                  pHair0 = nullptr;
+private:
     CModelViewerCamera*         pCamera = nullptr;
     wrRendererInterface*        pHairRenderer = nullptr;
     wrMeshRenderer*             pMeshRenderer = nullptr;
@@ -52,6 +59,8 @@ private:
 
     ID3D11Buffer*               pcbVSPerFrame = nullptr;
     WR::ICollisionObject*       pCollisionHead = nullptr;
+
+    int nWidth, nHeight;
 };
 
 

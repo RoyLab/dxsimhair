@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include <d3d11.h>
+#include <vector>
 
 #include "IHair.h"
 #include "wrSceneManager.h"
@@ -15,6 +16,8 @@ struct HairDebugVertexInput
     float               na1;
     DirectX::XMFLOAT3   direction;
     float               na2;
+    DirectX::XMFLOAT3   ref;
+    float               na3;
 };
 
 
@@ -31,10 +34,15 @@ public:
     virtual void onFrame(double, float){}
     virtual void render(double, float);
     void nextColorScheme();
+    void prevColorScheme();
+
+    void activateMonoGroup(int idx);
+    void toggleGDMode() { GDMode = (GDMode == 1) ? 0 : 1; }
 
 protected:
     bool initWithShadow();
     void initColorSchemes();
+    void drawCall(const WR::IHair* hair);
 
     void renderWithShadow(const WR::IHair* hair, ID3D11Buffer* vb,
         ID3D11Buffer* ib, const DirectX::XMFLOAT3* colors, float* offset);
@@ -60,21 +68,33 @@ protected:
     ID3D11Buffer*           pIB0 = nullptr;
     const WR::IHair*        pHair0;
 
-    /* for simple dsm*/
+    /* for simple dsm*/ 
     bool                    bNeedShadow = false;
     DirectX::XMMATRIX       lightProjViewMatrix;
     ID3D11Buffer*           pCBShadow = nullptr;
     ID3D11SamplerState*     psampleStateClamp = nullptr;
     ID3D11VertexShader*     psmVS = nullptr, *psVS = nullptr;
     ID3D11PixelShader*      psmPS = nullptr, *psPS = nullptr;
+    ID3D11GeometryShader*     psmGS = nullptr, *psGS = nullptr;
     RenderTextureClass*     pShadowMap = nullptr;
 
     DirectX::XMFLOAT4X4     lightProjView;
 
     /* 配色方案 */
-    enum COLOR_SCHEME { PSEUDO_COLOR, GUIDE_COLOR, GROUP_COLOR, ERROR_COLOR, DIR_COLOR, NUM_COLOR_SCHEME };
+    enum COLOR_SCHEME { PSEUDO_COLOR, GUIDE_COLOR, GROUP_COLOR, ERROR_COLOR, DIR_COLOR, ERROR_GROUP_COLOR, NUM_COLOR_SCHEME };
     void setColorScheme(COLOR_SCHEME s);
 
     COLOR_SCHEME            colorScheme = PSEUDO_COLOR;
     DirectX::XMFLOAT3**     colorSet = nullptr;
+
+    /* 单独显示某一个group的模块，GD，Group Display */
+    bool isGDActive = false;
+    int GDMode = 0;
+    int GDId = -1;
+    short* groupIndex = nullptr; // [0,0,0,1,1,1,2,2,2,2,2,.....]
+    int* guideHairs = nullptr; // [1345,2345,2578,43,234,......]
+    std::vector<int>* neighbourGroups = nullptr; // [0,1,2,3],[3,4,6,35],....
+
+    size_t n_group = -1;
+    size_t n_strand = -1;
 };

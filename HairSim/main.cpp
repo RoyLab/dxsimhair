@@ -14,6 +14,7 @@
 #include "SDKmisc.h"
 #include "SDKmesh.h"
 #include "resource.h"
+#include "CacheHair.h"
 
 #include "wrSceneManager.h"
 
@@ -52,6 +53,11 @@ wrSceneManager              g_SceneMngr;
 #define IDC_PAUSE           2
 #define IDC_CHANGEDEVICE        3
 #define IDC_NEXT_COLOR          4
+#define IDC_PREV_COLOR          5
+#define IDC_UPDATE_GD_PARA          6
+#define IDC_TOGGLE_GD_MODE          7
+#define IDC_STEP_GD_ID          8
+#define IDC_GOTO_FRAME      9
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -139,8 +145,13 @@ void InitApp()
     g_HUD.AddButton( IDC_TOGGLEFULLSCREEN, L"Toggle full screen", 0, iY, 170, 22 );
     g_HUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 0, iY += iYo, 170, 22, VK_F2 );
     g_HUD.AddButton( IDC_PAUSE, L"Pause (F3)", 0, iY += iYo, 170, 22, VK_F3 );
-    g_HUD.AddButton( IDC_NEXT_COLOR, L"Next Color (F4)", 0, iY += iYo, 170, 22, VK_F4 );
-
+    g_HUD.AddButton(IDC_NEXT_COLOR, L"Next Color (F4)", 0, iY += iYo, 170, 22, VK_F4);
+    g_HUD.AddButton(IDC_PREV_COLOR, L"Prev Color (F5)", 0, iY += iYo, 170, 22, VK_F5);
+    g_HUD.AddButton(IDC_UPDATE_GD_PARA, L"update (F6)", 0, iY += iYo, 170, 22, VK_F6);
+    g_HUD.AddButton(IDC_TOGGLE_GD_MODE, L"full/mono (F7)", 0, iY += iYo, 170, 22, VK_F7);
+    g_HUD.AddButton(IDC_STEP_GD_ID, L"step id (F7)", 0, iY += iYo, 170, 22, VK_F8);
+    g_HUD.AddButton(IDC_GOTO_FRAME, L"goto frame (F8)", 0, iY += iYo, 170, 22, VK_F9);
+    
     g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
 
     CreateConsole();
@@ -159,6 +170,8 @@ void RenderText()
     g_pTxtHelper->SetForegroundColor( Colors::Yellow );
     g_pTxtHelper->DrawTextLine( DXUTGetFrameStats( DXUTIsVsyncEnabled() ) );
     g_pTxtHelper->DrawTextLine( DXUTGetDeviceStats() );
+    auto pHair = dynamic_cast<WR::CacheHair20*>(g_SceneMngr.pHair);
+    g_pTxtHelper->DrawFormattedTextLine(L"Frame: %d / %d", pHair->getCurrentFrame(), pHair->getFrameNumber());
     g_pTxtHelper->End();
 }
 
@@ -223,6 +236,8 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
     g_SampleUI.SetLocation( pBackBufferSurfaceDesc->Width - 170, pBackBufferSurfaceDesc->Height - 300 );
     g_SampleUI.SetSize( 170, 300 );
 
+    g_SceneMngr.resize(pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height );
+
     return S_OK;
 }
 
@@ -242,7 +257,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 
     auto pRTV = DXUTGetD3D11RenderTargetView();
     //float bgColor[] = { 0.0f, 0.125f, 0.3f, 1.0f };
-    float bgColor[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+    float bgColor[] = { 0.0f, 0.0f, 0.1f, 1.0f };
     pd3dImmediateContext->ClearRenderTargetView(pRTV, bgColor);
 
     // Clear the depth stencil
@@ -374,8 +389,23 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
             g_SceneMngr.nextColorScheme();
             //DXUTToggleWARP();
             break;
+        case IDC_PREV_COLOR:
+            g_SceneMngr.prevColorScheme();
+            break;
         case IDC_CHANGEDEVICE:
             g_SettingsDlg.SetActive( !g_SettingsDlg.IsActive() );
+            break;
+        case IDC_UPDATE_GD_PARA:
+            g_SceneMngr.updateGDPara();
+            break;
+        case IDC_TOGGLE_GD_MODE:
+            g_SceneMngr.toggleGDMode();
+            break;
+        case IDC_STEP_GD_ID:
+            g_SceneMngr.stepId();
+            break;
+        case IDC_GOTO_FRAME:
+            g_SceneMngr.redirectTo();
             break;
     }
 }

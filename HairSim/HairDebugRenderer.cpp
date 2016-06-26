@@ -11,12 +11,14 @@
 #include "linmath.h"
 #include "rendertextureclass.h"
 #include "wrColorGenerator.h"
+#include "wrMath.h"
 
 using namespace DirectX;
 
 extern bool hasShadow;
 extern std::string GUIDE_FILE;
 extern std::string GROUP_FILE;
+extern std::string NEIGH_FILE;
 
 struct ShadowMapConstBuffer
 {
@@ -110,7 +112,8 @@ bool HairBiDebugRenderer::init()
         { "SEQ", 0, DXGI_FORMAT_R32_SINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "DIRECTION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        { "DIR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "REF", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     UINT numElements = ARRAYSIZE(layout);
@@ -162,8 +165,10 @@ void HairBiDebugRenderer::release()
     SAFE_RELEASE(psampleStateClamp);
     SAFE_RELEASE(psmVS);
     SAFE_RELEASE(psmPS);
+    SAFE_RELEASE(psmGS);
     SAFE_RELEASE(psVS);
     SAFE_RELEASE(psPS);
+    SAFE_RELEASE(psGS);
 
     if (pShadowMap)
         pShadowMap->Shutdown();
@@ -176,6 +181,9 @@ void HairBiDebugRenderer::release()
     }
 
     SAFE_DELETE_ARRAY(colorSet);
+    SAFE_DELETE_ARRAY(groupIndex);
+    SAFE_DELETE_ARRAY(guideHairs);
+    SAFE_DELETE_ARRAY(neighbourGroups);
 }
 
 void HairBiDebugRenderer::render(double fTime, float fTimeElapsed)
@@ -211,13 +219,24 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
             memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].direction, dir, sizeof(vec3));
             if (colorScheme != DIR_COLOR)
             {
-                if (colorScheme != ERROR_COLOR || hair == pHair0)
+                if ((colorScheme != ERROR_COLOR || hair == pHair0) && colorScheme != ERROR_GROUP_COLOR)
                     memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &colors[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
                 else
                 {
-                    memcpy(pos, pHair0->get_visible_particle_position(i, j), sizeof(vec3));
-                    vec3_add(pos, offset, pos);
-                    memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, pos, sizeof(vec3));
+                    if (colorScheme == ERROR_COLOR)
+                    {
+                        memcpy(pos, pHair0->get_visible_particle_position(i, j), sizeof(vec3));
+                        vec3_add(pos, offset, pos);
+                        memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, pos, sizeof(vec3));
+                    }
+
+                    if (colorScheme == ERROR_GROUP_COLOR)
+                    {
+                        memcpy(pos, pHair0->get_visible_particle_position(i, j), sizeof(vec3));
+                        vec3_add(pos, offset, pos);
+                        memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].ref, pos, sizeof(vec3));
+                        memcpy(&pData[N_PARTICLES_PER_STRAND * i + j].color, &colors[N_PARTICLES_PER_STRAND * i + j], sizeof(vec3));
+                    }
                 }
             }
         }
@@ -241,9 +260,9 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
         pd3dImmediateContext->PSSetShader(pPS, nullptr, 0);
     }
 
-    int start = 0;
-    for (int i = 0; i < n_strands; i++, start += N_PARTICLES_PER_STRAND)
-        pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+    drawCall(hair);
+
+    pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 }
 
 void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* vb,
@@ -262,7 +281,7 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pShadowMap->SetRenderTarget(pd3dImmediateContext);
     pShadowMap->ClearRenderTarget(pd3dImmediateContext, 1.0f, /*no use*/0.0f, 0.0f, 0.0f);
 
-    if (hair == pHair0 && colorScheme == ERROR_COLOR)
+    if (hair == pHair0 && (colorScheme == ERROR_COLOR))
         setColorScheme(GUIDE_COLOR);
     else
         setColorScheme(colorScheme);
@@ -270,10 +289,9 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pd3dImmediateContext->VSSetConstantBuffers(1, 1, &pCBShadow);
     pd3dImmediateContext->VSSetShader(psmVS, nullptr, 0);
     pd3dImmediateContext->PSSetShader(psmPS, nullptr, 0);
+    pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 
-    int start = 0;
-    for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
-        pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+    drawCall(hair);
 
     pd3dImmediateContext->OMSetRenderTargets(1, &pRTV, pDSV);
     pd3dImmediateContext->RSSetViewports(1, &vp);
@@ -284,11 +302,8 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pd3dImmediateContext->PSSetShaderResources(0, 1, &pTexture);
     pd3dImmediateContext->PSSetSamplers(0, 1, &psampleStateClamp);
     pd3dImmediateContext->VSSetShader(psVS, nullptr, 0);
+    pd3dImmediateContext->GSSetShader(psGS, nullptr, 0);
     pd3dImmediateContext->PSSetShader(psPS, nullptr, 0);
-
-    //start = 0;
-    //for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
-    //    pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
 }
 
 bool HairBiDebugRenderer::initWithShadow()
@@ -332,7 +347,7 @@ bool HairBiDebugRenderer::initWithShadow()
     SAFE_RELEASE(pPSBlob);
 
     // Compile the shadow map vertex shader
-    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "VS", "vs_4_0", dwShaderFlags, 0, &pVSBlob));
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "SM_VS", "vs_4_0", dwShaderFlags, 0, &pVSBlob));
 
     hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &psmVS);
     if (FAILED(hr))
@@ -343,7 +358,7 @@ bool HairBiDebugRenderer::initWithShadow()
     SAFE_RELEASE(pVSBlob);
 
     // Compile the shadow map pixel shader
-    V_RETURN(DXUTCompileFromFile(L"ShadowMap.hlsl", nullptr, "PS", "ps_4_0", dwShaderFlags, 0, &pPSBlob));
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "SM_PS", "ps_4_0", dwShaderFlags, 0, &pPSBlob));
 
     hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &psmPS);
     if (FAILED(hr))
@@ -352,6 +367,28 @@ bool HairBiDebugRenderer::initWithShadow()
         return hr;
     }
     SAFE_RELEASE(pPSBlob);
+
+    ID3DBlob* pGSBlob = nullptr;
+    // Compile the shadow map geometry shader
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "GS", "gs_4_0", dwShaderFlags, 0, &pGSBlob));
+
+    hr = pd3dDevice->CreateGeometryShader(pGSBlob->GetBufferPointer(), pGSBlob->GetBufferSize(), nullptr, &psGS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pGSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pGSBlob);
+
+    V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "SM_GS", "gs_4_0", dwShaderFlags, 0, &pGSBlob));
+
+    hr = pd3dDevice->CreateGeometryShader(pGSBlob->GetBufferPointer(), pGSBlob->GetBufferSize(), nullptr, &psmGS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pGSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pGSBlob);
 
     ShadowMapConstBuffer smcbuffer;
 
@@ -364,7 +401,7 @@ bool HairBiDebugRenderer::initWithShadow()
     }
 
     XMFLOAT4X4 proj;  pShadowMap->GetOrthoMatrix(proj);
-    XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, 10.0f);
+    XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, -10.0f);
     XMFLOAT3 lightTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
     XMFLOAT3 lightUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
 
@@ -418,6 +455,8 @@ const DirectX::XMFLOAT3* HairBiDebugRenderer::getColorBuffer() const
         return colorSet[GROUP_COLOR];
     case HairBiDebugRenderer::ERROR_COLOR:
         return colorSet[GUIDE_COLOR];
+    case HairBiDebugRenderer::ERROR_GROUP_COLOR:
+        return colorSet[GROUP_COLOR];
     case HairBiDebugRenderer::DIR_COLOR:
         return nullptr;
     default:
@@ -427,7 +466,12 @@ const DirectX::XMFLOAT3* HairBiDebugRenderer::getColorBuffer() const
 
 void HairBiDebugRenderer::initColorSchemes()
 {
+    n_strand = pHair->n_strands();
+
     colorSet = new XMFLOAT3*[NUM_COLOR_SCHEME];
+    XMFLOAT3* noise = new XMFLOAT3[pHair->n_strands()];
+    for (int i = 0; i < pHair->n_strands(); i++)
+        noise[i] = XMFLOAT3(0.1*randSignedFloat(), 0.1*randSignedFloat(), 0.1*randf());
 
     size_t nParticle = pHair->n_strands() * N_PARTICLES_PER_STRAND;
     for (size_t i = 0; i < NUM_COLOR_SCHEME; i++)
@@ -447,36 +491,49 @@ void HairBiDebugRenderer::initColorSchemes()
         //throw std::exception("File not found!");
 
     int nGuide = 0;
-    char buffer[128];
-    std::vector<int> guides;
+    char buffer[1024];
+    file.read(buffer, 4);
+    nGuide = *reinterpret_cast<int*>(buffer);
 
-    if (file.is_open())
+    file.read(buffer, 8);
+    n_group = nGuide;
+    std::cout << nGuide << std::endl;
+    guideHairs = new int[nGuide];
+    for (size_t i = 0; i < nGuide; i++)
     {
         file.read(buffer, 4);
-        nGuide = *reinterpret_cast<int*>(buffer);
-
-        file.read(buffer, 8);
-        std::cout << nGuide << std::endl;
-        for (size_t i = 0; i < nGuide; i++)
-        {
-            file.read(buffer, 4);
-            guides.push_back(*reinterpret_cast<int*>(buffer));
-        }
-
-        file.close();
+        guideHairs[i] = *reinterpret_cast<int*>(buffer);
     }
-    else nGuide = 0;
+
+    file.close();
+
+    /* read the hair neighbour info */
+    file.open(NEIGH_FILE, std::ios::binary);
+    if (!file.is_open()) throw std::exception("File not found!");
+
+    file.read(buffer, 4);
+    neighbourGroups = new std::vector<int>[nGuide];
+    for (size_t i = 0; i < nGuide; i++)
+    {
+        file.read(buffer, 4);
+        int n = *reinterpret_cast<int*>(buffer);
+        file.read(buffer, 4 * n);
+        int* neighbours = reinterpret_cast<int*>(buffer);
+        for (size_t j = 0; j < n; j++)
+            neighbourGroups[i].push_back(neighbours[j]);
+    }
 
     /* generate guid hair outstanding scheme */
     for (int i = 0; i < pHair->n_strands(); i++)
     {
-        vec3 color{ 1, 1, 1 };
+        vec3 color{ 0.05*(1 + 0.3*randSignedFloat()), 0.05*(1 + 0.3*randSignedFloat()), 0.05*(1 + 0.3*randSignedFloat()) };
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
             memcpy(colorSet[GUIDE_COLOR] + N_PARTICLES_PER_STRAND*i + j, color, sizeof(vec3));
     }
 
     vec3 red{ 1.0f, 0.0f, 0.0f };
-    for (int id : guides)
+    int id = guideHairs[0];
+    for (int i = 0; i < nGuide; i++, id = guideHairs[i])
     {
         for (size_t i = 0; i < N_PARTICLES_PER_STRAND; i++)
             memcpy(colorSet[GUIDE_COLOR] + N_PARTICLES_PER_STRAND*id + i, red, sizeof(vec3));
@@ -489,11 +546,11 @@ void HairBiDebugRenderer::initColorSchemes()
     file.read(buffer, 4);
     int nStrand = *reinterpret_cast<int*>(buffer);
 
-    std::vector<int> groups(nStrand);
+    groupIndex = new short[n_strand];
     for (size_t i = 0; i < nStrand; i++)
     {
         file.read(buffer, 4);
-        groups[i] = (*reinterpret_cast<int*>(buffer));
+        groupIndex[i] =short(*reinterpret_cast<int*>(buffer));
     }
 
     file.close();
@@ -511,16 +568,22 @@ void HairBiDebugRenderer::initColorSchemes()
     {
         vec3 color{ 1.0f, 1.0f, 1.0f };
         for (int j = 0; j < N_PARTICLES_PER_STRAND; j++)
-            memcpy(colorSet[GROUP_COLOR] + N_PARTICLES_PER_STRAND*i + j, i % 1 == 0 ? (void*)(groupColors + groups[i]) : (void*)(color), sizeof(vec3));
+            memcpy(colorSet[GROUP_COLOR] + N_PARTICLES_PER_STRAND*i + j, i % 1 == 0 ? (void*)(groupColors + groupIndex[i]) : (void*)(color), sizeof(vec3));
     }
 
     SAFE_DELETE_ARRAY(groupColors);
+    SAFE_DELETE_ARRAY(noise);
 }
 
 
 void HairBiDebugRenderer::nextColorScheme()
 {
     colorScheme = static_cast<COLOR_SCHEME>((colorScheme + 1) % NUM_COLOR_SCHEME);
+}
+
+void HairBiDebugRenderer::prevColorScheme()
+{
+    colorScheme = static_cast<COLOR_SCHEME>((colorScheme + NUM_COLOR_SCHEME - 1) % NUM_COLOR_SCHEME);
 }
 
 void HairBiDebugRenderer::setColorScheme(COLOR_SCHEME s)
@@ -532,5 +595,42 @@ void HairBiDebugRenderer::setColorScheme(COLOR_SCHEME s)
     pVSPerFrame->lightProjViewMatrix = lightProjView;
     pVSPerFrame->colorScheme = s;
     pd3dImmediateContext->Unmap(pCBShadow, 0);
+}
+
+void HairBiDebugRenderer::activateMonoGroup(int idx)
+{
+    if (idx < 0)
+    {
+        isGDActive = false;
+        return;
+    }
+
+    isGDActive = true;
+    GDId = idx;
+}
+
+void HairBiDebugRenderer::drawCall(const WR::IHair* hair)
+{
+    if (isGDActive)
+    {
+        int start = 0;
+        for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
+        {
+            if (groupIndex[i] != GDId)
+            {
+                if (GDMode == 0 && guideHairs[groupIndex[i]] != i) continue;
+                auto &neigh = neighbourGroups[GDId];
+                auto result = std::find(neigh.begin(), neigh.end(), groupIndex[i]);
+                if (result == neigh.end()) continue;
+            }
+            pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+        }
+    }
+    else
+    {
+        int start = 0;
+        for (int i = 0; i < hair->n_strands(); i++, start += N_PARTICLES_PER_STRAND)
+            pd3dImmediateContext->DrawIndexed(N_PARTICLES_PER_STRAND, start, 0);
+    }
 }
 
