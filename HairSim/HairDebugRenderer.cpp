@@ -42,6 +42,7 @@ bool HairBiDebugRenderer::init()
     pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
     int n_particles = pHair->n_strands() *  N_PARTICLES_PER_STRAND;
+    n_strand = pHair->n_strands();
 
     D3D11_SUBRESOURCE_DATA subRes;
     //ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
@@ -68,6 +69,21 @@ bool HairBiDebugRenderer::init()
     subRes.pSysMem = indices;
 
     V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &pIB));
+    SAFE_DELETE_ARRAY(indices);
+
+    // point buffer
+    ZeroMemory(&bDesc, sizeof(CD3D11_BUFFER_DESC));
+    bDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bDesc.ByteWidth = n_strand * sizeof(DWORD);
+    bDesc.Usage = D3D11_USAGE_DEFAULT;
+
+    ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
+    indices = new DWORD[n_strand];
+    for (int i = 0; i < n_strand; i++)
+        indices[i] = i*N_PARTICLES_PER_STRAND;
+    subRes.pSysMem = indices;
+
+    V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &pIBPoint));
     SAFE_DELETE_ARRAY(indices);
 
     // create vs, ps, layout
@@ -147,6 +163,8 @@ bool HairBiDebugRenderer::init()
     if (bNeedShadow)
         V_RETURN(initWithShadow());
 
+    V_RETURN(initWithFollicle());
+
     initColorSchemes();
     return true;
 }
@@ -155,6 +173,7 @@ void HairBiDebugRenderer::release()
 {
     SAFE_RELEASE(pVB);
     SAFE_RELEASE(pIB);
+    SAFE_RELEASE(pIBPoint);
     SAFE_RELEASE(pVS);
     SAFE_RELEASE(pPS);
     SAFE_RELEASE(pLayout);
@@ -163,12 +182,18 @@ void HairBiDebugRenderer::release()
 
     SAFE_RELEASE(pCBShadow);
     SAFE_RELEASE(psampleStateClamp);
+
     SAFE_RELEASE(psmVS);
     SAFE_RELEASE(psmPS);
     SAFE_RELEASE(psmGS);
+
     SAFE_RELEASE(psVS);
     SAFE_RELEASE(psPS);
     SAFE_RELEASE(psGS);
+
+    SAFE_RELEASE(pPVS);
+    SAFE_RELEASE(pPPS);
+    SAFE_RELEASE(pPGS);
 
     if (pShadowMap)
         pShadowMap->Shutdown();
@@ -188,11 +213,22 @@ void HairBiDebugRenderer::release()
 
 void HairBiDebugRenderer::render(double fTime, float fTimeElapsed)
 {
-    vec3 offset0{ -2.f, 0, 0 };
-    HairBiDebugRenderer::render(pHair0, pVB0, pIB0, getColorBuffer(), offset0);
+    if (!pointFlag)
+    {
+        vec3 offset0{ -2.f, 0, 0 };
+        HairBiDebugRenderer::render(pHair0, pVB0, pIB0, getColorBuffer(), offset0);
 
-    vec3 offset{ 2.f, 0, 0 };
-    HairBiDebugRenderer::render(pHair, pVB, pIB, getColorBuffer(), offset);
+        vec3 offset{ 2.f, 0, 0 };
+        HairBiDebugRenderer::render(pHair, pVB, pIB, getColorBuffer(), offset);
+    }
+    else
+    {
+        vec3 offset0{ -2.f, 0, 0 };
+        HairBiDebugRenderer::render(pHair0, pVB0, pIBPoint, getColorBuffer(), offset0);
+
+        vec3 offset{ 2.f, 0, 0 };
+        HairBiDebugRenderer::render(pHair, pVB, pIBPoint, getColorBuffer(), offset);
+    }
 }
 
 void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
@@ -305,6 +341,62 @@ void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* 
     pd3dImmediateContext->GSSetShader(psGS, nullptr, 0);
     pd3dImmediateContext->PSSetShader(psPS, nullptr, 0);
 }
+
+bool HairBiDebugRenderer::initWithFollicle()
+{
+    HRESULT hr;
+    // create vs, ps, layout
+    DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+    // Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
+    // Setting this flag improves the shader debugging experience, but still allows 
+    // the shaders to be optimized and to run exactly the way they will run in 
+    // the release configuration of this program.
+    dwShaderFlags |= D3DCOMPILE_DEBUG;
+
+    // Disable optimizations to further improve shader debugging
+    dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+    ID3DBlob* pVSBlob = nullptr;
+    ID3DBlob* pPSBlob = nullptr;
+    ID3DBlob* pGSBlob = nullptr;
+
+    // Compile the vertex shader
+    V_RETURN(DXUTCompileFromFile(L"point.hlsl", nullptr, "VS", "vs_4_0", dwShaderFlags, 0, &pVSBlob));
+
+    hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pPVS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pVSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pVSBlob);
+
+    // Compile the pixel shader
+    V_RETURN(DXUTCompileFromFile(L"point.hlsl", nullptr, "PS", "ps_4_0", dwShaderFlags, 0, &pPSBlob));
+
+    hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPPS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pPSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pPSBlob);
+
+    // Compile the geometry shader
+    V_RETURN(DXUTCompileFromFile(L"point.hlsl", nullptr, "GS", "gs_4_0", dwShaderFlags, 0, &pGSBlob));
+
+    hr = pd3dDevice->CreateGeometryShader(pGSBlob->GetBufferPointer(), pGSBlob->GetBufferSize(), nullptr, &pPGS);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pGSBlob);
+        return hr;
+    }
+    SAFE_RELEASE(pGSBlob);
+    return true;
+}
+
 
 bool HairBiDebugRenderer::initWithShadow()
 {
@@ -487,8 +579,8 @@ void HairBiDebugRenderer::initColorSchemes()
 
     /* read the guide hair info */
     std::ifstream file(GUIDE_FILE, std::ios::binary);
-    //if (!file.is_open())
-        //throw std::exception("File not found!");
+    if (!file.is_open())
+        throw std::exception("File not found!");
 
     int nGuide = 0;
     char buffer[1024];
@@ -523,6 +615,8 @@ void HairBiDebugRenderer::initColorSchemes()
             neighbourGroups[i].push_back(neighbours[j]);
     }
 
+    file.close();
+
     /* generate guid hair outstanding scheme */
     for (int i = 0; i < pHair->n_strands(); i++)
     {
@@ -544,6 +638,7 @@ void HairBiDebugRenderer::initColorSchemes()
     if (!file.is_open()) throw std::exception("File not found!");
 
     file.read(buffer, 4);
+    assert(!file.bad());
     int nStrand = *reinterpret_cast<int*>(buffer);
 
     groupIndex = new short[n_strand];

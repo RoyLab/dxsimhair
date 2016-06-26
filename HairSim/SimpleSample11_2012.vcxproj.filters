@@ -46,6 +46,9 @@
     <None Include="example.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="point.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wrColorGenerator.cpp">
@@ -209,6 +212,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rendertextureclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HairGeometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

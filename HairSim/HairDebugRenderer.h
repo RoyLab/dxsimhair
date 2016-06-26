@@ -39,8 +39,11 @@ public:
     void activateMonoGroup(int idx);
     void toggleGDMode() { GDMode = (GDMode == 1) ? 0 : 1; }
 
+    bool pointFlag = false;
+
 protected:
     bool initWithShadow();
+    bool initWithFollicle();
     void initColorSchemes();
     void drawCall(const WR::IHair* hair);
 
@@ -57,6 +60,7 @@ protected:
 
     ID3D11Buffer*           pVB = nullptr;
     ID3D11Buffer*           pIB = nullptr;
+    ID3D11Buffer*           pIBPoint = nullptr;
     const WR::IHair*        pHair;
 
     ID3D11VertexShader*     pVS = nullptr;
@@ -73,9 +77,9 @@ protected:
     DirectX::XMMATRIX       lightProjViewMatrix;
     ID3D11Buffer*           pCBShadow = nullptr;
     ID3D11SamplerState*     psampleStateClamp = nullptr;
-    ID3D11VertexShader*     psmVS = nullptr, *psVS = nullptr;
-    ID3D11PixelShader*      psmPS = nullptr, *psPS = nullptr;
-    ID3D11GeometryShader*     psmGS = nullptr, *psGS = nullptr;
+    ID3D11VertexShader*     psmVS = nullptr, *psVS = nullptr, *pPVS = nullptr;
+    ID3D11PixelShader*      psmPS = nullptr, *psPS = nullptr, *pPPS = nullptr;
+    ID3D11GeometryShader*   psmGS = nullptr, *psGS = nullptr, *pPGS = nullptr;
     RenderTextureClass*     pShadowMap = nullptr;
 
     DirectX::XMFLOAT4X4     lightProjView;
