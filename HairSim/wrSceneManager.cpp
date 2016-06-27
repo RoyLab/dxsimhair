@@ -142,12 +142,12 @@ void wrSceneManager::render(double fTime, float fElapsedTime)
     vec3 offset0{ -2.f, 0, 0 };
     pMeshRenderer->setTransformation(pHair0->get_rigidMotionMatrix());
     pMeshRenderer->setOffset(offset0);
-    pMeshRenderer->render(fTime, fElapsedTime);
+    //pMeshRenderer->render(fTime, fElapsedTime);
 
     vec3 offset1{ 2.f, 0, 0 };
     pMeshRenderer->setTransformation(pHair0->get_rigidMotionMatrix());
     pMeshRenderer->setOffset(offset1);
-    pMeshRenderer->render(fTime, fElapsedTime);
+    //pMeshRenderer->render(fTime, fElapsedTime);
 }
 
 

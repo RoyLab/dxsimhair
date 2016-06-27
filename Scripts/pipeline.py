@@ -127,6 +127,8 @@ if __name__ == "__main__":
             guideImporter.export(guideExportFileName, factor)
             setReadOnly(guideExportFileName)
 
+            quit()
+            
             error0 = 0.0
             error = 0.0
             weights = []

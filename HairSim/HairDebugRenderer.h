@@ -39,7 +39,7 @@ public:
     void activateMonoGroup(int idx);
     void toggleGDMode() { GDMode = (GDMode == 1) ? 0 : 1; }
 
-    bool pointFlag = false;
+    bool pointFlag = true;
 
 protected:
     bool initWithShadow();

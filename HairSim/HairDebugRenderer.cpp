@@ -286,17 +286,33 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
     pd3dImmediateContext->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
     pd3dImmediateContext->IASetInputLayout(pLayout);
 
-    if (bNeedShadow)
+    if (pointFlag)
     {
-        renderWithShadow(hair, vb, ib, colors, offset);
+        if (hair == pHair0 && (colorScheme == ERROR_COLOR))
+            setColorScheme(GUIDE_COLOR);
+        else
+            setColorScheme(colorScheme);
+
+        pd3dImmediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+        pd3dImmediateContext->VSSetShader(pPVS, nullptr, 0);
+        pd3dImmediateContext->PSSetShader(pPPS, nullptr, 0);
+        pd3dImmediateContext->GSSetShader(pPGS, nullptr, 0);
+        drawCall(hair);
     }
     else
     {
-        pd3dImmediateContext->VSSetShader(pVS, nullptr, 0);
-        pd3dImmediateContext->PSSetShader(pPS, nullptr, 0);
-    }
+        if (bNeedShadow)
+        {
+            renderWithShadow(hair, vb, ib, colors, offset);
+        }
+        else
+        {
+            pd3dImmediateContext->VSSetShader(pVS, nullptr, 0);
+            pd3dImmediateContext->PSSetShader(pPS, nullptr, 0);
+        }
 
-    drawCall(hair);
+        drawCall(hair);
+    }
 
     pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 }
@@ -706,6 +722,12 @@ void HairBiDebugRenderer::activateMonoGroup(int idx)
 
 void HairBiDebugRenderer::drawCall(const WR::IHair* hair)
 {
+    if (pointFlag)
+    {
+        pd3dImmediateContext->DrawIndexed(hair->n_strands(), 0, 0);
+        return;
+    }
+
     if (isGDActive)
     {
         int start = 0;

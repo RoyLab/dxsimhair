@@ -27,5 +27,33 @@ def test2(a):
 
 import os
 # os.system('attrib +r test.py')
-print "fdafdfdsafadfa"
 
+
+# edges = []
+# edges.append((0, 1))
+# edges.append((0, 2))
+# edges.append((0, 3))
+# edges.append((0, 4))
+# edges.append((4, 5))
+# edges.append((5, 6))
+# edges.append((6, 7))
+# edges.append((7, 8))
+# edges.append((8, 9))
+# edges.append((8, 10))
+# edges.append((8, 11))
+# edges.append((8, 12))
+# edges.append((6, 13))
+# edges.append((13, 14))
+# edges.append((14, 15))
+# edges.append((15, 16))
+# edges.append((15, 17))
+# edges.append((15, 18))
+
+import networkx as nx
+import metis
+G = metis.example_networkx()
+(edgecuts, parts) = metis.part_graph(G, 5)
+colors = ['red','blue','green', 'yellow', 'black']
+for i, p in enumerate(parts):
+    G.node[i]['color'] = colors[p]
+nx.drawing.nx_pydot.write_dot(G, 'example.dot') # Requires pydot or pygraphviz

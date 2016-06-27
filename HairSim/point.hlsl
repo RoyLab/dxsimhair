@@ -257,12 +257,12 @@ void GS(point GeometryInputType points[1], inout TriangleStream<PixelInputType> 
     float3 dir = normalize(viewDir+float3(0.1, 0.23,0.43));
 
     float3 normal = normalize(cross(dir, viewDir));
-    float width = 0.005f;
+    float width = 0.02f;
 
     PixelInputType v[4];
 
     float3 dir_offset = dir * width;
-    float3 normal_scaled = -normal * width;
+    float3 normal_scaled = (-normal * width)/2;
 
     float3 p0_ex = p0 - dir_offset;
     float3 p1_ex = p0 + dir_offset;
