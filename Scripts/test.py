@@ -52,6 +52,7 @@ import os
 import networkx as nx
 import metis
 G = metis.example_networkx()
+import ipdb; ipdb.set_trace()
 (edgecuts, parts) = metis.part_graph(G, 5)
 colors = ['red','blue','green', 'yellow', 'black']
 for i, p in enumerate(parts):

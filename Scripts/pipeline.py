@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # parameter begin
     nFrame = 200
     nStep = 1000 # weight discretization
-    nGroup = 200
+    nGroup = 400
     radius = 0.04
     frameFilter = 0.2
     prefix = ["c0524"]
@@ -95,8 +95,19 @@ if __name__ == "__main__":
 
         # step 3
         _g = strandGraph
+
+        import networkx as nx
+        import metis
+        import metis_graph as mg
+        G = nx.Graph()
+        G.add_nodes_from(range(nStrand))
+        itr = mg.UndirectedIterator(_g)
+        for edge in itr:
+            G.add_edge(edge[0], edge[1], weight=edge[2])
+
+        cut, vers = metis.part_graph(G, nGroup)
         import pymetis
-        cut, vers = pymetis.part_graph(nGroup, xadj=_g.xadj, adjncy=_g.adjncy, eweights=_g.eweights)
+        cut2, vers2 = pymetis.part_graph(nGroup, xadj=_g.xadj, adjncy=_g.adjncy, eweights=_g.eweights)
 
         f = open(prefix[0]+".group","wb")
         import struct
@@ -104,6 +115,7 @@ if __name__ == "__main__":
         for i in vers:
             f.write(struct.pack('i', i))
         f.close()
+        import ipdb; ipdb.set_trace()
 
         # rand, opt, worst
         for iiii in range(3):
@@ -127,8 +139,6 @@ if __name__ == "__main__":
             guideImporter.export(guideExportFileName, factor)
             setReadOnly(guideExportFileName)
 
-            quit()
-            
             error0 = 0.0
             error = 0.0
             weights = []

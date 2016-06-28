@@ -20,7 +20,7 @@
     <Filter Include="FBX">
       <UniqueIdentifier>{e366668c-c870-4fe5-8ea6-616560973fb5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Miscs">
+    <Filter Include="Header Files\Miscs">
       <UniqueIdentifier>{ddc1de22-ef8b-40e6-be5d-f2681f69797c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -91,10 +91,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="wrLogger.cpp">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigReader.cpp">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClCompile>
     <ClCompile Include="wrSpring.cpp">
       <Filter>Source Files</Filter>
@@ -167,28 +167,28 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wrMacro.h">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="wrTypes.h">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="wrMath.h">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="wrLogger.h">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="wrGeo.h">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="linmath.h">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="wrColorGenerator.h">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigReader.h">
-      <Filter>Miscs</Filter>
+      <Filter>Header Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="wrSpring.h">
       <Filter>Header Files</Filter>
