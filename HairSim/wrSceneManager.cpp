@@ -108,7 +108,7 @@ bool wrSceneManager::init()
     V_RETURN(pMeshRenderer->init());
 
     pLineRenderer = new XRwy::LineRenderer;
-    V_RETURN(pLineRenderer->init());
+    V_RETURN(pLineRenderer->Initialize());
 
     visual.loadGraph(L"c0524.bg");
     visual.setRange(800, 25);
@@ -152,7 +152,7 @@ void wrSceneManager::render(double fTime, float fElapsedTime)
     UINT stride = sizeof(HairDebugVertexInput);
     UINT offset = 0;
     ctx->IASetVertexBuffers(0, 1, &((HairBiDebugRenderer*)pHairRenderer)->pVB, &stride, &offset);
-    pLineRenderer->setRenderState();
+    pLineRenderer->SetRenderState();
     visual.render();
 
     vec3 offset0{ -2.f, 0, 0 };

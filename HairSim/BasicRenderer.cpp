@@ -1,21 +1,19 @@
 #include <DXUT.h>
 #include <SDKmisc.h>
 #include "BasicRenderer.h"
-#include "HairDebugRenderer.h"
-ID3D11Buffer *pIndexBuffer;
-extern ID3D11Buffer* gIb;
-extern ID3D11InputLayout* gLayout;
+
 
 namespace XRwy
 {
-    bool LineRenderer::init()
+    bool LineRenderer::Initialize()
     {
-        HRESULT hr;
         auto pd3dDevice = DXUTGetD3D11Device();
-        auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
+
+        HRESULT hr;
         ID3DBlob* pVSBlob = nullptr;
         ID3DBlob* pPSBlob = nullptr;
 
+        // create shaders
         DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
         dwShaderFlags |= D3DCOMPILE_DEBUG;
@@ -23,7 +21,7 @@ namespace XRwy
 #endif
 
         V_RETURN(DXUTCompileFromFile(L"BasicLine.hlsl", nullptr, "VS", "vs_4_0", dwShaderFlags, 0, &pVSBlob));
-        hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVS);
+        hr = pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader);
         if (FAILED(hr))
         {
             SAFE_RELEASE(pVSBlob);
@@ -31,7 +29,7 @@ namespace XRwy
         }
 
         V_RETURN(DXUTCompileFromFile(L"BasicLine.hlsl", nullptr, "PS", "ps_4_0", dwShaderFlags, 0, &pPSBlob));
-        hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPS);
+        hr = pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader);
         if (FAILED(hr))
         {
             SAFE_RELEASE(pPSBlob);
@@ -44,55 +42,55 @@ namespace XRwy
             { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
         };
         UINT numElements = ARRAYSIZE(layout);
-        //V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pLayout));
+        V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayout));
 
         SAFE_RELEASE(pVSBlob);
         SAFE_RELEASE(pPSBlob);
 
-
-        DWORD *indices = new DWORD[10000];
-        D3D11_SUBRESOURCE_DATA subRes;
+        // create constant buffer
         CD3D11_BUFFER_DESC bDesc;
-
         ZeroMemory(&bDesc, sizeof(CD3D11_BUFFER_DESC));
-        ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
+        bDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        bDesc.ByteWidth = sizeof(ConstantBuffer);
+        bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        bDesc.Usage = D3D11_USAGE_DYNAMIC;
 
-        bDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-        bDesc.ByteWidth = (10000) * sizeof(DWORD);
-        bDesc.CPUAccessFlags = 0;
-        bDesc.Usage = D3D11_USAGE_DEFAULT;
-
-        for (int i = 0; i < 10000; i++)
-            indices[i] = i;
-
-        subRes.pSysMem = indices;
-
-        V(DXUTGetD3D11Device()->CreateBuffer(&bDesc, &subRes, &pIndexBuffer));
-        SAFE_DELETE_ARRAY(indices);
+        pd3dDevice->CreateBuffer(&bDesc, nullptr, &pConstantBuffer);
 
         return true;
     }
 
-    void LineRenderer::release()
+    void LineRenderer::Release()
     {
-        SAFE_RELEASE(pVS);
-        SAFE_RELEASE(pPS);
-        SAFE_RELEASE(pLayout);
+        SAFE_RELEASE(pVertexShader);
+        SAFE_RELEASE(pPixelShader);
+        SAFE_RELEASE(pInputLayout);
+        SAFE_RELEASE(pConstantBuffer);
+
+        delete this;
     }
 
-    void LineRenderer::setRenderState()
+    void LineRenderer::SetRenderState()
     {
-        UINT strides[1] = { sizeof(HairDebugVertexInput) }, offsets[1] = { 0 };
         auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
-        
-        pd3dImmediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-        pd3dImmediateContext->VSSetShader(pVS, 0, 0);
-        pd3dImmediateContext->PSSetShader(pPS, 0, 0);
-        pd3dImmediateContext->GSSetShader(nullptr, 0, 0);
-        // TO-DO
-        pd3dImmediateContext->IASetInputLayout(gLayout);
-        //pd3dImmediateContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-        //pd3dImmediateContext->DrawIndexed(10000, 0, 0);
 
+        pd3dImmediateContext->VSSetShader(pVertexShader, nullptr, 0);
+        pd3dImmediateContext->PSSetShader(pPixelShader, nullptr, 0);
+        pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
+        pd3dImmediateContext->IASetInputLayout(pInputLayout);
     }
+
+    void LineRenderer::SetConstantBuffer(const ConstantBuffer* buffer)
+    {
+        auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
+
+        HRESULT hr;
+        D3D11_MAPPED_SUBRESOURCE MappedResource;
+
+        V(pd3dImmediateContext->Map(pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+        auto data = reinterpret_cast<ConstantBuffer*>(MappedResource.pData);
+        memcpy(data, buffer, sizeof(ConstantBuffer));
+        pd3dImmediateContext->Unmap(pConstantBuffer, 0);
+    }
+
 }

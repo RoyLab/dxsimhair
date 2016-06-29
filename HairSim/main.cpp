@@ -7,16 +7,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
 #include "precompiled.h"
-#include "DXUTgui.h"
 #include "DXUTmisc.h"
 #include "DXUTCamera.h"
 #include "DXUTSettingsDlg.h"
 #include "SDKmisc.h"
 #include "SDKmesh.h"
 #include "resource.h"
-#include "CacheHair.h"
-
-#include "wrSceneManager.h"
 
 // to create console
 #include <io.h>
@@ -25,39 +21,23 @@
 #include <Windows.h>
 #include <iostream>
 
+// user defined
+#include "SceneManager.h"
+#include "GUIManager.h"
+
 // influence the graphic debug
-//#ifdef _DEBUG
-//#include <vld.h>
-//#endif
-
 #pragma warning( disable : 4100 )
-
 using namespace DirectX;
 
 //--------------------------------------------------------------------------------------
 // Global variables
 //--------------------------------------------------------------------------------------
-CModelViewerCamera          g_Camera;               // A model viewing camera
 CDXUTDialogResourceManager  g_DialogResourceManager; // manager for shared resources of dialogs
 CD3DSettingsDlg             g_SettingsDlg;          // Device settings dialog
 CDXUTTextHelper*            g_pTxtHelper = nullptr;
-CDXUTDialog                 g_HUD;                  // dialog for standard controls
-CDXUTDialog                 g_SampleUI;             // dialog for sample specific controls
-wrSceneManager              g_SceneMngr;
 
-
-//--------------------------------------------------------------------------------------
-// UI control IDs
-//--------------------------------------------------------------------------------------
-#define IDC_TOGGLEFULLSCREEN    1
-#define IDC_PAUSE           2
-#define IDC_CHANGEDEVICE        3
-#define IDC_NEXT_COLOR          4
-#define IDC_PREV_COLOR          5
-#define IDC_UPDATE_GD_PARA          6
-#define IDC_TOGGLE_GD_MODE          7
-#define IDC_STEP_GD_ID          8
-#define IDC_GOTO_FRAME      9
+GUIManager                  g_HUD;                  // dialog for standard controls
+XRwy::SceneManager*         g_SceneMngr;
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -65,7 +45,6 @@ wrSceneManager              g_SceneMngr;
 LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool* pbNoFurtherProcessing,
                           void* pUserContext );
 void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext );
-void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext );
 void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext );
 bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* pUserContext );
 
@@ -85,8 +64,6 @@ void InitApp();
 void RenderText();
 void CreateConsole();
 
-void test();
-
 //--------------------------------------------------------------------------------------
 // Entry point to the program. Initializes everything and goes into a message processing 
 // loop. Idle time is used to render the scene.
@@ -101,6 +78,8 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     // DXUT will create and use the best device
     // that is available on the system depending on which D3D callbacks are set below
+    g_SceneMngr = new XRwy::SceneManager;
+    g_SceneMngr->Initialize();
 
     // Set DXUT callbacks
     DXUTSetCallbackMsgProc( MsgProc );
@@ -118,7 +97,7 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     InitApp();
     DXUTInit( true, true, nullptr ); // Parse the command line, show msgboxes on error, no extra command line params
     DXUTSetCursorSettings( true, true );
-    DXUTCreateWindow( L"SimpleSample11" );
+    DXUTCreateWindow( L"XRwy-Demo" );
 
     // Only require 10-level hardware, change to D3D_FEATURE_LEVEL_11_0 to require 11-class hardware
     // Switch to D3D_FEATURE_LEVEL_9_x for 10level9 hardware
@@ -126,6 +105,7 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     DXUTMainLoop(); // Enter into the DXUT render loop
 
+    SAFE_RELEASE(g_SceneMngr);
     return DXUTGetExitCode();
 }
 
@@ -137,26 +117,9 @@ void InitApp()
 {
     g_SettingsDlg.Init( &g_DialogResourceManager );
     g_HUD.Init( &g_DialogResourceManager );
-    g_SampleUI.Init( &g_DialogResourceManager );
-
     g_HUD.SetCallback( OnGUIEvent );
-    int iY = 30;
-    int iYo = 26;
-    g_HUD.AddButton( IDC_TOGGLEFULLSCREEN, L"Toggle full screen", 0, iY, 170, 22 );
-    g_HUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 0, iY += iYo, 170, 22, VK_F2 );
-    g_HUD.AddButton( IDC_PAUSE, L"Pause (F3)", 0, iY += iYo, 170, 22, VK_F3 );
-    g_HUD.AddButton(IDC_NEXT_COLOR, L"Next Color (F4)", 0, iY += iYo, 170, 22, VK_F4);
-    g_HUD.AddButton(IDC_PREV_COLOR, L"Prev Color (F5)", 0, iY += iYo, 170, 22, VK_F5);
-    g_HUD.AddButton(IDC_UPDATE_GD_PARA, L"update (F6)", 0, iY += iYo, 170, 22, VK_F6);
-    g_HUD.AddButton(IDC_TOGGLE_GD_MODE, L"full/mono (F7)", 0, iY += iYo, 170, 22, VK_F7);
-    g_HUD.AddButton(IDC_STEP_GD_ID, L"step id (F7)", 0, iY += iYo, 170, 22, VK_F8);
-    g_HUD.AddButton(IDC_GOTO_FRAME, L"goto frame (F8)", 0, iY += iYo, 170, 22, VK_F9);
-    
-    g_SampleUI.SetCallback( OnGUIEvent ); iY = 10;
-
+    g_HUD.InitializeComponents();
     CreateConsole();
-
-    test();
 }
 
 
@@ -170,8 +133,10 @@ void RenderText()
     g_pTxtHelper->SetForegroundColor( Colors::Yellow );
     g_pTxtHelper->DrawTextLine( DXUTGetFrameStats( DXUTIsVsyncEnabled() ) );
     g_pTxtHelper->DrawTextLine( DXUTGetDeviceStats() );
-    auto pHair = dynamic_cast<WR::CacheHair20*>(g_SceneMngr.pHair);
-    g_pTxtHelper->DrawFormattedTextLine(L"Frame: %d / %d", pHair->getCurrentFrame(), pHair->getFrameNumber());
+
+    // user defined
+    g_SceneMngr->RenderText(g_pTxtHelper);
+
     g_pTxtHelper->End();
 }
 
@@ -183,7 +148,8 @@ bool CALLBACK IsD3D11DeviceAcceptable( const CD3D11EnumAdapterInfo *AdapterInfo,
                                        const CD3D11EnumDeviceInfo *DeviceInfo,
                                        DXGI_FORMAT BackBufferFormat, bool bWindowed, void* pUserContext )
 {
-    return true;
+    return g_SceneMngr->IsD3D11DeviceAcceptable(AdapterInfo, Output, DeviceInfo,
+        BackBufferFormat, bWindowed, pUserContext);
 }
 
 
@@ -201,14 +167,7 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     g_pTxtHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, &g_DialogResourceManager, 15 );
 
     // Create other render resources here
-    g_SceneMngr.setCamera(&g_Camera);
-    V_RETURN(g_SceneMngr.init());
-
-    // Setup the camera's view parameters
-    static const XMVECTORF32 s_vecEye = { 1.0f, 1.0f, -2.0f, 0.f };
-    g_Camera.SetViewParams( s_vecEye, g_XMZero );
-
-    g_HUD.GetButton( IDC_NEXT_COLOR )->SetEnabled( true );
+    V_RETURN(g_SceneMngr->OnD3D11CreateDevice(pd3dDevice, pBackBufferSurfaceDesc, pUserContext));
 
     return S_OK;
 }
@@ -225,18 +184,10 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
     V_RETURN( g_DialogResourceManager.OnD3D11ResizedSwapChain( pd3dDevice, pBackBufferSurfaceDesc ) );
     V_RETURN( g_SettingsDlg.OnD3D11ResizedSwapChain( pd3dDevice, pBackBufferSurfaceDesc ) );
 
-    // Setup the camera's projection parameters
-    float fAspectRatio = pBackBufferSurfaceDesc->Width / ( FLOAT )pBackBufferSurfaceDesc->Height;
-    g_Camera.SetProjParams( XM_PI / 4, fAspectRatio, 0.1f, 1000.0f );
-    g_Camera.SetWindow( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height );
-    g_Camera.SetButtonMasks( MOUSE_LEFT_BUTTON, MOUSE_WHEEL, MOUSE_MIDDLE_BUTTON );
-
     g_HUD.SetLocation( pBackBufferSurfaceDesc->Width - 170, 0 );
     g_HUD.SetSize( 170, 170 );
-    g_SampleUI.SetLocation( pBackBufferSurfaceDesc->Width - 170, pBackBufferSurfaceDesc->Height - 300 );
-    g_SampleUI.SetSize( 170, 300 );
 
-    g_SceneMngr.resize(pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height );
+    g_SceneMngr->OnD3D11ResizedSwapChain(pd3dDevice, pSwapChain, pBackBufferSurfaceDesc, pUserContext);
 
     return S_OK;
 }
@@ -266,12 +217,11 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 
     // Render objects here...
     DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR2, L"HUD / Stats");
-    g_SceneMngr.render(fTime, fElapsedTime);
+    g_SceneMngr->OnD3D11FrameRender(pd3dDevice, pd3dImmediateContext, fTime, fElapsedTime, pUserContext);
     DXUT_EndPerfEvent();
 
     DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"HUD / Stats");
     g_HUD.OnRender( fElapsedTime );
-    g_SampleUI.OnRender( fElapsedTime );
     RenderText();
     DXUT_EndPerfEvent();
 
@@ -305,7 +255,7 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     SAFE_DELETE( g_pTxtHelper );
 
     // Delete additional render resources here...
-    g_SceneMngr.release();
+    g_SceneMngr->OnD3D11DestroyDevice(pUserContext);
 }
 
 
@@ -314,7 +264,7 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 //--------------------------------------------------------------------------------------
 bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* pUserContext )
 {
-    return true;
+    return g_SceneMngr->ModifyDeviceSettings(pDeviceSettings, pUserContext);
 }
 
 
@@ -323,9 +273,7 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
 //--------------------------------------------------------------------------------------
 void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext )
 {
-    // Update the camera's position based on user input 
-    g_Camera.FrameMove( fElapsedTime );
-    g_SceneMngr.onFrame(fTime, fElapsedTime);
+    g_SceneMngr->OnFrameMove(fTime, fElapsedTime, pUserContext);
 }
 
 
@@ -351,12 +299,9 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
     *pbNoFurtherProcessing = g_HUD.MsgProc( hWnd, uMsg, wParam, lParam );
     if( *pbNoFurtherProcessing )
         return 0;
-    *pbNoFurtherProcessing = g_SampleUI.MsgProc( hWnd, uMsg, wParam, lParam );
-    if( *pbNoFurtherProcessing )
-        return 0;
 
     // Pass all remaining windows messages to camera so it can respond to user input
-    g_Camera.HandleMessages( hWnd, uMsg, wParam, lParam );
+    g_SceneMngr->MsgProc(hWnd, uMsg, wParam, lParam, pbNoFurtherProcessing, pUserContext);
 
     return 0;
 }
@@ -367,48 +312,9 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 //--------------------------------------------------------------------------------------
 void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext )
 {
-    g_SceneMngr.onKeyboard(nChar, bKeyDown, bAltDown, pUserContext);
+    g_SceneMngr->OnKeyboard(nChar, bKeyDown, bAltDown, pUserContext);
 }
 
-
-//--------------------------------------------------------------------------------------
-// Handles the GUI events
-//--------------------------------------------------------------------------------------
-void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext )
-{
-    switch( nControlID )
-    {
-        case IDC_TOGGLEFULLSCREEN:
-            DXUTToggleFullScreen();
-            break;
-        case IDC_PAUSE:
-            g_SceneMngr.set_bPause(!g_SceneMngr.get_bPause());
-            //DXUTToggleREF();
-            break;
-        case IDC_NEXT_COLOR:
-            g_SceneMngr.nextColorScheme();
-            //DXUTToggleWARP();
-            break;
-        case IDC_PREV_COLOR:
-            g_SceneMngr.prevColorScheme();
-            break;
-        case IDC_CHANGEDEVICE:
-            g_SettingsDlg.SetActive( !g_SettingsDlg.IsActive() );
-            break;
-        case IDC_UPDATE_GD_PARA:
-            g_SceneMngr.updateGDPara();
-            break;
-        case IDC_TOGGLE_GD_MODE:
-            g_SceneMngr.toggleGDMode();
-            break;
-        case IDC_STEP_GD_ID:
-            g_SceneMngr.stepId();
-            break;
-        case IDC_GOTO_FRAME:
-            g_SceneMngr.redirectTo();
-            break;
-    }
-}
 
 void CreateConsole(){
 

@@ -387,6 +387,7 @@
     <ClCompile Include="CFBXRendererDX11.cpp" />
     <ClCompile Include="ConfigReader.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="GUIManager.cpp" />
     <ClCompile Include="HairDebugRenderer.cpp" />
     <ClCompile Include="main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
@@ -398,6 +399,7 @@
     </ClCompile>
     <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="rendertextureclass.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SphereCollisionObject.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="TrainingGraph.cpp" />
@@ -426,11 +428,13 @@
     <ClInclude Include="CFBXRendererDX11.h" />
     <ClInclude Include="ConfigReader.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairDebugRenderer.h" />
     <ClInclude Include="HairGeometry.h" />
     <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="IHair.h" />
     <ClInclude Include="rendertextureclass.h" />
+    <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SphereCollisionObject.h" />
     <ClInclude Include="TrainingGraph.h" />
     <ClInclude Include="wrMacro.h" />

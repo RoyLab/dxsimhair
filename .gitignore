@@ -19,6 +19,8 @@
 *.anim*
 *.group
 *.neigh
+*.bg
+*.dot
 
 # Build results
 [Dd]ebug/
