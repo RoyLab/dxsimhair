@@ -1,4 +1,6 @@
 #pragma once
+
+// deprecated
 #include "wrTypes.h"
 
 namespace WR

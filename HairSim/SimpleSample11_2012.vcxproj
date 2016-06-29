@@ -401,7 +401,6 @@
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SphereCollisionObject.cpp" />
-    <ClCompile Include="test.cpp" />
     <ClCompile Include="TrainingGraph.cpp" />
     <ClCompile Include="wrSpring.cpp" />
     <ClCompile Include="wrLevelsetOctree.cpp" />
@@ -432,6 +431,7 @@
     <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairDebugRenderer.h" />
     <ClInclude Include="HairGeometry.h" />
+    <ClInclude Include="HairLoader.h" />
     <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="IHair.h" />
     <ClInclude Include="rendertextureclass.h" />

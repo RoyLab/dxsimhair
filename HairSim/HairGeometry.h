@@ -28,6 +28,6 @@ namespace XRwy
         size_t nStrand;
         XMFLOAT3* color;
 
-        ~HairColorsPerStrand()
+        ~HairColorsPerStrand(){}
     };
 }
