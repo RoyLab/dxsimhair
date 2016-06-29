@@ -1,12 +1,19 @@
 #pragma once
 #include <d3d11.h>
+#include <Effects.h>
+
 #include "XRwy_h.h"
+#include "CFBXRendererDX11.h"
 
 namespace XRwy
 {
     class IRenderer:
         public IUnknown
     {
+    public:
+        typedef DirectX::XMFLOAT4X4 Matrix;
+        typedef DirectX::XMFLOAT3   Float3;
+
     public:
         virtual ~IRenderer(){}
         virtual void SetRenderState() = 0;
@@ -32,8 +39,9 @@ namespace XRwy
         };
 
     public:
-        void SetRenderState();
         void SetConstantBuffer(const ConstantBuffer* buffer);
+
+        void SetRenderState();
         bool Initialize();
         void Release();
 
@@ -47,12 +55,11 @@ namespace XRwy
     class MeshRenderer :
         public IRenderer
     {
-        typedef DirectX::XMFLOAT4X4 Matrix;
-        typedef DirectX::XMFLOAT3   Float3;
-
+        DirectX::BasicEffect* pEffect;
     public:
+        void SetMaterial(DirectX::BasicEffect* pEffect, const FBX_LOADER::MATERIAL_DATA* material);
+
         void SetRenderState();
-        void SetConstantBuffer();
         bool Initialize();
         void Release();
 

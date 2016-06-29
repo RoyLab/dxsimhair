@@ -1,8 +1,11 @@
 #pragma once
 #include <windef.h>
 #include <DXUT.h>
+#include <Effects.h>
 
 #include "XRwy_h.h"
+#include "BasicRenderer.h"
+#include "CFBXRendererDX11.h"
 #include "CacheHair.h"
 
 class CModelViewerCamera;
@@ -13,9 +16,15 @@ namespace XRwy
     class SceneManager:
         public IUnknown
     {
+        typedef std::unique_ptr<DirectX::BasicEffect> EffectPtr;
+
     public:
-        WR::CacheHair20*        pHair = nullptr;
-        CModelViewerCamera*     pCamera = nullptr;
+        WR::CacheHair20*                pHair = nullptr;
+        CModelViewerCamera*             pCamera = nullptr;
+        FBX_LOADER::CFBXRenderDX11*     pFbxLoader = nullptr;
+
+        EffectPtr                       upEffect;
+        MeshRenderer*                   pMeshRenderer = nullptr;
 
     public:
         SceneManager(){}
@@ -45,5 +54,8 @@ namespace XRwy
 
         // user define
         void RenderText(CDXUTTextHelper*);
+
+    private:
+        HRESULT CreateFbxInputLayout(ID3D11Device* pd3dDevice);
     };
 }

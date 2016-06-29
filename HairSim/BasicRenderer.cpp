@@ -1,10 +1,13 @@
 #include <DXUT.h>
 #include <SDKmisc.h>
+#include <VertexTypes.h>
 #include "BasicRenderer.h"
 
 
 namespace XRwy
 {
+    using namespace DirectX;
+
     bool LineRenderer::Initialize()
     {
         auto pd3dDevice = DXUTGetD3D11Device();
@@ -91,6 +94,36 @@ namespace XRwy
         auto data = reinterpret_cast<ConstantBuffer*>(MappedResource.pData);
         memcpy(data, buffer, sizeof(ConstantBuffer));
         pd3dImmediateContext->Unmap(pConstantBuffer, 0);
+    }
+
+
+    void MeshRenderer::SetMaterial(DirectX::BasicEffect* pEffect, const FBX_LOADER::MATERIAL_DATA* material)
+    {
+        this->pEffect = pEffect;
+        if (!material) return;
+
+        pEffect->SetTexture(material->pSRV);
+        pEffect->SetAmbientLightColor(XMLoadFloat4(&material->ambient));
+        pEffect->SetDiffuseColor(XMLoadFloat4(&material->diffuse));
+        pEffect->SetSpecularColor(XMLoadFloat4(&material->specular));
+    }
+
+    void MeshRenderer::SetRenderState()
+    {
+        pEffect->EnableDefaultLighting();
+        pEffect->SetPerPixelLighting(true);
+        pEffect->SetTextureEnabled(false);
+        pEffect->Apply(DXUTGetD3D11DeviceContext());
+    }
+
+    bool MeshRenderer::Initialize()
+    {
+        return true;
+    }
+
+    void MeshRenderer::Release()
+    {
+        delete this;
     }
 
 }

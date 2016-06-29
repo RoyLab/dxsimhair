@@ -24,6 +24,7 @@
 // user defined
 #include "SceneManager.h"
 #include "GUIManager.h"
+//#include <vld.h>
 
 // influence the graphic debug
 #pragma warning( disable : 4100 )
@@ -202,7 +203,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 
     auto pRTV = DXUTGetD3D11RenderTargetView();
     //float bgColor[] = { 0.0f, 0.125f, 0.3f, 1.0f };
-    float bgColor[] = { 0.0f, 0.0f, 0.1f, 1.0f };
+    float bgColor[] = { 0.05f, 0.07f, 0.1f, 1.0f };
     pd3dImmediateContext->ClearRenderTargetView(pRTV, bgColor);
 
     // Clear the depth stencil
@@ -235,6 +236,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 void CALLBACK OnD3D11ReleasingSwapChain( void* pUserContext )
 {
     g_DialogResourceManager.OnD3D11ReleasingSwapChain();
+    g_SceneMngr->OnD3D11ReleasingSwapChain(pUserContext);
 }
 
 
