@@ -2,9 +2,11 @@
 #include <DXUTcamera.h>
 #include <SDKmisc.h>
 #include <VertexTypes.h>
+#include <vld.h>
 
 #include "SceneManager.h"
 #include "BasicRenderer.h"
+
 
 namespace XRwy
 {
@@ -98,6 +100,9 @@ namespace XRwy
         V_RETURN(pFbxLoader->LoadFBX("../../models/headdemo.fbx", pd3dDevice, pd3dImmediateContext));
         V_RETURN(CreateFbxInputLayout(pd3dDevice));
 
+        pHairLoader->loadFile("D:/data/c0514.anim2", &hairModel);
+        pHairLoader->nextFrame();
+
         return S_OK;
     }
 
@@ -112,6 +117,7 @@ namespace XRwy
         pCamera = new CModelViewerCamera;
         pFbxLoader = new FBX_LOADER::CFBXRenderDX11;
         pMeshRenderer = new MeshRenderer;
+        pHairLoader = new HairAnimationLoader;
 
         return true;
     }
@@ -122,7 +128,7 @@ namespace XRwy
 
         SAFE_DELETE(pFbxLoader);
         SAFE_DELETE(pCamera);
-        SAFE_DELETE(pHair);
+        SAFE_DELETE(pHairLoader);
 
         delete this;
     }

@@ -6,7 +6,7 @@
 #include "XRwy_h.h"
 #include "BasicRenderer.h"
 #include "CFBXRendererDX11.h"
-#include "CacheHair.h"
+#include "HairLoader.h"
 
 class CModelViewerCamera;
 class CDXUTTextHelper;
@@ -19,7 +19,8 @@ namespace XRwy
         typedef std::unique_ptr<DirectX::BasicEffect> EffectPtr;
 
     public:
-        WR::CacheHair20*                pHair = nullptr;
+        HairAnimationLoader*            pHairLoader = nullptr;
+        HairGeometry                    hairModel;
         CModelViewerCamera*             pCamera = nullptr;
         FBX_LOADER::CFBXRenderDX11*     pFbxLoader = nullptr;
 

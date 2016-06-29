@@ -132,6 +132,9 @@
     <ClCompile Include="rendertextureclass.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
+    <ClCompile Include="HairLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -255,6 +258,9 @@
     </ClInclude>
     <ClInclude Include="rendertextureclass.h">
       <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="macros.h">
+      <Filter>Source Files\Miscs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,33 +1,37 @@
 #pragma once
 #include <DirectXMath.h>
-
-#include "wrMacro.h"
+#include "macros.h"
 
 namespace XRwy
 {
     using DirectX::XMFLOAT3;
-
-    struct ParticleGeometry
-    {
-        XMFLOAT3 position;
-        XMFLOAT3 direction;
-    };
+    using DirectX::XMFLOAT4X4;
 
     struct HairGeometry
     {
         size_t              nParticle;
         size_t              nStrand;
-        size_t              particlePerStrand = -1;
+        size_t              particlePerStrand;
 
-        ParticleGeometry*   particles;
-        uint32_t*           indices;
+        XMFLOAT3*           position = nullptr;
+        XMFLOAT3*           direction = nullptr;
+        XMFLOAT4X4          rigidTrans;
+
+        ~HairGeometry()
+        {
+            SAFE_DELETE_ARRAY(position);
+            SAFE_DELETE_ARRAY(direction);
+        }
     };
 
     struct HairColorsPerStrand
     {
-        size_t nStrand;
-        XMFLOAT3* color;
+        size_t      nStrand;
+        XMFLOAT3*   color = nullptr;
 
-        ~HairColorsPerStrand(){}
+        ~HairColorsPerStrand()
+        {
+            SAFE_DELETE_ARRAY(color);
+        }
     };
 }
