@@ -43,4 +43,19 @@ namespace XRwy
         ID3D11InputLayout*  pInputLayout = nullptr;
         ID3D11Buffer*       pConstantBuffer = nullptr;
     };
+
+    class MeshRenderer :
+        public IRenderer
+    {
+        typedef DirectX::XMFLOAT4X4 Matrix;
+        typedef DirectX::XMFLOAT3   Float3;
+
+    public:
+        void SetRenderState();
+        void SetConstantBuffer();
+        bool Initialize();
+        void Release();
+
+    private:
+    };
 }

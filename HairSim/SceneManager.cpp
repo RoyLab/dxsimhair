@@ -11,7 +11,6 @@ namespace XRwy
 
     LRESULT SceneManager::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool* pbNoFurtherProcessing, void* pUserContext)
     {
-
         pCamera->HandleMessages(hWnd, uMsg, wParam, lParam);
         return 0;
     }

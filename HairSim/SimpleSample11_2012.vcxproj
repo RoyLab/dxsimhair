@@ -427,6 +427,7 @@
     <ClInclude Include="CFBXLoader.h" />
     <ClInclude Include="CFBXRendererDX11.h" />
     <ClInclude Include="ConfigReader.h" />
+    <ClInclude Include="D3D11Tools.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairDebugRenderer.h" />

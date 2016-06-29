@@ -247,5 +247,8 @@
     <ClInclude Include="GUIManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="D3D11Tools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

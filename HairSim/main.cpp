@@ -75,12 +75,6 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 #ifdef _DEBUG
     _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
-
-    // DXUT will create and use the best device
-    // that is available on the system depending on which D3D callbacks are set below
-    g_SceneMngr = new XRwy::SceneManager;
-    g_SceneMngr->Initialize();
-
     // Set DXUT callbacks
     DXUTSetCallbackMsgProc( MsgProc );
     DXUTSetCallbackKeyboard( OnKeyboard );
@@ -95,14 +89,14 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     DXUTSetCallbackD3D11FrameRender( OnD3D11FrameRender );
 
     InitApp();
+
+    g_SceneMngr = new XRwy::SceneManager;
+    g_SceneMngr->Initialize();
+
     DXUTInit( true, true, nullptr ); // Parse the command line, show msgboxes on error, no extra command line params
     DXUTSetCursorSettings( true, true );
     DXUTCreateWindow( L"XRwy-Demo" );
-
-    // Only require 10-level hardware, change to D3D_FEATURE_LEVEL_11_0 to require 11-class hardware
-    // Switch to D3D_FEATURE_LEVEL_9_x for 10level9 hardware
     DXUTCreateDevice( D3D_FEATURE_LEVEL_10_1, true, 800, 600 );
-
     DXUTMainLoop(); // Enter into the DXUT render loop
 
     SAFE_RELEASE(g_SceneMngr);
