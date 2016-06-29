@@ -28,9 +28,6 @@
     <None Include="..\DXUT\Optional\directx.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Line.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Hair.hlsl">
       <Filter>Shaders</Filter>
     </None>
@@ -47,6 +44,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="point.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Line.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
@@ -112,6 +112,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="rendertextureclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TrainingGraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -217,5 +223,19 @@
     <ClInclude Include="HairGeometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BasicRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XRwy_h.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TrainingGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="BasicLine.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

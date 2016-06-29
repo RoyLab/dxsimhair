@@ -41,7 +41,7 @@ public:
 
     bool pointFlag = true;
 
-protected:
+public:
     bool initWithShadow();
     bool initWithFollicle();
     void initColorSchemes();

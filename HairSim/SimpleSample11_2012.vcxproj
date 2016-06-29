@@ -381,6 +381,7 @@
     <None Include="..\DXUT\Optional\directx.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BasicRenderer.cpp" />
     <ClCompile Include="CacheHair.cpp" />
     <ClCompile Include="CFBXLoader.cpp" />
     <ClCompile Include="CFBXRendererDX11.cpp" />
@@ -399,6 +400,7 @@
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="SphereCollisionObject.cpp" />
     <ClCompile Include="test.cpp" />
+    <ClCompile Include="TrainingGraph.cpp" />
     <ClCompile Include="wrSpring.cpp" />
     <ClCompile Include="wrLevelsetOctree.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />
@@ -418,6 +420,7 @@
     <None Include="SimpleSample.fx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BasicRenderer.h" />
     <ClInclude Include="CacheHair.h" />
     <ClInclude Include="CFBXLoader.h" />
     <ClInclude Include="CFBXRendererDX11.h" />
@@ -429,6 +432,7 @@
     <ClInclude Include="IHair.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="SphereCollisionObject.h" />
+    <ClInclude Include="TrainingGraph.h" />
     <ClInclude Include="wrMacro.h" />
     <ClInclude Include="linmath.h" />
     <ClInclude Include="Parameter.h" />
@@ -448,6 +452,7 @@
     <ClInclude Include="wrTetrahedron.h" />
     <ClInclude Include="wrTripleMatrix.h" />
     <ClInclude Include="wrTypes.h" />
+    <ClInclude Include="XRwy_h.h" />
     <ResourceCompile Include="SimpleSample.rc" />
   </ItemGroup>
   <ItemGroup>
@@ -535,6 +540,17 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BasicLine.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

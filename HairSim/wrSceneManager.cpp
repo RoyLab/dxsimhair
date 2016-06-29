@@ -13,6 +13,8 @@
 #include "wrHair.h"
 #include "CacheHair.h"
 #include "HairDebugRenderer.h"
+#include "BasicRenderer.h"
+#include "TrainingGraph.h"
 
 
 #include "SphereCollisionObject.h"
@@ -49,6 +51,8 @@ struct CB_VS_PER_FRAME
 extern std::string CACHE_FILE;
 extern std::string REF_FILE;
 
+XRwy::EdgeVisualization visual;
+
 wrSceneManager::wrSceneManager()
 {
     m_bPause = false;
@@ -58,7 +62,6 @@ wrSceneManager::wrSceneManager()
 wrSceneManager::~wrSceneManager()
 {
 }
-
 
 bool wrSceneManager::init()
 {
@@ -104,6 +107,12 @@ bool wrSceneManager::init()
     pMeshRenderer->setCamera(pCamera);
     V_RETURN(pMeshRenderer->init());
 
+    pLineRenderer = new XRwy::LineRenderer;
+    V_RETURN(pLineRenderer->init());
+
+    visual.loadGraph(L"c0524.bg");
+    visual.setRange(800, 25);
+
     return true;
 }
 
@@ -139,6 +148,13 @@ void wrSceneManager::render(double fTime, float fElapsedTime)
     setPerFrameConstantBuffer(fTime, fElapsedTime);
     pHairRenderer->render(fTime, fElapsedTime);
 
+    auto ctx = DXUTGetD3D11DeviceContext();
+    UINT stride = sizeof(HairDebugVertexInput);
+    UINT offset = 0;
+    ctx->IASetVertexBuffers(0, 1, &((HairBiDebugRenderer*)pHairRenderer)->pVB, &stride, &offset);
+    pLineRenderer->setRenderState();
+    visual.render();
+
     vec3 offset0{ -2.f, 0, 0 };
     pMeshRenderer->setTransformation(pHair0->get_rigidMotionMatrix());
     pMeshRenderer->setOffset(offset0);
@@ -157,10 +173,12 @@ void wrSceneManager::release()
 
     if (pHairRenderer) pHairRenderer->release();
     if (pMeshRenderer) pMeshRenderer->release();
+    if (pLineRenderer) pMeshRenderer->release();
 
     SAFE_DELETE(pMeshRenderer);
     SAFE_DELETE(pCollisionHead);
     SAFE_DELETE(pHairRenderer);
+    SAFE_DELETE(pLineRenderer);
     SAFE_DELETE(pHair);
     SAFE_DELETE(pHair0);
 }
@@ -217,11 +235,24 @@ bool wrSceneManager::initConstantBuffer()
 
 void wrSceneManager::onKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
 {
+    static int a = 500;
+    static int b = 5;
+    if (!bKeyDown) return;
     switch (nChar)
     {
     case 'A':
     case 'a':
-
+        a += 10;
+        visual.setRange(a, b);
+        break;
+    case 'B':
+    case 'b':
+        a -= 10;
+        visual.setRange(a, b);
+        break;
+    case 'q':
+    case 'Q':
+        ((HairBiDebugRenderer*)pHairRenderer)->pointFlag = !((HairBiDebugRenderer*)pHairRenderer)->pointFlag;
         break;
     }
 }

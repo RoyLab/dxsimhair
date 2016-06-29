@@ -5,6 +5,11 @@ class CModelViewerCamera;
 class wrHairRenderer;
 class wrMeshRenderer;
 
+namespace XRwy
+{
+    class LineRenderer;
+}
+
 namespace WR
 {
     class IHair;
@@ -53,6 +58,7 @@ private:
     CModelViewerCamera*         pCamera = nullptr;
     wrRendererInterface*        pHairRenderer = nullptr;
     wrMeshRenderer*             pMeshRenderer = nullptr;
+    XRwy::LineRenderer*         pLineRenderer = nullptr;
 
     ID3D11Device*               pd3dDevice = nullptr;
     ID3D11DeviceContext*        pd3dImmediateContext = nullptr;

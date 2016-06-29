@@ -14,6 +14,8 @@
 #include "wrMath.h"
 
 using namespace DirectX;
+ID3D11Buffer* gIb;
+ID3D11InputLayout* gLayout;
 
 extern bool hasShadow;
 extern std::string GUIDE_FILE;
@@ -228,6 +230,9 @@ void HairBiDebugRenderer::render(double fTime, float fTimeElapsed)
 
         vec3 offset{ 2.f, 0, 0 };
         HairBiDebugRenderer::render(pHair, pVB, pIBPoint, getColorBuffer(), offset);
+
+        gIb = pVB;
+        gLayout = pLayout;
     }
 }
 
@@ -314,7 +319,7 @@ void HairBiDebugRenderer::render(const WR::IHair* hair, ID3D11Buffer* vb,
         drawCall(hair);
     }
 
-    pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
+    //pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 }
 
 void HairBiDebugRenderer::renderWithShadow(const WR::IHair* hair, ID3D11Buffer* vb,
