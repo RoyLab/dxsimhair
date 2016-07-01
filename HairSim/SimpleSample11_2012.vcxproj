@@ -390,6 +390,7 @@
     <ClCompile Include="GUIManager.cpp" />
     <ClCompile Include="HairDebugRenderer.cpp" />
     <ClCompile Include="HairLoader.cpp" />
+    <ClCompile Include="HairRenderer.cpp" />
     <ClCompile Include="main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -433,8 +434,10 @@
     <ClInclude Include="HairDebugRenderer.h" />
     <ClInclude Include="HairGeometry.h" />
     <ClInclude Include="HairLoader.h" />
+    <ClInclude Include="HairRenderer.h" />
     <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="IHair.h" />
+    <ClInclude Include="IRenderer.h" />
     <ClInclude Include="macros.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="SceneManager.h" />

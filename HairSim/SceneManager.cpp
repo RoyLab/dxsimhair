@@ -141,17 +141,14 @@ namespace XRwy
 
     HRESULT SceneManager::CreateFbxInputLayout(ID3D11Device* pd3dDevice)
     {
-        pMeshRenderer->SetMaterial(upEffect.get(), nullptr);
-        pMeshRenderer->SetRenderState();
-
         HRESULT hr;
         const void* pVSBufferPtr = nullptr;
         size_t nVSBufferSz = 0;
-        upEffect->GetVertexShaderBytecode(&pVSBufferPtr, &nVSBufferSz);
-
         const size_t nInputElem = VertexPositionNormalTexture::InputElementCount;
         D3D11_INPUT_ELEMENT_DESC iDesc[nInputElem];
         CopyMemory(&iDesc, &VertexPositionNormalTexture::InputElements, sizeof(D3D11_INPUT_ELEMENT_DESC)*nInputElem);
+
+        pMeshRenderer->GetVertexShaderBytecode(&pVSBufferPtr, &nVSBufferSz, upEffect.get());
         V_RETURN(pFbxLoader->CreateInputLayout(pd3dDevice, pVSBufferPtr, nVSBufferSz, iDesc, nInputElem));
 
         return S_OK;

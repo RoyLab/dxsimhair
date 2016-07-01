@@ -2,22 +2,16 @@
 #include <d3d11.h>
 #include <Effects.h>
 
-#include "XRwy_h.h"
+#include "IRenderer.h"
 #include "CFBXRendererDX11.h"
 
 namespace XRwy
 {
-    class IRenderer:
-        public IUnknown
-    {
-    public:
-        typedef DirectX::XMFLOAT4X4 Matrix;
-        typedef DirectX::XMFLOAT3   Float3;
-
-    public:
-        virtual ~IRenderer(){}
-        virtual void SetRenderState() = 0;
-    };
+    //D3D11_INPUT_ELEMENT_DESC layout[] =
+    //{
+    //    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    //    { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    //};
 
     class LineRenderer:
         public IRenderer
@@ -41,28 +35,33 @@ namespace XRwy
     public:
         void SetConstantBuffer(const ConstantBuffer* buffer);
 
-        void SetRenderState();
+        int GetNumOfRenderPass() const { return 1; }
+        void SetRenderState(int i = 0, void* = nullptr);
+        void GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength, void* = nullptr);
         bool Initialize();
         void Release();
 
     private:
         ID3D11VertexShader* pVertexShader = nullptr;
         ID3D11PixelShader*  pPixelShader = nullptr;
-        ID3D11InputLayout*  pInputLayout = nullptr;
         ID3D11Buffer*       pConstantBuffer = nullptr;
+        ID3DBlob*           pVSBlob = nullptr;
     };
 
     class MeshRenderer :
         public IRenderer
     {
-        DirectX::BasicEffect* pEffect;
     public:
         void SetMaterial(DirectX::BasicEffect* pEffect, const FBX_LOADER::MATERIAL_DATA* material);
 
-        void SetRenderState();
+        int GetNumOfRenderPass() const { return 1; }
+        void SetRenderState(int i = 0, void* = nullptr);
+        void GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength, void* effect);
+
         bool Initialize();
         void Release();
 
     private:
+        DirectX::BasicEffect* pEffect;
     };
 }

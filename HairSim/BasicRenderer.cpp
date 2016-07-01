@@ -13,7 +13,6 @@ namespace XRwy
         auto pd3dDevice = DXUTGetD3D11Device();
 
         HRESULT hr;
-        ID3DBlob* pVSBlob = nullptr;
         ID3DBlob* pPSBlob = nullptr;
 
         // create shaders
@@ -39,15 +38,6 @@ namespace XRwy
             return hr;
         }
 
-        D3D11_INPUT_ELEMENT_DESC layout[] =
-        {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-        };
-        UINT numElements = ARRAYSIZE(layout);
-        V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayout));
-
-        SAFE_RELEASE(pVSBlob);
         SAFE_RELEASE(pPSBlob);
 
         // create constant buffer
@@ -67,20 +57,19 @@ namespace XRwy
     {
         SAFE_RELEASE(pVertexShader);
         SAFE_RELEASE(pPixelShader);
-        SAFE_RELEASE(pInputLayout);
         SAFE_RELEASE(pConstantBuffer);
+        SAFE_RELEASE(pVSBlob);
 
         delete this;
     }
 
-    void LineRenderer::SetRenderState()
+    void LineRenderer::SetRenderState(int i, void*)
     {
         auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
         pd3dImmediateContext->VSSetShader(pVertexShader, nullptr, 0);
         pd3dImmediateContext->PSSetShader(pPixelShader, nullptr, 0);
         pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
-        pd3dImmediateContext->IASetInputLayout(pInputLayout);
     }
 
     void LineRenderer::SetConstantBuffer(const ConstantBuffer* buffer)
@@ -96,6 +85,11 @@ namespace XRwy
         pd3dImmediateContext->Unmap(pConstantBuffer, 0);
     }
 
+    void LineRenderer::GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength, void*)
+    {
+        *pShaderByteCode = pVSBlob->GetBufferPointer();
+        *pByteCodeLength = pVSBlob->GetBufferSize();
+    }
 
     void MeshRenderer::SetMaterial(DirectX::BasicEffect* pEffect, const FBX_LOADER::MATERIAL_DATA* material)
     {
@@ -108,7 +102,7 @@ namespace XRwy
         pEffect->SetSpecularColor(XMLoadFloat4(&material->specular));
     }
 
-    void MeshRenderer::SetRenderState()
+    void MeshRenderer::SetRenderState(int i, void*)
     {
         pEffect->EnableDefaultLighting();
         pEffect->SetPerPixelLighting(true);
@@ -126,4 +120,10 @@ namespace XRwy
         delete this;
     }
 
+    void MeshRenderer::GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength, void* effect)
+    {
+        pEffect = reinterpret_cast<BasicEffect*>(effect);
+        SetRenderState();
+        pEffect->GetVertexShaderBytecode(pShaderByteCode, pByteCodeLength);
+    }
 }

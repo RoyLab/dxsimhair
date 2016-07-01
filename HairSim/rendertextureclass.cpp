@@ -3,7 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "rendertextureclass.h"
 
-
+class RenderTextureClass
+{
 RenderTextureClass::RenderTextureClass()
 {
 	m_renderTargetTexture = 0;
@@ -226,4 +227,6 @@ void RenderTextureClass::GetOrthoMatrix(DirectX::XMFLOAT4X4& orthoMatrix)
 {
 	orthoMatrix = m_orthoMatrix;
 	return;
+}
+
 }

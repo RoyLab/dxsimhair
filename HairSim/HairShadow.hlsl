@@ -78,55 +78,6 @@ float SM_PS(VS_OUTPUT In) : SV_TARGET
     return In.position.z;
 }
 
-[maxvertexcount(6)]
-void SM_GS(line VS_OUTPUT points[2], inout TriangleStream<VS_OUTPUT> output)
-{
-    float4 p0 = points[0].position;
-        float4 p1 = points[1].position;
-
-        float w0 = p0.w;
-    float w1 = p1.w;
-
-    p0.xyz /= p0.w;
-    p1.xyz /= p1.w;
-
-    float3 line01 = (p1 - p0).xyz;
-        float3 dir = normalize(line01);
-
-        // scale to correct window aspect ratio
-        float3 ratio = float3(g_renderTargetSize.y, g_renderTargetSize.x, 0);
-        ratio = normalize(ratio);
-
-    float3 unit_z = normalize(float3(0, 0, -1));
-        float3 normal = normalize(cross(unit_z, dir) * ratio);
-        float width = 0.05;
-
-    VS_OUTPUT v[4];
-
-    float3 dir_offset = dir * ratio * width;
-     float3 normal_scaled = normal * ratio * width;
-
-    float3 p0_ex = p0 - dir_offset;
-    float3 p1_ex = p1 + dir_offset;
-
-    v[0].position = float4(p0_ex - normal_scaled, 1) * w0;
-    v[1].position = float4(p0_ex + normal_scaled, 1) * w0;
-    v[2].position = float4(p1_ex + normal_scaled, 1) * w1;
-    v[3].position = float4(p1_ex - normal_scaled, 1) * w1;
-
-    output.Append(v[2]);
-    output.Append(v[1]);
-    output.Append(v[0]);
-
-    output.RestartStrip();
-
-    output.Append(v[3]);
-    output.Append(v[2]);
-    output.Append(v[0]);
-
-    output.RestartStrip();
-}
-
 float3 GetColour(float v)
 {
     float3 c = { 1.0, 1.0, 1.0 }; // white
@@ -229,11 +180,6 @@ GeometryInputType VS(VertexInputType input)
     output.color.w = 1.0;
     return output;
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Filename: shadow.ps
-////////////////////////////////////////////////////////////////////////////////
-
 
 //////////////
 // TEXTURES //

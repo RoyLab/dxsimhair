@@ -4,7 +4,6 @@
 #include <Effects.h>
 
 #include "XRwy_h.h"
-#include "BasicRenderer.h"
 #include "CFBXRendererDX11.h"
 #include "HairLoader.h"
 

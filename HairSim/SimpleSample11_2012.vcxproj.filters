@@ -135,6 +135,9 @@
     <ClCompile Include="HairLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HairRenderer.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -261,6 +264,12 @@
     </ClInclude>
     <ClInclude Include="macros.h">
       <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="HairRenderer.h">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="IRenderer.h">
+      <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
