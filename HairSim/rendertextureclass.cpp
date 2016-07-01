@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "rendertextureclass.h"
 
-class RenderTextureClass
+namespace XRwy
 {
 RenderTextureClass::RenderTextureClass()
 {
@@ -141,7 +141,7 @@ bool RenderTextureClass::Initialize(ID3D11Device* device, int textureWidth, int 
 }
 
 
-void RenderTextureClass::Shutdown()
+void RenderTextureClass::Release()
 {
 	if(m_depthStencilView)
 	{
@@ -173,7 +173,7 @@ void RenderTextureClass::Shutdown()
 		m_renderTargetTexture = 0;
 	}
 
-	return;
+    delete this;
 }
 
 

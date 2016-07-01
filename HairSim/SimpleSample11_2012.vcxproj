@@ -388,7 +388,7 @@
     <ClCompile Include="ConfigReader.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="GUIManager.cpp" />
-    <ClCompile Include="HairDebugRenderer.cpp" />
+    <None Include="HairDebugRenderer.cpp" />
     <ClCompile Include="HairLoader.cpp" />
     <ClCompile Include="HairRenderer.cpp" />
     <ClCompile Include="main.cpp">

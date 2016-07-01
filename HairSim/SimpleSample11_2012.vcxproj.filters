@@ -58,6 +58,9 @@
     <None Include="BasicLine.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="HairDebugRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wrHairRenderer.cpp">
@@ -73,9 +76,6 @@
       <Filter>Source Files\FBX</Filter>
     </ClCompile>
     <ClCompile Include="CacheHair.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HairDebugRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TrainingGraph.cpp">

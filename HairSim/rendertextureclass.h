@@ -25,7 +25,7 @@ public:
 	~RenderTextureClass();
 
 	bool Initialize(ID3D11Device*, int, int, float, float);
-	void Shutdown();
+	void Release();
 
 	void SetRenderTarget(ID3D11DeviceContext*);
 	void ClearRenderTarget(ID3D11DeviceContext*, float, float, float, float);

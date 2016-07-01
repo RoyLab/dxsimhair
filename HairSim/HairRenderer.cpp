@@ -7,14 +7,50 @@ using namespace DirectX;
 
 namespace XRwy
 {
-    void HairRenderer::SetRenderState(int i, void*)
+    void HairRenderer::SetRenderState(int pass, void*)
     {
+        auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
+        if (pass == 0)
+        {
+            UINT nvp = 1;
+            pd3dImmediateContext->OMGetRenderTargets(1, &pMainRenderTarget, &pMainDepthStencil);
+            pd3dImmediateContext->RSGetViewports(&nvp, &mainViewport);
+
+            //pd3dImmediateContext->PSSetShaderResources(0, 1, nullptr);
+            pShadowMapRenderTarget->SetRenderTarget(pd3dImmediateContext);
+            pShadowMapRenderTarget->ClearRenderTarget(pd3dImmediateContext, 1.0f, /*no use*/0.0f, 0.0f, 0.0f);
+
+            pd3dImmediateContext->VSSetConstantBuffers(1, 1, &pShadowMapConstBuffer);
+            pd3dImmediateContext->VSSetShader(pShadowMapVS, nullptr, 0);
+            pd3dImmediateContext->PSSetShader(pShadowMapPS, nullptr, 0);
+            pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
+
+            return;
+        }
+
+        if (pass == 1)
+        {
+            pd3dImmediateContext->OMSetRenderTargets(1, &pMainRenderTarget, pMainDepthStencil);
+            pd3dImmediateContext->RSSetViewports(1, &mainViewport);
+            SAFE_RELEASE(pMainRenderTarget);
+            SAFE_RELEASE(pMainDepthStencil);
+
+            auto pTexture = pShadowMapRenderTarget->GetShaderResourceView();
+            pd3dImmediateContext->PSSetShaderResources(0, 1, &pTexture);
+            pd3dImmediateContext->PSSetSamplers(0, 1, &psampleStateClamp);
+            pd3dImmediateContext->VSSetShader(pHairVS, nullptr, 0);
+            pd3dImmediateContext->GSSetShader(pHairGS, nullptr, 0);
+            pd3dImmediateContext->PSSetShader(pHairPS, nullptr, 0);
+
+            return;
+        }
     }
 
     void HairRenderer::GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength, void*)
     {
-
+        *pShaderByteCode = pVSBlob->GetBufferPointer();
+        *pByteCodeLength = pVSBlob->GetBufferSize();
     }
 
     bool HairRenderer::Initialize()
@@ -25,7 +61,8 @@ namespace XRwy
         dwShaderFlags |= D3DCOMPILE_DEBUG;
         dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-        auto pd3dDevice = DXUTGetD3D11Device();
+        pd3dDevice = DXUTGetD3D11Device();
+        pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
         // Compile the shadow hair vertex shader
         ID3DBlob* pBlob = nullptr;
@@ -131,17 +168,34 @@ namespace XRwy
         V_RETURN(pd3dDevice->CreateSamplerState(&samplerDesc, &psampleStateClamp));
 
         return true;
-        return true;
     }
 
     void HairRenderer::Release()
-    {
+    {        
+        SAFE_RELEASE(pVSBlob);
+
+        SAFE_RELEASE(pShadowMapVS);
+        SAFE_RELEASE(pHairVS);
+        SAFE_RELEASE(pHairGS);
+        SAFE_RELEASE(pShadowMapPS);
+        SAFE_RELEASE(pHairPS);
+
+        SAFE_RELEASE(pShadowMapRenderTarget);
+
+        SAFE_RELEASE(pShadowMapConstBuffer);
+        SAFE_RELEASE(pHairConstBuffer);
+
+        SAFE_RELEASE(psampleStateClamp);
+        SAFE_RELEASE(pMainRenderTarget);
+        SAFE_RELEASE(pMainDepthStencil);
+
         delete this;
     }
 
     void HairRenderer::SetConstantBuffer(const ConstBuffer* buffer)
     {
-
+        pd3dImmediateContext->Map(pHairConstBuffer)
+        CopyMemory()
     }
 
 }

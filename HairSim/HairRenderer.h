@@ -9,7 +9,7 @@ namespace XRwy
         public IRenderer
     {
     public:
-        struct ConstBuffer
+        struct ShadowMapCB
         {
             Matrix  lightProjViewMatrix;
             int     colorScheme;
@@ -26,6 +26,9 @@ namespace XRwy
         void Release();
 
     private:
+        ID3D11Device*           pd3dDevice = nullptr;
+        ID3D11DeviceContext*    pd3dImmediateContext = nullptr;
+
         ID3DBlob* pVSBlob = nullptr;
         ID3D11VertexShader*     pShadowMapVS = nullptr, *pHairVS = nullptr;
         ID3D11GeometryShader*   pHairGS = nullptr;
@@ -33,5 +36,9 @@ namespace XRwy
         RenderTextureClass*     pShadowMapRenderTarget = nullptr;
         ID3D11Buffer*           pShadowMapConstBuffer = nullptr, *pHairConstBuffer = nullptr;
         ID3D11SamplerState*     psampleStateClamp = nullptr;
+
+        ID3D11RenderTargetView* pMainRenderTarget = nullptr;
+        ID3D11DepthStencilView* pMainDepthStencil = nullptr;
+        D3D11_VIEWPORT          mainViewport;
     };
 }
