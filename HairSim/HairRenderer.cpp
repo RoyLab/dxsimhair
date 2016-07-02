@@ -7,6 +7,15 @@ using namespace DirectX;
 
 namespace XRwy
 {
+    const D3D11_INPUT_ELEMENT_DESC HairRenderer::LayoutDesc[5] =
+    {
+        { "SEQ", 0, DXGI_FORMAT_R32_SINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "DIR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "REF", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+
     void HairRenderer::SetRenderState(int pass, void*)
     {
         auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
@@ -21,7 +30,7 @@ namespace XRwy
             pShadowMapRenderTarget->SetRenderTarget(pd3dImmediateContext);
             pShadowMapRenderTarget->ClearRenderTarget(pd3dImmediateContext, 1.0f, /*no use*/0.0f, 0.0f, 0.0f);
 
-            pd3dImmediateContext->VSSetConstantBuffers(1, 1, &pShadowMapConstBuffer);
+            pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstBuffer);
             pd3dImmediateContext->VSSetShader(pShadowMapVS, nullptr, 0);
             pd3dImmediateContext->PSSetShader(pShadowMapPS, nullptr, 0);
             pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
@@ -39,6 +48,7 @@ namespace XRwy
             auto pTexture = pShadowMapRenderTarget->GetShaderResourceView();
             pd3dImmediateContext->PSSetShaderResources(0, 1, &pTexture);
             pd3dImmediateContext->PSSetSamplers(0, 1, &psampleStateClamp);
+            pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstBuffer);
             pd3dImmediateContext->VSSetShader(pHairVS, nullptr, 0);
             pd3dImmediateContext->GSSetShader(pHairGS, nullptr, 0);
             pd3dImmediateContext->PSSetShader(pHairPS, nullptr, 0);
@@ -66,7 +76,7 @@ namespace XRwy
 
         // Compile the shadow hair vertex shader
         ID3DBlob* pBlob = nullptr;
-        V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "VS", "vs_4_0", dwShaderFlags, 0, &pVSBlob));
+        V_RETURN(DXUTCompileFromFile(L"HairFx.hlsl", nullptr, "VS", "vs_4_0", dwShaderFlags, 0, &pBlob));
 
         hr = pd3dDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pHairVS);
         if (FAILED(hr))
@@ -76,7 +86,7 @@ namespace XRwy
         }
         pVSBlob = pBlob;
 
-        V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "PS", "ps_4_0", dwShaderFlags, 0, &pBlob));
+        V_RETURN(DXUTCompileFromFile(L"HairFx.hlsl", nullptr, "PS", "ps_4_0", dwShaderFlags, 0, &pBlob));
 
         hr = pd3dDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pHairPS);
         if (FAILED(hr))
@@ -87,7 +97,7 @@ namespace XRwy
         SAFE_RELEASE(pBlob);
 
         // Compile the shadow map geometry shader
-        V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "GS", "gs_4_0", dwShaderFlags, 0, &pBlob));
+        V_RETURN(DXUTCompileFromFile(L"HairFx.hlsl", nullptr, "GS", "gs_4_0", dwShaderFlags, 0, &pBlob));
 
         hr = pd3dDevice->CreateGeometryShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pHairGS);
         if (FAILED(hr))
@@ -98,7 +108,7 @@ namespace XRwy
         SAFE_RELEASE(pBlob);
 
         // Compile the shadow map vertex shader
-        V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "SM_VS", "vs_4_0", dwShaderFlags, 0, &pBlob));
+        V_RETURN(DXUTCompileFromFile(L"HairFx.hlsl", nullptr, "SM_VS", "vs_4_0", dwShaderFlags, 0, &pBlob));
 
         hr = pd3dDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pShadowMapVS);
         if (FAILED(hr))
@@ -109,7 +119,7 @@ namespace XRwy
         SAFE_RELEASE(pBlob);
 
         // Compile the shadow map pixel shader
-        V_RETURN(DXUTCompileFromFile(L"HairShadow.hlsl", nullptr, "SM_PS", "ps_4_0", dwShaderFlags, 0, &pBlob));
+        V_RETURN(DXUTCompileFromFile(L"HairFx.hlsl", nullptr, "SM_PS", "ps_4_0", dwShaderFlags, 0, &pBlob));
 
         hr = pd3dDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pShadowMapPS);
         if (FAILED(hr))
@@ -134,20 +144,16 @@ namespace XRwy
         Float3 lightTarget = Float3(0.0f, 0.0f, 0.0f);
         Float3 lightUp = Float3(0.0f, 1.0f, 0.0f);
 
-        XMStoreFloat4x4(&smcbuffer.lightProjViewMatrix, XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
+        XMStoreFloat4x4(&mlightProjViewWorld, XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
             XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
-        smcbuffer.colorScheme = 0;
-
-        D3D11_SUBRESOURCE_DATA subRes;
-        ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
-        subRes.pSysMem = &smcbuffer;
 
         CD3D11_BUFFER_DESC bDesc;
         ZeroMemory(&bDesc, sizeof(CD3D11_BUFFER_DESC));
         bDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         bDesc.ByteWidth = sizeof(ConstBuffer);
-        bDesc.Usage = D3D11_USAGE_DEFAULT;
-        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &pShadowMapConstBuffer));
+        bDesc.Usage = D3D11_USAGE_DYNAMIC;
+        bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, nullptr, &pConstBuffer));
 
         CD3D11_SAMPLER_DESC samplerDesc;
         samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -182,8 +188,7 @@ namespace XRwy
 
         SAFE_RELEASE(pShadowMapRenderTarget);
 
-        SAFE_RELEASE(pShadowMapConstBuffer);
-        SAFE_RELEASE(pHairConstBuffer);
+        SAFE_RELEASE(pConstBuffer);
 
         SAFE_RELEASE(psampleStateClamp);
         SAFE_RELEASE(pMainRenderTarget);
@@ -194,8 +199,13 @@ namespace XRwy
 
     void HairRenderer::SetConstantBuffer(const ConstBuffer* buffer)
     {
-        pd3dImmediateContext->Map(pHairConstBuffer)
-        CopyMemory()
+        HRESULT hr;
+        D3D11_MAPPED_SUBRESOURCE MappedResource;
+
+        V(pd3dImmediateContext->Map(pConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+        auto data = reinterpret_cast<ConstBuffer*>(MappedResource.pData);
+        CopyMemory(data, buffer, sizeof(ConstBuffer));
+        pd3dImmediateContext->Unmap(pConstBuffer, 0);
     }
 
 }

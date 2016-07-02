@@ -6,6 +6,7 @@
 
 #include "SceneManager.h"
 #include "BasicRenderer.h"
+#include "HairManager.h"
 
 
 namespace XRwy
@@ -27,25 +28,16 @@ namespace XRwy
     {
         // Update the camera's position based on user input 
         pCamera->FrameMove(fElapsedTime);
+        if (pHairManager)
+            pHairManager->OnFrameMove(fTime, fElapsedTime, pUserContext);
     }
 
 
     void SceneManager::OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext, double fTime,
         float fElapsedTime, void* pUserContext)
     {
-        upEffect->SetWorld(pCamera->GetWorldMatrix());
-        upEffect->SetView(pCamera->GetViewMatrix());
-        upEffect->SetProjection(pCamera->GetProjMatrix());
-
-        size_t nodeCount = pFbxLoader->GetNodeCount();
-
-        for (int j = 0; j < nodeCount; j++)
-        {
-            auto material = pFbxLoader->GetNodeMaterial(j);
-            pMeshRenderer->SetMaterial(upEffect.get(), &material);
-            pMeshRenderer->SetRenderState();
-            pFbxLoader->RenderNode(pd3dImmediateContext, j);
-        }
+        if (pHairManager)
+            pHairManager->RenderAll(pCamera, fTime, fElapsedTime);
     }
 
 
@@ -95,13 +87,14 @@ namespace XRwy
         // initialize renderers
         upEffect.reset(new BasicEffect(pd3dDevice));
         V_RETURN(pMeshRenderer->Initialize());
+        
+        if (pHairManager)
+            V_RETURN(pHairManager->Initialize());
+
 
         // load contents
         V_RETURN(pFbxLoader->LoadFBX("../../models/headdemo.fbx", pd3dDevice, pd3dImmediateContext));
         V_RETURN(CreateFbxInputLayout(pd3dDevice));
-
-        pHairLoader->loadFile("D:/data/c0514.anim2", &hairModel);
-        pHairLoader->nextFrame();
 
         return S_OK;
     }
@@ -117,7 +110,7 @@ namespace XRwy
         pCamera = new CModelViewerCamera;
         pFbxLoader = new FBX_LOADER::CFBXRenderDX11;
         pMeshRenderer = new MeshRenderer;
-        pHairLoader = new HairAnimationLoader;
+        pHairManager = new HairManager(pFbxLoader, pMeshRenderer);
 
         return true;
     }
@@ -125,10 +118,9 @@ namespace XRwy
     void SceneManager::Release()
     {
         SAFE_RELEASE(pMeshRenderer);
-
+        SAFE_RELEASE(pHairManager);
         SAFE_DELETE(pFbxLoader);
         SAFE_DELETE(pCamera);
-        SAFE_DELETE(pHairLoader);
 
         delete this;
     }

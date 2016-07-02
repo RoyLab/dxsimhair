@@ -389,7 +389,9 @@
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="GUIManager.cpp" />
     <None Include="HairDebugRenderer.cpp" />
+    <ClCompile Include="HairColor.cpp" />
     <ClCompile Include="HairLoader.cpp" />
+    <ClCompile Include="HairManager.cpp" />
     <ClCompile Include="HairRenderer.cpp" />
     <ClCompile Include="main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
@@ -407,7 +409,7 @@
     <ClCompile Include="wrSpring.cpp" />
     <ClCompile Include="wrLevelsetOctree.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />
-    <ClCompile Include="wrSceneManager.cpp" />
+    <None Include="wrSceneManager.cpp" />
     <ClCompile Include="wrLogger.cpp" />
     <ClCompile Include="wrColorGenerator.cpp" />
     <ClCompile Include="wrHair.cpp" />
@@ -431,6 +433,8 @@
     <ClInclude Include="D3D11Tools.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="GUIManager.h" />
+    <ClInclude Include="HairColor.h" />
+    <ClInclude Include="HairManager.h" />
     <ClInclude Include="HairDebugRenderer.h" />
     <ClInclude Include="HairGeometry.h" />
     <ClInclude Include="HairLoader.h" />
@@ -561,6 +565,23 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="HairFx.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

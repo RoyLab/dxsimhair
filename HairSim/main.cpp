@@ -33,11 +33,11 @@ using namespace DirectX;
 //--------------------------------------------------------------------------------------
 // Global variables
 //--------------------------------------------------------------------------------------
-CDXUTDialogResourceManager  g_DialogResourceManager; // manager for shared resources of dialogs
-CD3DSettingsDlg             g_SettingsDlg;          // Device settings dialog
+CDXUTDialogResourceManager* g_DialogResourceManager; // manager for shared resources of dialogs
+CD3DSettingsDlg*            g_SettingsDlg;          // Device settings dialog
 CDXUTTextHelper*            g_pTxtHelper = nullptr;
 
-GUIManager                  g_HUD;                  // dialog for standard controls
+GUIManager*                 g_HUD;                  // dialog for standard controls
 XRwy::SceneManager*         g_SceneMngr;
 
 //--------------------------------------------------------------------------------------
@@ -110,10 +110,14 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 //--------------------------------------------------------------------------------------
 void InitApp()
 {
-    g_SettingsDlg.Init( &g_DialogResourceManager );
-    g_HUD.Init( &g_DialogResourceManager );
-    g_HUD.SetCallback( OnGUIEvent );
-    g_HUD.InitializeComponents();
+    g_DialogResourceManager = new CDXUTDialogResourceManager;
+    g_HUD = new GUIManager;
+    g_SettingsDlg = new CD3DSettingsDlg;
+
+    g_SettingsDlg->Init( g_DialogResourceManager );
+    g_HUD->Init( g_DialogResourceManager );
+    g_HUD->SetCallback( OnGUIEvent );
+    g_HUD->InitializeComponents();
     CreateConsole();
 }
 
@@ -130,7 +134,8 @@ void RenderText()
     g_pTxtHelper->DrawTextLine( DXUTGetDeviceStats() );
 
     // user defined
-    g_SceneMngr->RenderText(g_pTxtHelper);
+    if (g_SceneMngr)
+        g_SceneMngr->RenderText(g_pTxtHelper);
 
     g_pTxtHelper->End();
 }
@@ -143,8 +148,10 @@ bool CALLBACK IsD3D11DeviceAcceptable( const CD3D11EnumAdapterInfo *AdapterInfo,
                                        const CD3D11EnumDeviceInfo *DeviceInfo,
                                        DXGI_FORMAT BackBufferFormat, bool bWindowed, void* pUserContext )
 {
-    return g_SceneMngr->IsD3D11DeviceAcceptable(AdapterInfo, Output, DeviceInfo,
-        BackBufferFormat, bWindowed, pUserContext);
+    if (g_SceneMngr)
+        return g_SceneMngr->IsD3D11DeviceAcceptable(AdapterInfo, Output, DeviceInfo,
+            BackBufferFormat, bWindowed, pUserContext);
+    else return true;
 }
 
 
@@ -157,12 +164,13 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     HRESULT hr;
 
     auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
-    V_RETURN( g_DialogResourceManager.OnD3D11CreateDevice( pd3dDevice, pd3dImmediateContext ) );
-    V_RETURN( g_SettingsDlg.OnD3D11CreateDevice( pd3dDevice ) );
-    g_pTxtHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, &g_DialogResourceManager, 15 );
+    V_RETURN( g_DialogResourceManager->OnD3D11CreateDevice( pd3dDevice, pd3dImmediateContext ) );
+    V_RETURN(g_SettingsDlg->OnD3D11CreateDevice(pd3dDevice));
+    g_pTxtHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, g_DialogResourceManager, 15 );
 
     // Create other render resources here
-    V_RETURN(g_SceneMngr->OnD3D11CreateDevice(pd3dDevice, pBackBufferSurfaceDesc, pUserContext));
+    if (g_SceneMngr)
+        V_RETURN(g_SceneMngr->OnD3D11CreateDevice(pd3dDevice, pBackBufferSurfaceDesc, pUserContext));
 
     return S_OK;
 }
@@ -176,13 +184,14 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
 {
     HRESULT hr;
 
-    V_RETURN( g_DialogResourceManager.OnD3D11ResizedSwapChain( pd3dDevice, pBackBufferSurfaceDesc ) );
-    V_RETURN( g_SettingsDlg.OnD3D11ResizedSwapChain( pd3dDevice, pBackBufferSurfaceDesc ) );
+    V_RETURN(g_DialogResourceManager->OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
+    V_RETURN(g_SettingsDlg->OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
-    g_HUD.SetLocation( pBackBufferSurfaceDesc->Width - 170, 0 );
-    g_HUD.SetSize( 170, 170 );
+    g_HUD->SetLocation(pBackBufferSurfaceDesc->Width - 170, 0);
+    g_HUD->SetSize(170, 170);
 
-    g_SceneMngr->OnD3D11ResizedSwapChain(pd3dDevice, pSwapChain, pBackBufferSurfaceDesc, pUserContext);
+    if (g_SceneMngr)
+        g_SceneMngr->OnD3D11ResizedSwapChain(pd3dDevice, pSwapChain, pBackBufferSurfaceDesc, pUserContext);
 
     return S_OK;
 }
@@ -195,9 +204,9 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
                                  float fElapsedTime, void* pUserContext )
 {
     // If the settings dialog is being shown, then render it instead of rendering the app's scene
-    if( g_SettingsDlg.IsActive() )
+    if (g_SettingsDlg->IsActive())
     {
-        g_SettingsDlg.OnRender( fElapsedTime );
+        g_SettingsDlg->OnRender(fElapsedTime);
         return;
     }       
 
@@ -212,11 +221,12 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 
     // Render objects here...
     DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR2, L"HUD / Stats");
-    g_SceneMngr->OnD3D11FrameRender(pd3dDevice, pd3dImmediateContext, fTime, fElapsedTime, pUserContext);
+    if (g_SceneMngr)
+        g_SceneMngr->OnD3D11FrameRender(pd3dDevice, pd3dImmediateContext, fTime, fElapsedTime, pUserContext);
     DXUT_EndPerfEvent();
 
     DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"HUD / Stats");
-    g_HUD.OnRender( fElapsedTime );
+    g_HUD->OnRender(fElapsedTime);
     RenderText();
     DXUT_EndPerfEvent();
 
@@ -235,8 +245,9 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 //--------------------------------------------------------------------------------------
 void CALLBACK OnD3D11ReleasingSwapChain( void* pUserContext )
 {
-    g_DialogResourceManager.OnD3D11ReleasingSwapChain();
-    g_SceneMngr->OnD3D11ReleasingSwapChain(pUserContext);
+    g_DialogResourceManager->OnD3D11ReleasingSwapChain();
+    if (g_SceneMngr)
+        g_SceneMngr->OnD3D11ReleasingSwapChain(pUserContext);
 }
 
 
@@ -245,13 +256,18 @@ void CALLBACK OnD3D11ReleasingSwapChain( void* pUserContext )
 //--------------------------------------------------------------------------------------
 void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 {
-    g_DialogResourceManager.OnD3D11DestroyDevice();
-    g_SettingsDlg.OnD3D11DestroyDevice();
-    DXUTGetGlobalResourceCache().OnDestroyDevice();
+    g_DialogResourceManager->OnD3D11DestroyDevice();
+    g_SettingsDlg->OnD3D11DestroyDevice();
+    //DXUTGetGlobalResourceCache().OnDestroyDevice();
     SAFE_DELETE( g_pTxtHelper );
 
     // Delete additional render resources here...
-    g_SceneMngr->OnD3D11DestroyDevice(pUserContext);
+    if (g_SceneMngr)
+        g_SceneMngr->OnD3D11DestroyDevice(pUserContext);
+
+    SAFE_DELETE(g_HUD);
+    SAFE_DELETE(g_SettingsDlg);
+    SAFE_DELETE(g_DialogResourceManager);
 }
 
 
@@ -260,7 +276,8 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 //--------------------------------------------------------------------------------------
 bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* pUserContext )
 {
-    return g_SceneMngr->ModifyDeviceSettings(pDeviceSettings, pUserContext);
+    if (g_SceneMngr)
+        return g_SceneMngr->ModifyDeviceSettings(pDeviceSettings, pUserContext);
 }
 
 
@@ -269,7 +286,8 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
 //--------------------------------------------------------------------------------------
 void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext )
 {
-    g_SceneMngr->OnFrameMove(fTime, fElapsedTime, pUserContext);
+    if (g_SceneMngr)
+        g_SceneMngr->OnFrameMove(fTime, fElapsedTime, pUserContext);
 }
 
 
@@ -280,24 +298,25 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
                           void* pUserContext )
 {
     // Pass messages to dialog resource manager calls so GUI state is updated correctly
-    *pbNoFurtherProcessing = g_DialogResourceManager.MsgProc( hWnd, uMsg, wParam, lParam );
+    *pbNoFurtherProcessing = g_DialogResourceManager->MsgProc(hWnd, uMsg, wParam, lParam);
     if( *pbNoFurtherProcessing )
         return 0;
 
     // Pass messages to settings dialog if its active
-    if( g_SettingsDlg.IsActive() )
+    if (g_SettingsDlg->IsActive())
     {
-        g_SettingsDlg.MsgProc( hWnd, uMsg, wParam, lParam );
+        g_SettingsDlg->MsgProc(hWnd, uMsg, wParam, lParam);
         return 0;
     }
 
     // Give the dialogs a chance to handle the message first
-    *pbNoFurtherProcessing = g_HUD.MsgProc( hWnd, uMsg, wParam, lParam );
+    *pbNoFurtherProcessing = g_HUD->MsgProc(hWnd, uMsg, wParam, lParam);
     if( *pbNoFurtherProcessing )
         return 0;
 
     // Pass all remaining windows messages to camera so it can respond to user input
-    g_SceneMngr->MsgProc(hWnd, uMsg, wParam, lParam, pbNoFurtherProcessing, pUserContext);
+    if (g_SceneMngr)
+        g_SceneMngr->MsgProc(hWnd, uMsg, wParam, lParam, pbNoFurtherProcessing, pUserContext);
 
     return 0;
 }
@@ -308,7 +327,8 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 //--------------------------------------------------------------------------------------
 void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext )
 {
-    g_SceneMngr->OnKeyboard(nChar, bKeyDown, bAltDown, pUserContext);
+    if (g_SceneMngr)
+        g_SceneMngr->OnKeyboard(nChar, bKeyDown, bAltDown, pUserContext);
 }
 
 

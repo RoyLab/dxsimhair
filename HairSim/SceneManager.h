@@ -18,13 +18,13 @@ namespace XRwy
         typedef std::unique_ptr<DirectX::BasicEffect> EffectPtr;
 
     public:
-        HairAnimationLoader*            pHairLoader = nullptr;
         HairGeometry                    hairModel;
         CModelViewerCamera*             pCamera = nullptr;
         FBX_LOADER::CFBXRenderDX11*     pFbxLoader = nullptr;
 
         EffectPtr                       upEffect;
         MeshRenderer*                   pMeshRenderer = nullptr;
+        HairManager*                    pHairManager = nullptr;
 
     public:
         SceneManager(){}

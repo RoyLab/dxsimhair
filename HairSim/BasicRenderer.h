@@ -7,12 +7,6 @@
 
 namespace XRwy
 {
-    //D3D11_INPUT_ELEMENT_DESC layout[] =
-    //{
-    //    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    //    { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-    //};
-
     class LineRenderer:
         public IRenderer
     {
@@ -31,6 +25,8 @@ namespace XRwy
             Float3 position;
             Float3 color;
         };
+
+        static const D3D11_INPUT_ELEMENT_DESC LayoutDesc[2];
 
     public:
         void SetConstantBuffer(const ConstantBuffer* buffer);
@@ -52,7 +48,8 @@ namespace XRwy
         public IRenderer
     {
     public:
-        void SetMaterial(DirectX::BasicEffect* pEffect, const FBX_LOADER::MATERIAL_DATA* material);
+        void SetMaterial(const FBX_LOADER::MATERIAL_DATA* material);
+        void SetMatrices(const DirectX::XMMATRIX& world, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& proj);
 
         int GetNumOfRenderPass() const { return 1; }
         void SetRenderState(int i = 0, void* = nullptr);

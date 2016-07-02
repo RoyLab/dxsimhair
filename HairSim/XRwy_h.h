@@ -5,6 +5,8 @@ namespace XRwy
     class IUnknown
     {
     public:
+        virtual ~IUnknown(){}
+
         virtual bool Initialize() = 0;
         virtual void Release() = 0;
     };
@@ -17,4 +19,7 @@ namespace XRwy
     class HairRenderer;
 
     class RenderTextureClass;
+    class HairAnimationLoader;
+
+    class HairManager;
 }

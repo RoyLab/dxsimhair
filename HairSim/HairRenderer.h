@@ -9,12 +9,15 @@ namespace XRwy
         public IRenderer
     {
     public:
-        struct ShadowMapCB
+        struct ConstBuffer
         {
-            Matrix  lightProjViewMatrix;
-            int     colorScheme;
+            Matrix  projViewWorld;
+            Matrix  lightProjViewWorld;
+            int     mode;
             int     padding[3];
         };
+
+        static const D3D11_INPUT_ELEMENT_DESC LayoutDesc[5];
 
     public:
         void SetConstantBuffer(const ConstBuffer* buffer);
@@ -34,11 +37,13 @@ namespace XRwy
         ID3D11GeometryShader*   pHairGS = nullptr;
         ID3D11PixelShader*      pShadowMapPS = nullptr, *pHairPS = nullptr;
         RenderTextureClass*     pShadowMapRenderTarget = nullptr;
-        ID3D11Buffer*           pShadowMapConstBuffer = nullptr, *pHairConstBuffer = nullptr;
+        ID3D11Buffer*           pConstBuffer = nullptr;
         ID3D11SamplerState*     psampleStateClamp = nullptr;
 
         ID3D11RenderTargetView* pMainRenderTarget = nullptr;
         ID3D11DepthStencilView* pMainDepthStencil = nullptr;
         D3D11_VIEWPORT          mainViewport;
+
+        Matrix                  mlightProjViewWorld;
     };
 }

@@ -1,36 +1,17 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: shadow.vs
-////////////////////////////////////////////////////////////////////////////////
-
-
-/////////////
-// GLOBALS //
-/////////////
+// constant buffers
 cbuffer cbMatrix : register(b0)
 {
-    matrix  g_mViewProjection;
-    matrix  g_mWorld;
+    matrix  g_mProjViewWorld;
+    matrix  g_mLightProjViewWorld;
     float3  g_viewPoint;
-    float   g_time;
-    float2 g_renderTargetSize;
+    int     mode; // 0 use color, 1 use difference
 }
 
 
-//////////////////////
-// CONSTANT BUFFERS //
-//////////////////////
-cbuffer cbMatrix2 : register(b1)
-{
-    matrix g_lightProjView;
-    int mode;
-}
-
-//////////////
-// TYPEDEFS //
-//////////////
+// typedefs
 struct VertexInputType
 {
-    int    Sequence : SEQ;
+    int    Sequence     : SEQ;
     float3 Position     : POSITION;
     float3 Color        : COLOR;
     float3 Direction    : DIR;
@@ -39,9 +20,9 @@ struct VertexInputType
 
 struct GeometryInputType
 {
-    int    sequence : SEQ;
+    int    sequence     : SEQ;
     float3 position     : POSITION;
-    float4 color        : COLOR;
+    float3 color        : COLOR;
     float3 direction    : DIR;
     float4 lightViewPosition : TEXCOORD1;
 };
@@ -49,12 +30,12 @@ struct GeometryInputType
 
 struct PixelInputType
 {
-    float4 position : SV_POSITION;
-    float  Sequence : SEQ0;
-    float3 direction : DIRECTION0;
-    float4 color: COLOR0;
+    float4 position     : SV_POSITION;
+    float  Sequence     : SEQ0;
+    float3 direction    : DIRECTION0;
+    float3 color        : COLOR0;
     float4 lightViewPosition : TEXCOORD1;
-    float4 position0 : POSITION_0; // not reference, but orginal
+    float4 position0    : POSITION_0; // not reference, but orginal
 };
 
 struct VS_OUTPUT
@@ -66,9 +47,7 @@ struct VS_OUTPUT
 VS_OUTPUT SM_VS(VertexInputType input)
 {
     VS_OUTPUT output;
-
-    float4 pos = float4(input.Position, 1.0f);
-        output.position = mul(pos, g_lightProjView);
+    output.position = mul(float4(input.Position, 1.0f), g_mLightProjViewWorld);
 
     return output;
 }
@@ -81,7 +60,7 @@ float SM_PS(VS_OUTPUT In) : SV_TARGET
 float3 GetColour(float v)
 {
     float3 c = { 1.0, 1.0, 1.0 }; // white
-        float dv;
+    float dv;
 
     if (v < 0.0)
         v = 0.0;
@@ -145,52 +124,21 @@ GeometryInputType VS(VertexInputType input)
     GeometryInputType output;
     float4 worldPosition;
 
-    // Change the position vector to be 4 units for proper matrix calculations.
-    float4 pos = float4(input.Position, 1.0);
+    output.position = input.Position;
+    output.lightViewPosition = mul(float4(input.Position, 1.0), g_mLightProjViewWorld);
+    output.direction            = input.Direction;
+    output.color                = input.Color;
 
-        // Calculate the position of the vertex against the world, view, and projection matrices.
-        output.position = pos;
-
-    // Calculate the position of the vertice as viewed by the light source.
-    output.lightViewPosition = mul(pos, g_lightProjView);
-
-    // Calculate the normal vector against the world matrix only.
-    output.direction = input.Direction;
-
-    output.color = float4(input.Color, 1.0);
-    if (mode == 4)
-        output.color = float4(abs(input.Direction), 1.0);
-
-    if (mode == 3)
+    if (mode == 1)
     {
-        float3 diff = input.Position - input.Color;
-            float error = sqrt(dot(diff, diff)) * 3;
-        output.color = saturate(float4(GetColour(error), 1.0));
+        float3 diff = input.Position - input.Reference;
+        float error = sqrt(dot(diff, diff)) * 3;
+        output.color = saturate(GetColour(error));
     }
 
-    if (mode == 5)
-    {
-        float3 diff = abs(input.Position - input.Reference);
-            float error = sqrt(dot(diff, diff)) * 3;
-        error = saturate(error);
-        output.color *= (1 - error);
-    }
     output.sequence = float(input.Sequence);
-
-    output.color.w = 1.0;
     return output;
 }
-
-//////////////
-// TEXTURES //
-//////////////
-Texture2D shaderTexture : register(t0);
-
-
-///////////////////
-// SAMPLE STATES //
-///////////////////
-SamplerState SampleTypeClamp : register(s0);
 
 
 float normalFromNegPiToPi(float value)
@@ -248,86 +196,7 @@ float solveTT(float c0, float phi)
     float delta = sqrt(q_div_2 * q_div_2 + p*p*p / 27.0);
     return cubeRoot(q_div_2 + delta) + cubeRoot(q_div_2 - delta);
 }
-//
-//float solve(int p)
-//{
-//    if (p == 0)
-//    {
-//        return -phi / 2;
-//    }
-//    else if (p == 1)
-//    {
-//        float a = -8.0*p*c / pow(pi, 3);
-//        float b = 0;
-//        float c = 6.0*p*c / pi - 2;
-//        float d = -p*pi - phi;
-//        float delta = pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a), 2) + pow(c / (3.0*a) - b*b / (9.0*a*a), 3);
-//        float root1 = 0;
-//        if ((b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta)) < 0)root1 = -b / (3.0*a) + pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) + sqrt(delta), 1.0 / 3.0) - pow(abs(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta)), 1.0 / 3);
-//        else root1 = -b / (3.0*a) + pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) + sqrt(delta), 1.0 / 3.0) + pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta), 1.0 / 3);
-//        return root1;
-//    }
-//    else
-//    {
-//        float a = -8.0*p*c / pow(pi, 3);
-//        float b = 0;
-//        float c = 6.0*p*c / pi - 2;
-//        float d = -p*pi - phi;
-//        float delta = pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a), 2) + pow(c / (3.0*a) - b*b / (9.0*a*a), 3);
-//        if (delta > 0)return 1;
-//        else return 3;
-//    }
-//}
-//
-//float solve11(float p)
-//{
-//    float a = -8.0*p*c / pow(pi, 3);
-//    float b = 0;
-//    float c = 6.0*p*c / pi - 2;
-//    float d = p*pi - phi;
-//    float delta = pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a), 2) + pow(c / (3.0*a) - b*b / (9.0*a*a), 3);
-//    float root1 = 0;
-//    if ((b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta)) < 0)root1 = -b / (3.0*a) + pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) + sqrt(delta), 1.0 / 3.0) - pow(abs(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta)), 1.0 / 3);
-//    else root1 = -b / (3.0*a) + pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) + sqrt(delta), 1.0 / 3.0) + pow(b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a) - sqrt(delta), 1.0 / 3);
-//    return root1;
-//}
 
-//float solve1()
-//{
-//    float p = 2.0;
-//    float a = -8.0*p*c / pow(pi, 3);
-//    float b = 0;
-//    float c = 6.0*p*c / pi - 2;
-//    float d = -p*pi - phi;
-//    float alpha = b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a);
-//    float beta = c / (3.0*a) - b*b / (9.0*a*a);
-//    return -b / (3 * a) + 2 * sqrt(-beta)*cos(acos(alpha / pow(-beta, 3.0 / 2.0)) / 3);
-//}
-
-//float solve2()
-//{
-//    float p = 2.0;
-//    float a = -8.0*p*c / pow(pi, 3);
-//    float b = 0;
-//    float c = 6.0*p*c / pi - 2;
-//    float d = -p*pi - phi;
-//    float alpha = b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a);
-//    float beta = c / (3.0*a) - b*b / (9.0*a*a);
-//    return -b / (3 * a) + 2 * sqrt(-beta)*cos((acos(alpha / pow(-beta, 3.0 / 2.0)) + 2 * pi) / 3);
-//}
-//
-//float solve3()
-//{
-//    float p = 2.0;
-//    float a = -8.0*p*c / pow(pi, 3);
-//    float b = 0;
-//    float c = 6.0*p*c / pi - 2;
-//    float d = -p*pi - phi;
-//    float alpha = b*c / (6.0*a*a) - b*b*b / (27.0*a*a*a) - d / (2.0*a);
-//    float beta = c / (3.0*a) - b*b / (9.0*a*a);
-//    return -b / (3 * a) + 2 * sqrt(-beta)*cos((acos(alpha / pow(-beta, 3.0 / 2.0)) - 2 * pi) / 3);
-//}
-//
 float F(float i1, float i2, float gi, float gt)
 {
     float F_p, F_s;
@@ -356,72 +225,6 @@ float N_TT(float phi, float mu_1, float mu_2, float c)
     float atten = 1.0f;
     return F1_a*F1_a*atten / abs((2.0 / mu_1) / sqrt(1 - h*h / (mu_1*mu_1)) - 2.0 / sqrt(1 - h*h));
 }
-//
-//float N_TRT()
-//{
-//    float mu1 = 2.0*(mu - 1)*eccentricity*eccentricity - mu + 2.0;
-//    float mu2 = 2.0*(mu - 1) / (eccentricity*eccentricity) - mu + 2.0;
-//    mu = (mu1 + mu2 + cos(2 * phi_h)*(mu1 - mu2)) / 2.0;
-//    mu_1 = abs(sqrt(mu*mu - sin(theta_d)*sin(theta_d)) / cos(theta_d));
-//    mu_2 = abs(mu*mu*cos(theta_d) / sqrt(mu*mu - sin(theta_d)*sin(theta_d)));
-//    c = asin(1.0 / mu_1);
-//    float ans = 0.0;
-//    int root = solve(2);
-//    if (root == 1)
-//    {
-//        float gamma_i = 0.0;
-//        if (testsolve(solve11(-2)))gamma_i = solve11(-2);
-//        else if (testsolve(solve11(0)))gamma_i = solve11(0);
-//        else if (testsolve(solve11(2)))gamma_i = solve11(2);
-//        float h = sin(gamma_i);
-//        float gamma_t = asin(h / mu_1);
-//        float theta_t = asin(sin(theta_i / mu));
-//        ans = (1 - F(mu_1, mu_2, gamma_i))*(1 - F(mu_1, mu_2, gamma_i))*F(1.0 / mu_1, 1.0 / mu_2, gamma_t)*pow(e, -(4 * absorption / cos(theta_t))*(1 + cos(2 * gamma_t))) / abs((2.0 / mu_1) / sqrt(1 - h*h / (mu_1*mu_1)) - 2.0 / sqrt(1 - h*h));
-//        A = (1 - F(mu_1, mu_2, gamma_i))*(1 - F(mu_1, mu_2, gamma_i))*F(1.0 / mu_1, 1.0 / mu_2, gamma_t)*pow(e, -(4 * absorption / cos(theta_t))*(1 + cos(2 * gamma_t)));
-//    }
-//    else
-//    {
-//        float gamma_i = solve1();
-//        float h = sin(gamma_i);
-//        float gamma_t = asin(h / mu_1);
-//        float theta_t = asin(sin(theta_i / mu));
-//        ans += (1 - F(mu_1, mu_2, gamma_i))*(1 - F(mu_1, mu_2, gamma_i))*F(1.0 / mu_1, 1.0 / mu_2, gamma_t)*pow(e, -(4 * absorption / cos(theta_t))*(1 + cos(2 * gamma_t))) / abs((2.0 / mu_1) / sqrt(1 - h*h / (mu_1*mu_1)) - 2.0 / sqrt(1 - h*h));
-//
-//        gamma_i = solve2();
-//        h = sin(gamma_i);
-//        gamma_t = asin(h / mu_1);
-//        ans += (1 - F(mu_1, mu_2, gamma_i))*(1 - F(mu_1, mu_2, gamma_i))*F(1.0 / mu_1, 1.0 / mu_2, gamma_t)*pow(e, -(4 * absorption / cos(theta_t))*(1 + cos(2 * gamma_t))) / abs((2.0 / mu_1) / sqrt(1 - h*h / (mu_1*mu_1)) - 2.0 / sqrt(1 - h*h));
-//
-//        gamma_i = solve3();
-//        h = sin(gamma_i);
-//        gamma_t = asin(h / mu_1);
-//        ans += (1 - F(mu_1, mu_2, gamma_i))*(1 - F(mu_1, mu_2, gamma_i))*F(1.0 / mu_1, 1.0 / mu_2, gamma_t)*pow(e, -(4 * absorption / cos(theta_t))*(1 + cos(2 * gamma_t))) / abs((2.0 / mu_1) / sqrt(1 - h*h / (mu_1*mu_1)) - 2.0 / sqrt(1 - h*h));
-//    }
-//
-//    float h_c = 0.0;
-//    float phi_c = 0.0;
-//    float delta_h = 0.0;
-//    float t = 0.0;
-//    if (mu_1 < 2)
-//    {
-//        h_c = (4 - mu_1*mu_1) / 3;
-//        phi_c = 2.0*2.0*asin(h_c / mu_1) - 2.0*asin(h_c) + 2.0*pi;
-//        phi_c = trinormal(phi_c);
-//        delta_h = min(causticintensity, 2.0*sqrt(2.0*azimuthalwidth / abs(4 * h_c / (pow(mu_1, 3)*pow(1 - h_c*h_c / (mu_1*mu_1), 3.0 / 2.0)) - 2 * h_c / pow(1 - h_c*h_c, 3.0 / 2.0))));
-//        t = 1;
-//    }
-//    else
-//    {
-//        phi_c = 0;
-//        delta_h = causticintensity;
-//        t = smoothstep(2, 2 + faderange, mu_1);
-//    }
-//    ans *= (1 - t*Gaussian(azimuthalwidth, phi - phi_c) / Gaussian(azimuthalwidth, 0));
-//    ans *= (1 - t*Gaussian(azimuthalwidth, phi + phi_c) / Gaussian(azimuthalwidth, 0));
-//    ans += t*glintscale*A*delta_h*(Gaussian(azimuthalwidth, phi - phi_c) + Gaussian(azimuthalwidth, phi + phi_c));
-//
-//    return ans;
-//}
 
 float M_R(float theta_h)
 {
@@ -432,11 +235,6 @@ float M_TT(float theta_h)
 {
     return Gaussian(longwidth_TT, theta_h - longshift_TT);
 }
-//
-//float M_TRT()
-//{
-//    return Gaussian(longwidth_TRT, theta_h - longshift_TRT);
-//}
 
 float3 scattering(float Phi_i, float Phi_r, float Theta_i, float Theta_r, float3 rgb)
 {
@@ -468,9 +266,10 @@ float3 scattering(float Phi_i, float Phi_r, float Theta_i, float Theta_r, float3
     //    M_TRT()*N_TRT() / (cos(theta_d)*cos(theta_d)) * 250;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Pixel Shader
-////////////////////////////////////////////////////////////////////////////////
+
+Texture2D shaderTexture : register(t0);
+SamplerState SampleTypeClamp : register(s0);
+
 float4 PS(PixelInputType input) : SV_TARGET
 {
     float bias;
@@ -481,17 +280,17 @@ float4 PS(PixelInputType input) : SV_TARGET
 
     // Calculate phi, theta
     float3 vecU = input.direction;
-        float3 vecV = cross(vecU, float3(1, 0, 0));
+    float3 vecV = cross(vecU, float3(1, 0, 0));
     if (dot(vecV, vecV) < 1e-10)
         vecV = cross(vecU, float3(0, 1, 0));
 
     vecV = normalize(vecV);
     float3 vecW = cross(vecU, vecV);
-        float3 viewVec = normalize(input.position0.xyz - g_viewPoint);
+    float3 viewVec = normalize(input.position0.xyz - g_viewPoint);
 
-        //light direction (1, 1, -1)
-        float3 lightVec = { 1 / 1.732, 1 / 1.732, -1 / 1.732 };
-        float theta_i = -acos(dot(-lightVec, vecU)) + pi / 2;
+    //light direction (1, 1, -1)
+    float3 lightVec = { 1 / 1.732, 1 / 1.732, -1 / 1.732 };
+    float theta_i = -acos(dot(-lightVec, vecU)) + pi / 2;
     float theta_r = -acos(dot(-viewVec, vecU)) + pi / 2;
     float phi_i = acos(dot(-lightVec, vecV));
     if (dot(-lightVec, vecW) < 0) phi_i = -phi_i;
@@ -500,18 +299,12 @@ float4 PS(PixelInputType input) : SV_TARGET
     if (dot(-viewVec, vecW) < 0) phi_r = -phi_r;
 
     float3 diffuse = scattering(phi_i, phi_r, theta_i, theta_r, input.color.rgb);
-        //float3 diffuse = input.color.rgb;
 
-        /*if (input.color.x > 0.999 &&
-        input.color.y > 0.999 &&
-        input.color.z > 0.999)
-        discard;*/
-
-        // Set the bias value for fixing the floating point precision issues.
-        bias = 0.001f;
+    // Set the bias value for fixing the floating point precision issues.
+    bias = 0.001f;
 
     // Set the default output color to the ambient light value for all pixels.
-    color = float3(0.05, 0.05, 0.05) * input.color.rgb; // ambient
+    color = 0.05F * input.color; // ambient
 
     // Calculate the projected texture coordinates.
     projectTexCoord.x = input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
@@ -532,10 +325,10 @@ float4 PS(PixelInputType input) : SV_TARGET
         float dvs3 = shaderTexture.Load(int3(orgin.x + 1, orgin.y + 1, 0)).r;
         float4 dvs = float4(dvs0, dvs1, dvs2, dvs3);
 
-            //depthValue = shaderTexture.Sample(SampleTypeClamp, projectTexCoord).r;
+        //depthValue = shaderTexture.Sample(SampleTypeClamp, projectTexCoord).r;
 
-            // Calculate the depth of the light.
-            lightDepthValue = input.lightViewPosition.z / input.lightViewPosition.w;
+        // Calculate the depth of the light.
+        lightDepthValue = input.lightViewPosition.z / input.lightViewPosition.w;
 
         // Subtract the bias from the lightDepthValue.
         lightDepthValue = lightDepthValue - bias;
@@ -548,9 +341,6 @@ float4 PS(PixelInputType input) : SV_TARGET
         float w2 = (orgin.x + 1 - cw) * result[1] + (cw - orgin.x) * result[3];
         float weight = (orgin.y + 1 - ch) * w1 + (ch - orgin.y) * w2;
 
-        // Compare the depth of the shadow map value and the depth of the light to determine whether to shadow or to light this pixel.
-        // If the light is in front of the object then light the pixel, if not then shadow this pixel since an object (occluder) is casting a shadow on it.
-        // Determine the final diffuse color based on the diffuse color and the amount of light intensity.
         // 相当于light的方向是（1，1，-1）
         diffuse *= weight;
         color += diffuse;
@@ -566,48 +356,48 @@ float4 PS(PixelInputType input) : SV_TARGET
 void GS(line GeometryInputType points[2], inout TriangleStream<PixelInputType> output)
 {
     float3 p0 = points[0].position;
-        float3 p1 = points[1].position;
+    float3 p1 = points[1].position;
 
-        float3 line01 = (p1 - p0);
-        float3 dir = normalize(line01);
+    float3 line01 = (p1 - p0);
+    float3 dir = normalize(line01);
 
-        float3 center = (p1 + p0) / 2.0f;
-        float3 viewDir = normalize(g_viewPoint - center);
+    float3 center = (p1 + p0) / 2.0f;
+    float3 viewDir = normalize(g_viewPoint - center);
 
-        float3 normal = normalize(cross(dir, viewDir));
-        float width = 0.005f;
+    float3 normal = normalize(cross(dir, viewDir));
+    float width = 0.005f;
 
     PixelInputType v[4];
 
     float3 dir_offset = dir * width;
-        float3 normal_scaled = -normal * width;
+    float3 normal_scaled = -normal * width;
 
-        float3 p0_ex = p0 - 0;
-        float3 p1_ex = p1 + 0;
+    float3 p0_ex = p0 - 0;
+    float3 p1_ex = p1 + 0;
 
-        v[0].position0 = float4(p0_ex - normal_scaled, 1);
-    v[0].position = mul(v[0].position0, g_mViewProjection);
+    v[0].position0 = float4(p0_ex - normal_scaled, 1);
+    v[0].position = mul(v[0].position0, g_mProjViewWorld);
     v[0].color = points[0].color;
     v[0].Sequence = points[0].sequence;
     v[0].direction = points[0].direction;
     v[0].lightViewPosition = points[0].lightViewPosition;
 
     v[1].position0 = float4(p0_ex + normal_scaled, 1);
-    v[1].position = mul(v[1].position0, g_mViewProjection);
+    v[1].position = mul(v[1].position0, g_mProjViewWorld);
     v[1].color = points[0].color;
     v[1].Sequence = points[0].sequence;
     v[1].direction = points[0].direction;
     v[1].lightViewPosition = points[0].lightViewPosition;
 
     v[2].position0 = float4(p1_ex + normal_scaled, 1);
-    v[2].position = mul(v[2].position0, g_mViewProjection);
+    v[2].position = mul(v[2].position0, g_mProjViewWorld);
     v[2].color = points[1].color;
     v[2].Sequence = points[1].sequence;
     v[2].direction = points[1].direction;
     v[2].lightViewPosition = points[1].lightViewPosition;
 
     v[3].position0 = float4(p1_ex - normal_scaled, 1);
-    v[3].position = mul(v[3].position0, g_mViewProjection);
+    v[3].position = mul(v[3].position0, g_mProjViewWorld);
     v[3].color = points[1].color;
     v[3].Sequence = points[1].sequence;
     v[3].direction = points[1].direction;

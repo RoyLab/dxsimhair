@@ -58,8 +58,14 @@
     <None Include="BasicLine.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="HairFx.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
     <None Include="HairDebugRenderer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Deprecated</Filter>
+    </None>
+    <None Include="wrSceneManager.cpp">
+      <Filter>Source Files\Deprecated</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -108,9 +114,6 @@
     <ClCompile Include="wrMeshRenderer.cpp">
       <Filter>Source Files\Deprecated</Filter>
     </ClCompile>
-    <ClCompile Include="wrSceneManager.cpp">
-      <Filter>Source Files\Deprecated</Filter>
-    </ClCompile>
     <ClCompile Include="wrColorGenerator.cpp">
       <Filter>Source Files\Miscs</Filter>
     </ClCompile>
@@ -136,6 +139,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HairRenderer.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="HairManager.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="HairColor.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
   </ItemGroup>
@@ -169,9 +178,6 @@
     <ClInclude Include="CacheHair.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="HairDebugRenderer.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="HairGeometry.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -182,9 +188,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="wrHairRenderer.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XRwy_h.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="D3D11Tools.h">
@@ -269,6 +272,18 @@
       <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
     <ClInclude Include="IRenderer.h">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="HairManager.h">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="HairDebugRenderer.h">
+      <Filter>Source Files\Deprecated</Filter>
+    </ClInclude>
+    <ClInclude Include="HairColor.h">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="XRwy_h.h">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
   </ItemGroup>

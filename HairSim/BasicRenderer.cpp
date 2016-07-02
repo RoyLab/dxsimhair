@@ -8,6 +8,12 @@ namespace XRwy
 {
     using namespace DirectX;
 
+    const D3D11_INPUT_ELEMENT_DESC LineRenderer::LayoutDesc[2] = 
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+
     bool LineRenderer::Initialize()
     {
         auto pd3dDevice = DXUTGetD3D11Device();
@@ -91,15 +97,22 @@ namespace XRwy
         *pByteCodeLength = pVSBlob->GetBufferSize();
     }
 
-    void MeshRenderer::SetMaterial(DirectX::BasicEffect* pEffect, const FBX_LOADER::MATERIAL_DATA* material)
+    void MeshRenderer::SetMaterial(const FBX_LOADER::MATERIAL_DATA* material)
     {
-        this->pEffect = pEffect;
+        assert(pEffect);
         if (!material) return;
 
         pEffect->SetTexture(material->pSRV);
         pEffect->SetAmbientLightColor(XMLoadFloat4(&material->ambient));
         pEffect->SetDiffuseColor(XMLoadFloat4(&material->diffuse));
         pEffect->SetSpecularColor(XMLoadFloat4(&material->specular));
+    }
+
+    void MeshRenderer::SetMatrices(const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& proj)
+    {
+        pEffect->SetWorld(world);
+        pEffect->SetView(view);
+        pEffect->SetProjection(proj);
     }
 
     void MeshRenderer::SetRenderState(int i, void*)
