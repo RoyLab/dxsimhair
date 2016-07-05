@@ -2,26 +2,22 @@
 #include <d3d11.h>
 #include <iostream>
 
-void DumpLiveObjects(ID3D11Device* pd3dDevice, const char* name, bool detail = false)
+namespace XRwy
 {
-    auto para = D3D11_RLDO_SUMMARY;
-    if (detail)
-        para |= D3D11_RLDO_DETAIL;
+    void DumpLiveObjects(ID3D11Device* pd3dDevice, const char* name, bool detail = false);
 
-    char info[200];
-
-    strcpy(info, name);
-    strcat_s(info, ": begin........................................\n");
-    OutputDebugStringA(info);
-
-    ID3D11Debug * d3dDebug = nullptr;
-    if (SUCCEEDED(pd3dDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&d3dDebug))))
+    struct DebugBuffers
     {
-        d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
-        d3dDebug->Release();
-    }
+        ID3D11Buffer* pVB;
+        ID3D11Buffer* pIB;
 
-    strcpy(info, name);
-    strcat_s(info, ": end........................................\n");
-    OutputDebugStringA(info);
+        ID3D11Device* pDevice;
+        ID3D11DeviceContext* pDCT;
+
+        void drawCall(D3D11_PRIMITIVE_TOPOLOGY topology);
+    };
+
+    void SetupDebugBuffers(DebugBuffers*);
+    void ReleaseDebugBuffers(DebugBuffers*);
 }
+

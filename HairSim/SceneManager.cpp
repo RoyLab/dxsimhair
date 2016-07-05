@@ -43,8 +43,8 @@ namespace XRwy
 
     bool SceneManager::ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pUserContext)
     {
-        pDeviceSettings->d3d11.sd.SampleDesc.Count = 4;
-        pDeviceSettings->d3d11.sd.SampleDesc.Quality = 4;
+        pDeviceSettings->d3d11.sd.SampleDesc.Count = 0;
+        pDeviceSettings->d3d11.sd.SampleDesc.Quality = 0;
 
         return true;
     }

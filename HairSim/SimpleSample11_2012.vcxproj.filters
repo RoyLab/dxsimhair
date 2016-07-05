@@ -147,6 +147,9 @@
     <ClCompile Include="HairColor.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
+    <ClCompile Include="D3D11Tools.cpp">
+      <Filter>Source Files\Miscs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">

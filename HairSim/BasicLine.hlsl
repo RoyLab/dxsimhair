@@ -6,7 +6,7 @@ cbuffer cbMatrix : register(b0)
 
 struct VSInput
 {
-    float3 Position     : POSITION;
+    float3 Position     : POSITION1;
     float3 Color        : COLOR;
 };
 
@@ -16,15 +16,14 @@ struct  VSOutput
     float3 Color        : COLOR0;
 };
 
-VSOutput VS(VertexInputType input)
+VSOutput VS(float3 Position: POSITION)
 {
     VSOutput Output;
-    Output.Position = mul(float4(input.Position, 1.0), g_mViewProjection);
-    Output.Color = float4(input.Color, 1.0);
+    Output.Position = mul(float4(Position, 1.0), g_mViewProjection);
     return Output;
 }
 
 float4 PS(VSOutput input) : SV_TARGET
 {
-    return input.Color;
+    return float4(1.0f, 1.0f, 1.0f, 1.0f);
 }

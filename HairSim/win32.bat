@@ -1,2 +1,2 @@
 @set path=../3rdparty/dll/;%path%
-SimHair.exe
+SimHair_v1.exe

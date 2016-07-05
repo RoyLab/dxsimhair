@@ -386,6 +386,7 @@
     <ClCompile Include="CFBXLoader.cpp" />
     <ClCompile Include="CFBXRendererDX11.cpp" />
     <ClCompile Include="ConfigReader.cpp" />
+    <ClCompile Include="D3D11Tools.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="GUIManager.cpp" />
     <None Include="HairDebugRenderer.cpp" />

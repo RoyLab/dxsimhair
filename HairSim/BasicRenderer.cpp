@@ -76,6 +76,7 @@ namespace XRwy
         pd3dImmediateContext->VSSetShader(pVertexShader, nullptr, 0);
         pd3dImmediateContext->PSSetShader(pPixelShader, nullptr, 0);
         pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
+        pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
     }
 
     void LineRenderer::SetConstantBuffer(const ConstantBuffer* buffer)
