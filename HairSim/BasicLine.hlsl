@@ -6,7 +6,7 @@ cbuffer cbMatrix : register(b0)
 
 struct VSInput
 {
-    float3 Position     : POSITION1;
+    float3 Position     : POSITION;
     float3 Color        : COLOR;
 };
 
@@ -16,14 +16,23 @@ struct  VSOutput
     float3 Color        : COLOR0;
 };
 
-VSOutput VS(float3 Position: POSITION)
+VSOutput VS(VSInput input)
 {
     VSOutput Output;
-    Output.Position = mul(float4(Position, 1.0), g_mViewProjection);
+    Output.Position = mul(float4(input.Position, 1.0), g_mViewProjection);
+    Output.Color = input.Color;
     return Output;
 }
 
+//VSOutput VS(float3 Position: POSITION, float3 Color: COLOR)
+//{
+//    VSOutput Output;
+//    Output.Position = mul(float4(Position, 1.0), g_mViewProjection);
+//    Output.Color = Color;
+//    return Output;
+//}
+
 float4 PS(VSOutput input) : SV_TARGET
 {
-    return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    return float4(input.Color, 1.0f);
 }

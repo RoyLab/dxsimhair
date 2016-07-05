@@ -15,7 +15,7 @@ namespace XRwy
 
         XMFLOAT3*           position = nullptr;
         XMFLOAT3*           direction = nullptr;
-        XMFLOAT4X4          rigidTrans;
+        float               rigidTrans[16];
 
         ~HairGeometry()
         {

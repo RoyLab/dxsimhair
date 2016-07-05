@@ -28,6 +28,8 @@ namespace XRwy
         bool Initialize();
         void Release();
 
+        void GetShadowMapProjMatrix(Matrix& proj);
+
     private:
         ID3D11Device*           pd3dDevice = nullptr;
         ID3D11DeviceContext*    pd3dImmediateContext = nullptr;

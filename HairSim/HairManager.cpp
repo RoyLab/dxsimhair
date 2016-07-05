@@ -9,6 +9,18 @@ namespace XRwy
 {
     using namespace DirectX;
 
+    LineRenderer gLineRenderer;
+    ID3D11InputLayout* pL;
+
+    XMMATRIX ComputeHeadTransformation(const float* trans4x4)
+    {
+        using namespace DirectX;
+        auto target0 = XMFLOAT4X4(trans4x4);
+        auto trans0 = XMFLOAT3(0.0f, -0.643f, 0.282f);
+        auto scale0 = XMFLOAT3(5.346f, 5.346f, 5.346f);
+        return XMMatrixAffineTransformation(XMLoadFloat3(&scale0), XMVectorZero(), XMVectorZero(), XMLoadFloat3(&trans0))*XMMatrixTranspose(XMLoadFloat4x4(&target0));
+    }
+
     void drawStrand(ID3D11DeviceContext* context, int start, int num, void* perStrand)
     {
         int factor = *reinterpret_cast<int*>(perStrand);
@@ -35,13 +47,13 @@ namespace XRwy
         HRESULT hr;
         D3D11_MAPPED_SUBRESOURCE MappedResource;
 
-        for (int i = 0; i < 2; i++)
-        {
-            V(pd3dImmediateContext->Map(pVB[i], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
-            auto pData = reinterpret_cast<XMFLOAT3*>(MappedResource.pData);
-            CopyMemory(pData, hair->position, sizeof(XMFLOAT3)* hair->nParticle);
-            pd3dImmediateContext->Unmap(pVB[i], 0);
-        }
+        V(pd3dImmediateContext->Map(pVB[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+        CopyMemory(MappedResource.pData, hair->position, sizeof(XMFLOAT3)* hair->nParticle);
+        pd3dImmediateContext->Unmap(pVB[0], 0);
+
+        V(pd3dImmediateContext->Map(pVB[1], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+        CopyMemory(MappedResource.pData, hair->direction, sizeof(XMFLOAT3)* hair->nParticle);
+        pd3dImmediateContext->Unmap(pVB[1], 0);
     }
 
     HairManager::HairManager(FBX_LOADER::CFBXRenderDX11* fbx, MeshRenderer* meshrend):
@@ -67,19 +79,10 @@ namespace XRwy
         CopyMemory(layout, HairRenderer::LayoutDesc, sizeof(D3D11_INPUT_ELEMENT_DESC) * numElements);
 
         layout[0].InputSlot = 3;
-        layout[0].AlignedByteOffset = 0;
-
         layout[1].InputSlot = 0;
-        layout[1].AlignedByteOffset = 0;
-
         layout[2].InputSlot = 2;
-        layout[2].AlignedByteOffset = 0;
-
         layout[3].InputSlot = 1;
-        layout[3].AlignedByteOffset = 0;
-
         layout[4].InputSlot = 4;
-        layout[4].AlignedByteOffset = 0;
         
         pHairRenderer->GetVertexShaderBytecode(&pVSBufferPtr, &nVSBufferSz, 0);
         V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, pVSBufferPtr, nVSBufferSz, &pInputLayout));
@@ -117,24 +120,37 @@ namespace XRwy
             hairManips.push_back(geoManip);
         }
 
-        // suppose we have an example
+        // suppose the two animation are for the same hair
         auto &example = hairManips[0].hair;
-
-        // init color buffer
         ID3D11Buffer* buffer = nullptr;
 
-        BlackHair* black = nullptr;
+        // create index buffer
+        bDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        bDesc.Usage = D3D11_USAGE_DEFAULT;
+        bDesc.CPUAccessFlags = 0;
+        bDesc.ByteWidth = example->nParticle * sizeof(DWORD);
+
+        DWORD* indices = new DWORD[example->nParticle];
+        for (int i = 0; i < example->nParticle; i++)
+            indices[i] = i;
+
+        subRes.pSysMem = indices;
+        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
+        dataBuffers["indices"] = buffer;
+        SAFE_DELETE_ARRAY(indices);
+
+        // init color buffer
+        IHairColorGenerator* color = nullptr;
         bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bDesc.Usage = D3D11_USAGE_DEFAULT;
         bDesc.CPUAccessFlags = 0;
         bDesc.ByteWidth = example->nParticle * sizeof(XMFLOAT3);
 
-        black = new BlackHair(example->nParticle);
-        subRes.pSysMem = black->GetColorArray();
-        SAFE_DELETE(black);
-
-        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, nullptr, &buffer));
-        dataBuffers["black"] = buffer;
+        color = new GreyHair(example->nParticle, 0x10);
+        subRes.pSysMem = color->GetColorArray();
+        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
+        dataBuffers["grey"] = buffer;
+        SAFE_DELETE(color);
 
         // init sequence buffer
         bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -149,15 +165,25 @@ namespace XRwy
                 seq[i++] = j;
         }
         subRes.pSysMem = seq;
-        SAFE_DELETE(seq);
-
-        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, nullptr, &buffer));
+        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
         dataBuffers["seq"] = buffer;
+        SAFE_DELETE(seq);
 
         // load group files
 
         // load guide information
+        gLineRenderer.Initialize();
+        
+        CopyMemory(layout, LineRenderer::LayoutDesc, sizeof(D3D11_INPUT_ELEMENT_DESC)* 2);
 
+        layout[0].InputSlot = 0;
+        layout[1].InputSlot = 1;
+
+        gLineRenderer.GetVertexShaderBytecode(&pVSBufferPtr, &nVSBufferSz, 0);
+        V_RETURN(pd3dDevice->CreateInputLayout(layout, 2, pVSBufferPtr, nVSBufferSz, &pL));
+
+        hairManips[0].loader->nextFrame();
+        hairManips[1].loader->nextFrame();
         return true;
     }
 
@@ -176,9 +202,8 @@ namespace XRwy
 
     void HairManager::RenderAll(CModelViewerCamera* pCamera, double fTime, float fElapsedTime)
     {
-        XMFLOAT4X4 world_o_0(hairManips[0].hair->rigidTrans);
-        XMMATRIX world = XMLoadFloat4x4(&world_o_0);
-        pMeshRenderer->SetMatrices(XMMatrixTranspose(world), pCamera->GetViewMatrix(), pCamera->GetProjMatrix());
+        XMMATRIX world = ComputeHeadTransformation(hairManips[0].hair->rigidTrans);
+        pMeshRenderer->SetMatrices(world, pCamera->GetViewMatrix(), pCamera->GetProjMatrix());
         size_t nodeCount = pFbxLoader->GetNodeCount();
 
         int j = 2;
@@ -187,14 +212,41 @@ namespace XRwy
         pMeshRenderer->SetRenderState();
         pFbxLoader->RenderNode(pd3dImmediateContext, j);
 
+        // render hairs
+        pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
+
+        //pd3dImmediateContext->IASetInputLayout(pL);
+        //ID3D11Buffer* buffers[] = { hairManips[0].pVB[0], dataBuffers["grey"] };
+        //UINT strides[] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3) };
+        //UINT offsets[] = { 0, 0 };
+
+        //LineRenderer::ConstantBuffer bf;
+        //XMStoreFloat4x4(&bf.viewProjMatrix, XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
+        //gLineRenderer.SetConstantBuffer(&bf);
+        //gLineRenderer.SetRenderState();
+        //pd3dImmediateContext->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+        //drawStrand(pd3dImmediateContext, 0, hairManips[0].hair->nParticle, &hairManips[0].hair->particlePerStrand);
+
+        HairRenderer::ConstBuffer bf;
+        bf.mode = 0;
+        XMStoreFloat4x4(&bf.projViewWorld, XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
+
+        XMFLOAT4X4 proj;
+        pHairRenderer->GetShadowMapProjMatrix(proj);
+        XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, -10.0f);
+        XMFLOAT3 lightTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
+        XMFLOAT3 lightUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
+
+        XMStoreFloat4x4(&bf.lightProjViewWorld, XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
+            XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
+
+        pHairRenderer->SetConstantBuffer(&bf);
+
         pd3dImmediateContext->IASetInputLayout(pInputLayout);
-        pd3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-        
-        ID3D11Buffer* buffers[5] = { hairManips[0].pVB[0], hairManips[0].pVB[1], dataBuffers["black"], dataBuffers["seq"], hairManips[1].pVB[0] };
+        ID3D11Buffer* buffers[5] = { hairManips[0].pVB[0], hairManips[0].pVB[1], dataBuffers["grey"], dataBuffers["seq"], hairManips[1].pVB[0] };
         UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
         UINT offsets[5] = { 0 };
         pd3dImmediateContext->IAGetVertexBuffers(0, 5, buffers, strides, offsets);
-
         pHairRenderer->SetRenderState(0);
         drawStrand(pd3dImmediateContext, 0, hairManips[0].hair->nParticle, &hairManips[0].hair->particlePerStrand);
         pHairRenderer->SetRenderState(1);
@@ -205,7 +257,7 @@ namespace XRwy
     {
         for (int i = 0; i < 2; i++)
         {
-            hairManips[i].loader->nextFrame();
+            //hairManips[i].loader->nextFrame();
             hairManips[i].sync = false;
 
             hairManips[i].UpdateBuffers(pd3dImmediateContext);
