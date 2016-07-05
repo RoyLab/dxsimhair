@@ -229,6 +229,7 @@ namespace XRwy
 
         HairRenderer::ConstBuffer bf;
         bf.mode = 0;
+        XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
         XMStoreFloat4x4(&bf.projViewWorld, XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
 
         XMFLOAT4X4 proj;

@@ -48,7 +48,10 @@ namespace XRwy
             auto pTexture = pShadowMapRenderTarget->GetShaderResourceView();
             pd3dImmediateContext->PSSetShaderResources(0, 1, &pTexture);
             pd3dImmediateContext->PSSetSamplers(0, 1, &psampleStateClamp);
+
             pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstBuffer);
+            pd3dImmediateContext->GSSetConstantBuffers(0, 1, &pConstBuffer);
+
             pd3dImmediateContext->VSSetShader(pHairVS, nullptr, 0);
             pd3dImmediateContext->GSSetShader(pHairGS, nullptr, 0);
             pd3dImmediateContext->PSSetShader(pHairPS, nullptr, 0);

@@ -13,8 +13,8 @@ namespace XRwy
         {
             Matrix  projViewWorld;
             Matrix  lightProjViewWorld;
+            Float3  viewPoint;
             int     mode;
-            int     padding[3];
         };
 
         static const D3D11_INPUT_ELEMENT_DESC LayoutDesc[5];
