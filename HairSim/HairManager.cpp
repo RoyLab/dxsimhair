@@ -136,19 +136,6 @@ namespace XRwy
         dataBuffers["indices"] = buffer;
         SAFE_DELETE_ARRAY(indices);
 
-        // init color buffer
-        IHairColorGenerator* color = nullptr;
-        bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-        bDesc.Usage = D3D11_USAGE_DEFAULT;
-        bDesc.CPUAccessFlags = 0;
-        bDesc.ByteWidth = example->nParticle * sizeof(XMFLOAT3);
-
-        color = new GreyHair(example->nParticle, 0x10);
-        subRes.pSysMem = color->GetColorArray();
-        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
-        dataBuffers["grey"] = buffer;
-        SAFE_DELETE(color);
-
         // init sequence buffer
         bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -169,6 +156,19 @@ namespace XRwy
         // load group files
 
         // load guide information
+
+        // init color buffer
+        IHairColorGenerator* color = nullptr;
+        bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        bDesc.Usage = D3D11_USAGE_DEFAULT;
+        bDesc.CPUAccessFlags = 0;
+        bDesc.ByteWidth = example->nParticle * sizeof(XMFLOAT3);
+
+        color = new GreyHair(example->nParticle, 0x10);
+        subRes.pSysMem = color->GetColorArray();
+        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
+        dataBuffers["grey"] = buffer;
+        SAFE_DELETE(color);
 
         return true;
     }
