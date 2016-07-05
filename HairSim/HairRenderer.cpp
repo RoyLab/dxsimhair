@@ -26,7 +26,6 @@ namespace XRwy
             pd3dImmediateContext->OMGetRenderTargets(1, &pMainRenderTarget, &pMainDepthStencil);
             pd3dImmediateContext->RSGetViewports(&nvp, &mainViewport);
 
-            //pd3dImmediateContext->PSSetShaderResources(0, 1, nullptr);
             pShadowMapRenderTarget->SetRenderTarget(pd3dImmediateContext);
             pShadowMapRenderTarget->ClearRenderTarget(pd3dImmediateContext, 1.0f, /*no use*/0.0f, 0.0f, 0.0f);
 

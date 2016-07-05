@@ -272,7 +272,7 @@ SamplerState SampleTypeClamp : register(s0);
 
 float4 PS(PixelInputType input) : SV_TARGET
 {
-    return float4(1, 1, 1, 1);
+    //return float4(input.color, 1.0f);
     float bias;
     float3 color;
     float2 projectTexCoord;
