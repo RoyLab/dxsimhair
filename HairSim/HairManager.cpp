@@ -9,9 +9,6 @@ namespace XRwy
 {
     using namespace DirectX;
 
-    LineRenderer gLineRenderer;
-    ID3D11InputLayout* pL;
-
     XMMATRIX ComputeHeadTransformation(const float* trans4x4)
     {
         using namespace DirectX;
@@ -172,18 +169,7 @@ namespace XRwy
         // load group files
 
         // load guide information
-        gLineRenderer.Initialize();
-        
-        CopyMemory(layout, LineRenderer::LayoutDesc, sizeof(D3D11_INPUT_ELEMENT_DESC)* 2);
 
-        layout[0].InputSlot = 0;
-        layout[1].InputSlot = 1;
-
-        gLineRenderer.GetVertexShaderBytecode(&pVSBufferPtr, &nVSBufferSz, 0);
-        V_RETURN(pd3dDevice->CreateInputLayout(layout, 2, pVSBufferPtr, nVSBufferSz, &pL));
-
-        hairManips[0].loader->nextFrame();
-        hairManips[1].loader->nextFrame();
         return true;
     }
 
@@ -216,7 +202,7 @@ namespace XRwy
         pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
 
         HairRenderer::ConstBuffer bf;
-        bf.mode = 0;
+        bf.mode = 1;
         XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
         XMStoreFloat4x4(&bf.projViewWorld, XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
 
@@ -240,25 +226,13 @@ namespace XRwy
         drawStrand(pd3dImmediateContext, 0, hairManips[0].hair->nParticle, &hairManips[0].hair->particlePerStrand);
         pHairRenderer->SetRenderState(1);
         drawStrand(pd3dImmediateContext, 0, hairManips[0].hair->nParticle, &hairManips[0].hair->particlePerStrand);
-
-        //pd3dImmediateContext->IASetInputLayout(pL);
-        //ID3D11Buffer* buffers2[] = { hairManips[0].pVB[0], dataBuffers["grey"] };
-        //UINT strides2[] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3) };
-        //UINT offsets2[] = { 0, 0 };
-
-        //LineRenderer::ConstantBuffer bf2;
-        //XMStoreFloat4x4(&bf2.viewProjMatrix, XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
-        //gLineRenderer.SetConstantBuffer(&bf2);
-        //gLineRenderer.SetRenderState();
-        //pd3dImmediateContext->IASetVertexBuffers(0, 2, buffers2, strides2, offsets2);
-        //drawStrand(pd3dImmediateContext, 0, hairManips[0].hair->nParticle, &hairManips[0].hair->particlePerStrand);
     }
 
     void HairManager::OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
     {
         for (int i = 0; i < 2; i++)
         {
-            //hairManips[i].loader->nextFrame();
+            hairManips[i].loader->nextFrame();
             hairManips[i].sync = false;
 
             hairManips[i].UpdateBuffers(pd3dImmediateContext);
