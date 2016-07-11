@@ -6,6 +6,7 @@
 #include <ctime>
 #include <random>
 
+#include "XRwy_h.h"
 #include "SceneManager.h"
 #include "BasicRenderer.h"
 #include "HairManager.h"
@@ -64,7 +65,7 @@ namespace XRwy
 
     bool SceneManager::ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pUserContext)
     {
-        pDeviceSettings->d3d11.sd.SampleDesc.Count = 0;
+        pDeviceSettings->d3d11.sd.SampleDesc.Count = std::stoi(g_paramDict["multisample"]);
         pDeviceSettings->d3d11.sd.SampleDesc.Quality = 0;
 
         return true;

@@ -8,14 +8,20 @@
 #include <map>
 #include <string>
 #define COMMENT_CHAR '#'//注释符
-using namespace std;
 
-typedef std::map<std::string, std::string> ParamDict;
+class ParamDict :
+	public std::map<std::string, std::string>
+{
+public:
+};
 
 class ConfigReader
 {
+	typedef std::string string;
 private:
-    ifstream *infile = nullptr;
+    std::ifstream *infile = nullptr;
+	string fileName;
+
 public:
     //参数filename，配置文件的名字
     ConfigReader(const string & filename);
@@ -24,7 +30,6 @@ public:
     //参数name，配置项的名字
     //返回值，对应配置项name的value值
     string getValue(const string & name);
-
     void getParamDict(ParamDict& dict);
 
     void close();
