@@ -1,16 +1,91 @@
 ﻿#pragma once
-#include "wrGeo.h"
-#include "ADFCollisionObject.h"
-#include "wrMacro.h"
-//#include <CGAL\Delaunay_Triangulation_3.h>
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/AABB_tree.h>
+#include <CGAL/AABB_traits.h>
+#include <CGAL/Polyhedron_3.h>
+#include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
+#include <CGAL/AABB_face_graph_triangle_primitive.h>
+
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Polyhedron_3.h>
+#include <CGAL/IO/Polyhedron_iostream.h>
+#include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
+#include <CGAL/point_generators_3.h>
+#include <CGAL/Side_of_triangle_mesh.h>
+
 #include <CGAL\Triangulation_vertex_base_with_info_3.h>
 #include <CGAL\Polyhedron_3.h>
-//#include <CGAL\Point_3.h>
 #include <CGAL\Triangle_3.h>
 
+#include "wrGeo.h"
+#include "ICollisionObject.h"
+#include "wrMacro.h"
+
+namespace CGAL
+{
+	namespace Ext
+	{
+		template<class Polyhedron, class Kernel>
+		class DistanceTester2
+		{
+			typedef typename Kernel::FT FT;
+			typedef typename Kernel::Point_3 Point;
+			typedef CGAL::AABB_face_graph_triangle_primitive<Polyhedron> Primitive;
+			typedef CGAL::AABB_traits<Kernel, Primitive> Traits;
+			typedef CGAL::AABB_tree<Traits> Tree;
+			typedef CGAL::Side_of_triangle_mesh<Polyhedron, Kernel> WhichSide;
+
+		public:
+			DistanceTester2(Polyhedron& poly)
+			{
+				m_tree = new Tree(poly.facets_begin(), poly.facets_end(), poly);
+				m_side = new WhichSide(poly);
+				m_tree->accelerate_distance_queries();
+			}
+
+			~DistanceTester2()
+			{
+				SAFE_DELETE(m_side);
+				SAFE_DELETE(m_tree);
+			}
+
+			FT query_signed_distance(const Point& p) const
+			{
+				FT sqd = m_tree->squared_distance(p);
+				int s = determine_sign(*m_side, p);
+				return sqrt(sqd) * s;
+			}
+
+		private:
+
+			int determine_sign(const WhichSide& inside, const Point& query) const
+			{
+				auto res = inside(query);
+				if (res == CGAL::ON_BOUNDED_SIDE) return -1;
+				if (res == CGAL::ON_BOUNDARY) return 0;
+				else return 1;
+			}
+
+			WhichSide*  m_side;
+			Tree*       m_tree;
+		};
+
+
+		template<class Polyhedron, class Kernel>
+		DistanceTester2<Polyhedron, Kernel>* createDistanceTester2(Polyhedron& poly)
+		{
+			return new DistanceTester2<Polyhedron, Kernel>(poly);
+		}
+
+	}
+}
 
 namespace WR
 {
+	
+	class ADFCollisionObject;
+
+
     template <class Refs, class Plane>
     struct FaceWithId : public CGAL::HalfedgeDS_face_base<Refs, CGAL::Tag_true, Plane> {
         int idx;
@@ -78,8 +153,7 @@ namespace WR
         typedef K::Point_3                  Point_3;
         typedef K::Vector_3                 Vector_3;
         typedef Polyhedron_3_FaceWithId     Polyhedron_3;
-        typedef ADFCollisionObject          ADF;
-        typedef ADF::Dt                     Dt;
+		typedef ICollisionObject::Dt		Dt;
         typedef Dt::Vertex_handle           DtVh;
         typedef TriangleWithInfos<K>        Triangle_3;
 
@@ -123,19 +197,17 @@ namespace WR
         const CGAL::Bbox_3& bbox() const { return box; }
 
     private:
-        void constructChildren(Node*);
+        void constructChildren(Node*, CGAL::Ext::DistanceTester2<Polyhedron_3_FaceWithId, K>* tester);
         Node* createNode();
         Node* createRootNode(const Polyhedron_3&);
 
-        void computeMinDistance(Node*);
+        void computeMinDistance(Node*, CGAL::Ext::DistanceTester2<Polyhedron_3_FaceWithId, K>* tester);
         int determineSign(int type, const Point_3& p, const Vector_3& diff, size_t triIdx) const;
 
         template <class Iterator>
         float minSquaredDist(const Point_3& p, Iterator begin, Iterator end, Vector_3* diff = nullptr, size_t* tri = nullptr, int* type = nullptr) const;
 
         float minDist(const Cube_3& bbox, const Point_3& p);
-        void computeGradient();
-
         void computeTripleFromBbox(Cube_3&, const Cube_3&) const;
 
         int detSignOnFace(const Point_3& p, const Vector_3& diff, size_t triIdx) const;
@@ -153,6 +225,6 @@ namespace WR
         Triangle_3*                     triList = nullptr;
         size_t                          nTriangles = 0;
         CGAL::Bbox_3                    box;
-
+		Polyhedron_3*					pModel = nullptr;
     };
 }

@@ -1,13 +1,19 @@
 #include "UnitTest.h"
+#include "ADFOctree.h"
 #include <boost/foreach.hpp>
 #include <CGAL/point_generators_3.h>
-#include "LevelSet.h"
-#include "ConfigReader.h"
-#include "wrMath.h"
 #include <vector>
 #include <fstream>
+#include <DirectXMath.h>
 
-#include <limits>
+#define WR_EXPORTS
+#include "LevelSet.h"
+#include "ADFCollisionObject.h"
+#include "ConfigReader.h"
+#include "linmath.h"
+
+
+
 using std::cout;
 using std::endl;
 
@@ -15,6 +21,16 @@ namespace WR
 { 
     typedef K::FT FT;
     typedef K::Point_3 Point;
+
+
+	DirectX::XMMATRIX ComputeHeadTransformation(const float* trans4x4)
+	{
+		using namespace DirectX;
+		auto target0 = XMFLOAT4X4(trans4x4);
+		auto trans0 = XMFLOAT3(0.0f, -0.643f, 0.282f);
+		auto scale0 = XMFLOAT3(5.346f, 5.346f, 5.346f);
+		return XMMatrixAffineTransformation(XMLoadFloat3(&scale0), XMVectorZero(), XMVectorZero(), XMLoadFloat3(&trans0))*XMMatrixTranspose(XMLoadFloat4x4(&target0));
+	}
 
     void loadPoints(const wchar_t* fileName, std::vector<Point>& parr)
     {
@@ -25,13 +41,12 @@ namespace WR
             Point p;
             file >> p;
             parr.push_back(p);
-
         }
         file.close();
     }
 
 
-    ICollisionObject* createCollisionObject(Polyhedron_3_FaceWithId& poly)
+	extern "C" WR_API ICollisionObject* createCollisionObject(Polyhedron_3_FaceWithId& poly)
     {
         ADFOctree* pTree = new ADFOctree;
         pTree->construct(poly, 2);
@@ -40,12 +55,12 @@ namespace WR
         return pCO;
     }
 
-    ICollisionObject* loadCollisionObject(const wchar_t* fileName)
+	extern "C" WR_API ICollisionObject* loadCollisionObject(const wchar_t* fileName)
     {
         return new ADFCollisionObject(fileName);
     }
 
-    ICollisionObject* createCollisionObject(const wchar_t* fileName)
+	extern "C" WR_API ICollisionObject* createCollisionObject2(const wchar_t* fileName)
     {
         Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
         assert(pModel);
@@ -69,9 +84,11 @@ namespace WR
         return max_coord;
     }
 
+	using namespace DirectX;
+
     void runLevelSetBenchMark(const wchar_t* fileName)
     {
-        ConfigReader reader("..\\HairSim\\config.ini");
+        ConfigReader reader("..\\config.ini");
         int level = std::stoi(reader.getValue("maxlevel"));
         int number = std::stoi(reader.getValue("testnumber"));
         bool loadArray = std::stoi(reader.getValue("loadtest"));
@@ -82,6 +99,19 @@ namespace WR
 
         Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
         assert(pModel);
+
+		mat4x4 identity;  mat4x4_identity(identity);
+		auto mat = ComputeHeadTransformation(reinterpret_cast<float*>(identity));
+
+		for (auto itr = pModel->vertices_begin(); itr != pModel->vertices_end(); itr++)
+		{
+			auto &vertex = itr->point();
+			vec4 v{ vertex[0], vertex[1], vertex[2], 1.0f };
+			DirectX::XMVECTOR pos = DirectX::XMLoadFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(v));
+			auto newpos = DirectX::XMVector3Transform(pos, mat);
+			XMFLOAT4 last; XMStoreFloat4(&last, newpos);
+			itr->point() = Polyhedron_3_FaceWithId::Point_3(last.x, last.y, last.z);
+		}
 
         auto* tester = CGAL::Ext::createDistanceTester<Polyhedron_3_FaceWithId, K>(*pModel);
 

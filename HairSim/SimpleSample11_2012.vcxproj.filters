@@ -9,125 +9,114 @@
       <UniqueIdentifier>{2c3d4c8c-5d1a-459a-a05a-a4e4b608a44e}</UniqueIdentifier>
       <Extensions>fx;fxh;hlsl</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{c8e38fb0-7363-4ab5-a945-4da15b5fa078}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{92f93590-a349-4e41-9fd3-1c044611c7ae}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>
+      </Extensions>
     </Filter>
-    <Filter Include="FBX">
+    <Filter Include="Source Files\Miscs">
+      <UniqueIdentifier>{ddc1de22-ef8b-40e6-be5d-f2681f69797c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FBX">
       <UniqueIdentifier>{e366668c-c870-4fe5-8ea6-616560973fb5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Miscs">
-      <UniqueIdentifier>{ddc1de22-ef8b-40e6-be5d-f2681f69797c}</UniqueIdentifier>
+    <Filter Include="Source Files\XRwyEngine">
+      <UniqueIdentifier>{3a35098f-869e-45f8-9b71-dad3344573ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Dynamic">
+      <UniqueIdentifier>{e666c5c5-5e16-45d8-8053-40c06de1576e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\StaticHair">
+      <UniqueIdentifier>{bea39297-8e57-4a89-bdd2-22824b1d2672}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\DXUT\Optional\directx.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Hair.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shadowps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="depthps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="HairShadow.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="example.hlsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="point.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Line.hlsl">
+    <None Include="BasicLine.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="HairFx.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="wrColorGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrHair.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrHairRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrStrand.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrSceneManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrMeshRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CFBXRendererDX11.cpp">
-      <Filter>FBX</Filter>
+      <Filter>Source Files\FBX</Filter>
     </ClCompile>
     <ClCompile Include="DDSTextureLoader.cpp">
-      <Filter>FBX</Filter>
+      <Filter>Source Files\FBX</Filter>
     </ClCompile>
     <ClCompile Include="CFBXLoader.cpp">
-      <Filter>FBX</Filter>
-    </ClCompile>
-    <ClCompile Include="test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrTetrahedron.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrLevelsetOctree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wrLogger.cpp">
-      <Filter>Header Files\Miscs</Filter>
+      <Filter>Source Files\FBX</Filter>
     </ClCompile>
     <ClCompile Include="ConfigReader.cpp">
-      <Filter>Header Files\Miscs</Filter>
-    </ClCompile>
-    <ClCompile Include="wrSpring.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Parameter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SphereCollisionObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CacheHair.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HairDebugRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="rendertextureclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TrainingGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BasicRenderer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SimpleSample.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="SimpleSample.fx">
-      <Filter>Shaders</Filter>
-    </None>
+    <ClCompile Include="GUIManager.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="rendertextureclass.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="SplitLayout.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="HairColor.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="HairManager.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="HairRenderer.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="FollicleRenderer.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="HairLoader.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="HairStructs.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="TrainingGraph.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinningEngine.cpp">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClCompile>
+    <ClCompile Include="ReconsReader.cpp">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D11Tools.cpp">
+      <Filter>Source Files\Miscs</Filter>
+    </ClCompile>
+    <ClCompile Include="wrColorGenerator.cpp">
+      <Filter>Source Files\Miscs</Filter>
+    </ClCompile>
+    <ClCompile Include="HairSampleSelector.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="wrLogger.cpp">
+      <Filter>Source Files\Miscs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -136,106 +125,89 @@
     <ResourceCompile Include="SimpleSample.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-    <ClInclude Include="wrHair.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrHairRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrStrand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="precompiled.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrSceneManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrMeshRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CFBXRendererDX11.h">
-      <Filter>FBX</Filter>
+      <Filter>Source Files\FBX</Filter>
     </ClInclude>
     <ClInclude Include="DDSTextureLoader.h">
-      <Filter>FBX</Filter>
+      <Filter>Source Files\FBX</Filter>
     </ClInclude>
     <ClInclude Include="CFBXLoader.h">
-      <Filter>FBX</Filter>
-    </ClInclude>
-    <ClInclude Include="wrTetrahedron.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrLevelsetOctree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Parameter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrMacro.h">
-      <Filter>Header Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrTypes.h">
-      <Filter>Header Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrMath.h">
-      <Filter>Header Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrLogger.h">
-      <Filter>Header Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrGeo.h">
-      <Filter>Header Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="linmath.h">
-      <Filter>Header Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrColorGenerator.h">
-      <Filter>Header Files\Miscs</Filter>
+      <Filter>Source Files\FBX</Filter>
     </ClInclude>
     <ClInclude Include="ConfigReader.h">
-      <Filter>Header Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrSpring.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrTripleMatrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ICollisionObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SphereCollisionObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IHair.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CacheHair.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HairDebugRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="rendertextureclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HairGeometry.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="BasicRenderer.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIManager.h">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="rendertextureclass.h">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="IRenderer.h">
+      <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
     <ClInclude Include="XRwy_h.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitLayout.h">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="HairColor.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="HairManager.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="HairRenderer.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="FollicleRenderer.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="HairLoader.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="HairStructs.h">
+      <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
     <ClInclude Include="TrainingGraph.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="BasicLine.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+    <ClInclude Include="ZhouHairLoader.hpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinningEngine.h">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="ReconsReader.h">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D11Tools.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="linmath.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="macros.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrColorGenerator.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrMath.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="HairSampleSelector.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="wrLogger.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

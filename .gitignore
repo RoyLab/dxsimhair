@@ -19,6 +19,12 @@
 *.anim*
 *.group
 *.neigh
+*.bg
+*.dot
+*.db
+*.opendb
+*.ini
+*.adf
 
 # Build results
 [Dd]ebug/

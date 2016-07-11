@@ -3,7 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "rendertextureclass.h"
 
-
+namespace XRwy
+{
 RenderTextureClass::RenderTextureClass()
 {
 	m_renderTargetTexture = 0;
@@ -140,7 +141,7 @@ bool RenderTextureClass::Initialize(ID3D11Device* device, int textureWidth, int 
 }
 
 
-void RenderTextureClass::Shutdown()
+void RenderTextureClass::Release()
 {
 	if(m_depthStencilView)
 	{
@@ -172,7 +173,7 @@ void RenderTextureClass::Shutdown()
 		m_renderTargetTexture = 0;
 	}
 
-	return;
+    delete this;
 }
 
 
@@ -226,4 +227,6 @@ void RenderTextureClass::GetOrthoMatrix(DirectX::XMFLOAT4X4& orthoMatrix)
 {
 	orthoMatrix = m_orthoMatrix;
 	return;
+}
+
 }

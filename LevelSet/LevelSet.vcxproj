@@ -14,18 +14,19 @@
     <ProjectGuid>{9FD2CD8C-B136-421C-BFDE-5BBE2F2AC3B9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>LevelSet</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -82,7 +83,8 @@
       <AdditionalDependencies>libgmp-10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)$(ProjectName).exe" "$(SolutionDir)LevelSet\$(ProjectName).exe"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -90,16 +92,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ADFCollisionObject.h" />
+    <ClInclude Include="CGALKernel.h" />
+    <ClInclude Include="EigenTypes.h" />
+    <ClInclude Include="GroupPBD.h" />
+    <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="LevelSet.h" />
     <ClInclude Include="ADFOctree.h" />
     <ClInclude Include="UnitTest.h" />
+    <ClInclude Include="wrGeo.h" />
+    <ClInclude Include="wrTripleMatrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\HairSim\ConfigReader.cpp" />
     <ClCompile Include="ADFCollisionObject.cpp" />
     <ClCompile Include="ADFOctree.cpp" />
+    <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="LevelSet.cpp" />
-    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
