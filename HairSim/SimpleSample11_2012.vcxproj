@@ -132,7 +132,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;C:\Libs\boost_1_55_0;..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>_CRTDBG_MAP_ALLOC;WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -151,7 +151,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2013\x86\$(Configuration);$(BOOST_LIBRARYDIR);C:\Program Files (x86)\Visual Leak Detector\lib\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rdparty\lib;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\$(Configuration);C:\Libs\boost_1_55_0\lib32-msvc-12.0;C:\Program Files (x86)\Visual Leak Detector\lib\Win32</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Manifest>
@@ -217,7 +217,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;C:\Libs\boost_1_55_0;..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -236,7 +236,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2013\x86\$(Configuration);$(BOOST_LIBRARYDIR);</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rdparty\lib;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\$(Configuration);C:\Libs\boost_1_55_0\lib32-msvc-12.0;</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -302,7 +302,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;C:\Libs\boost_1_55_0;..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -321,7 +321,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2013\x86\$(Configuration);$(BOOST_LIBRARYDIR);</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rdparty\lib;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\$(Configuration);C:\Libs\boost_1_55_0\lib32-msvc-12.0;</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
