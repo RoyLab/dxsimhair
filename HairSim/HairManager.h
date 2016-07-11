@@ -46,6 +46,8 @@ namespace XRwy
         void RenderAll(CModelViewerCamera* camera, double fTime, float fElapsedTime);
         void OnFrameMove(double fTime, float fElapsedTime, void* pUserContext);
 
+		void toggleAnimation();
+
     private:
         // do not release
         FBX_LOADER::CFBXRenderDX11*     pFbxLoader;
@@ -57,5 +59,7 @@ namespace XRwy
         VertexBufferDict            dataBuffers;
         HairGeometryList            hairManips;
         ID3D11InputLayout*          pInputLayout = nullptr;
+
+		bool						bAnim = true;
     };
 }

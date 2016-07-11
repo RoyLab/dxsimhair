@@ -23,6 +23,7 @@
 *.dot
 *.db
 *.opendb
+*.ini
 
 # Build results
 [Dd]ebug/

@@ -236,14 +236,22 @@ namespace XRwy
 
     void HairManager::OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
     {
-        for (int i = 0; i < 2; i++)
-        {
-            hairManips[i].loader->nextFrame();
-            hairManips[i].sync = false;
+		if (bAnim)
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				hairManips[i].loader->nextFrame();
+				hairManips[i].sync = false;
 
-            hairManips[i].UpdateBuffers(pd3dImmediateContext);
-            hairManips[i].sync = true;
-        }
+				hairManips[i].UpdateBuffers(pd3dImmediateContext);
+				hairManips[i].sync = true;
+			}
+		}
     }
+
+	void HairManager::toggleAnimation()
+	{
+		bAnim = !bAnim;
+	}
 
 }
