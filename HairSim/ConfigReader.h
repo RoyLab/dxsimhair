@@ -5,22 +5,28 @@
 *   要求:  配置文件的格式，以#作为行注释，配置的形式是key = value，中间可有空格，也可没有空格
 *****************************************************************************/
 #pragma once
+#include <map>
 #include <string>
 #define COMMENT_CHAR '#'//注释符
 using namespace std;
 
+typedef std::map<std::string, std::string> ParamDict;
+
 class ConfigReader
 {
 private:
-    ifstream *infile;
+    ifstream *infile = nullptr;
 public:
-    ConfigReader(void){}
-    ~ConfigReader(void){}
-
     //参数filename，配置文件的名字
     ConfigReader(const string & filename);
+    ~ConfigReader(void){ if (infile) delete infile; }
 
     //参数name，配置项的名字
     //返回值，对应配置项name的value值
     string getValue(const string & name);
+
+    void getParamDict(ParamDict& dict);
+
+    void close();
 };
+

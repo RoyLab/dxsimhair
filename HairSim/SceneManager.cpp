@@ -2,16 +2,38 @@
 #include <DXUTcamera.h>
 #include <SDKmisc.h>
 #include <VertexTypes.h>
-#include <vld.h>
+//#include <vld.h>
+#include <ctime>
+#include <random>
 
 #include "SceneManager.h"
 #include "BasicRenderer.h"
 #include "HairManager.h"
 
+// 所有的全局变量
+namespace XRwy
+{
+    ParamDict g_paramDict;
+}
 
 namespace XRwy
 {
     using namespace DirectX;
+
+    SceneManager::SceneManager()
+    {
+        // initialize config parameter
+        ConfigReader reader("../config.ini");
+        reader.getParamDict(g_paramDict);
+        reader.close();
+
+        // initialize random seed
+        int rs = std::stoi(g_paramDict["randseed"]);
+        if (rs < 0)
+            srand(time(0));
+        else srand(rs);
+    }
+
 
     LRESULT SceneManager::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool* pbNoFurtherProcessing, void* pUserContext)
     {
@@ -21,7 +43,6 @@ namespace XRwy
 
     void SceneManager::OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
     {
-        
     }
 
     void SceneManager::OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
@@ -93,7 +114,7 @@ namespace XRwy
 
 
         // load contents
-        V_RETURN(pFbxLoader->LoadFBX("../../models/headdemo.fbx", pd3dDevice, pd3dImmediateContext));
+        V_RETURN(pFbxLoader->LoadFBX(g_paramDict["headfbx"].c_str(), pd3dDevice, pd3dImmediateContext));
         V_RETURN(CreateFbxInputLayout(pd3dDevice));
 
         return S_OK;

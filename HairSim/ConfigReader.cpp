@@ -87,6 +87,40 @@ string ConfigReader::getValue(const string & name)
     return "";
 }
 
+void ConfigReader::getParamDict(ParamDict& dict)
+{
+    string line;
+    string new_line;
+    while (getline(*infile, line))
+    {
+        if (line.empty() || line == "\n\r" || line == "\n")
+        {
+            continue;
+        }
+
+        int start_pos = 0, end_pos = line.size() - 1, pos;
+        if ((pos = line.find(COMMENT_CHAR)) != -1)
+        {
+            if (0 == pos)
+            {  // 行的第一个字符就是注释字符
+                continue;
+            }
+            end_pos = pos - 1;
+        }
+        new_line = line.substr(start_pos, start_pos + 1 - end_pos);  // 预处理，删除注释部分 
+        if ((pos = new_line.find('=')) == -1)
+        {
+            continue;  // 没有=号
+        }
+        string na = new_line.substr(0, pos);
+        Trim(na);
+        string value = new_line.substr(pos + 1, end_pos + 1 - (pos + 1));
+        Trim(value);
+        dict[na] = value;
+    }
+}
+
+
 ConfigReader::ConfigReader(const string & filename)
 {
     infile = new ifstream(filename.c_str());
@@ -95,3 +129,10 @@ ConfigReader::ConfigReader(const string & filename)
         cout << "无法打开配置文件" << endl;
     }
 }
+
+void ConfigReader::close()
+{
+    if (infile && infile->is_open())
+        infile->close();
+}
+

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -36,37 +36,37 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|X64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -151,7 +151,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2013\x86\$(Configuration);$(BOOST_LIBRARYDIR);C:\Program Files (x86)\Visual Leak Detector\lib\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2015\x86\$(Configuration);$(BOOST_LIBRARYDIR);C:\Program Files (x86)\Visual Leak Detector\lib\Win32</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Manifest>
@@ -236,7 +236,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2013\x86\$(Configuration);$(BOOST_LIBRARYDIR);</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2015\x86\$(Configuration);$(BOOST_LIBRARYDIR);</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -321,7 +321,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2013\x86\$(Configuration);$(BOOST_LIBRARYDIR);</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rdparty\lib;$(FBX_DIR)\lib\vs2015\x86\$(Configuration);$(BOOST_LIBRARYDIR);</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -382,7 +382,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BasicRenderer.cpp" />
-    <ClCompile Include="CacheHair.cpp" />
+    <None Include="CacheHair.cpp" />
     <ClCompile Include="CFBXLoader.cpp" />
     <ClCompile Include="CFBXRendererDX11.cpp" />
     <ClCompile Include="ConfigReader.cpp" />
@@ -402,21 +402,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="SceneManager.cpp" />
-    <ClCompile Include="SphereCollisionObject.cpp" />
     <ClCompile Include="TrainingGraph.cpp" />
-    <ClCompile Include="wrSpring.cpp" />
-    <ClCompile Include="wrLevelsetOctree.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />
     <None Include="wrSceneManager.cpp" />
-    <ClCompile Include="wrLogger.cpp" />
     <ClCompile Include="wrColorGenerator.cpp" />
-    <ClCompile Include="wrHair.cpp" />
-    <ClCompile Include="wrHairRenderer.cpp" />
-    <ClCompile Include="wrStrand.cpp" />
-    <ClCompile Include="wrTetrahedron.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="depthps.hlsl" />
@@ -440,33 +431,18 @@
     <ClInclude Include="HairGeometry.h" />
     <ClInclude Include="HairLoader.h" />
     <ClInclude Include="HairRenderer.h" />
-    <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="IHair.h" />
     <ClInclude Include="IRenderer.h" />
     <ClInclude Include="macros.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="SceneManager.h" />
-    <ClInclude Include="SphereCollisionObject.h" />
     <ClInclude Include="TrainingGraph.h" />
-    <ClInclude Include="wrMacro.h" />
     <ClInclude Include="linmath.h" />
-    <ClInclude Include="Parameter.h" />
-    <ClInclude Include="precompiled.h" />
     <ClInclude Include="wrColorGenerator.h" />
-    <ClInclude Include="wrGeo.h" />
-    <ClInclude Include="wrHair.h" />
-    <ClInclude Include="wrHairRenderer.h" />
-    <ClInclude Include="wrSpring.h" />
-    <ClInclude Include="wrLevelsetOctree.h" />
+    <ClInclude Include="wrMath.h" />
     <ClInclude Include="wrMeshRenderer.h" />
     <ClInclude Include="wrSceneManager.h" />
-    <ClInclude Include="wrLogger.h" />
-    <ClInclude Include="wrMath.h" />
-    <ClInclude Include="wrStrand.h" />
     <CLInclude Include="resource.h" />
-    <ClInclude Include="wrTetrahedron.h" />
-    <ClInclude Include="wrTripleMatrix.h" />
-    <ClInclude Include="wrTypes.h" />
     <ClInclude Include="XRwy_h.h" />
     <ResourceCompile Include="SimpleSample.rc" />
   </ItemGroup>

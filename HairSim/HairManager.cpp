@@ -86,8 +86,8 @@ namespace XRwy
 
         // load hair animaitions
         const char animFiles[2][128] = {
-            "C:/data/c0514.anim2",
-            "C:/data/c0524-opt-05-28 04h27m57s.anim2",
+            "D:/data/c0514.anim2",
+            "D:/data/c0524-opt-05-28 04h27m57s.anim2",
         };
 
         SGeoManip geoManip;
@@ -170,6 +170,12 @@ namespace XRwy
         dataBuffers["grey"] = buffer;
         SAFE_DELETE(color);
 
+        color = new RandomColorHair(example->nParticle, example->particlePerStrand, genRandSaturatedColor);
+        subRes.pSysMem = color->GetColorArray();
+        V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
+        dataBuffers["random"] = buffer;
+        SAFE_DELETE(color);
+
         return true;
     }
 
@@ -202,7 +208,7 @@ namespace XRwy
         pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
 
         HairRenderer::ConstBuffer bf;
-        bf.mode = 1;
+        bf.mode = 0;
         XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
         XMStoreFloat4x4(&bf.projViewWorld, XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
 
@@ -218,7 +224,7 @@ namespace XRwy
         pHairRenderer->SetConstantBuffer(&bf);
 
         pd3dImmediateContext->IASetInputLayout(pInputLayout);
-        ID3D11Buffer* buffers[5] = { hairManips[0].pVB[0], hairManips[0].pVB[1], dataBuffers["grey"], dataBuffers["seq"], hairManips[1].pVB[0] };
+        ID3D11Buffer* buffers[5] = { hairManips[0].pVB[0], hairManips[0].pVB[1], dataBuffers["random"], dataBuffers["seq"], hairManips[1].pVB[0] };
         UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
         UINT offsets[5] = { 0 };
         pd3dImmediateContext->IASetVertexBuffers(0, 5, buffers, strides, offsets);

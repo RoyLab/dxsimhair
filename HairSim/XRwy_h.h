@@ -1,4 +1,5 @@
 #pragma once
+#include "ConfigReader.h"
 
 namespace XRwy
 {
@@ -22,4 +23,6 @@ namespace XRwy
     class HairAnimationLoader;
 
     class HairManager;
+
+    extern ParamDict g_paramDict;
 }

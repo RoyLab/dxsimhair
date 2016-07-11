@@ -21,6 +21,8 @@
 *.neigh
 *.bg
 *.dot
+*.db
+*.opendb
 
 # Build results
 [Dd]ebug/

@@ -6,6 +6,7 @@
 #include "XRwy_h.h"
 #include "CFBXRendererDX11.h"
 #include "HairLoader.h"
+#include "ConfigReader.h"
 
 class CModelViewerCamera;
 class CDXUTTextHelper;
@@ -27,7 +28,7 @@ namespace XRwy
         HairManager*                    pHairManager = nullptr;
 
     public:
-        SceneManager(){}
+        SceneManager();
         ~SceneManager(){}
 
         // callback

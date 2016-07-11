@@ -20,9 +20,6 @@
     <Filter Include="Source Files\Deprecated">
       <UniqueIdentifier>{c26071bc-28de-40e9-8d04-0a70f917919e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Dynamic">
-      <UniqueIdentifier>{e41b7b77-7d47-4518-b817-fabb72ba4524}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\FBX">
       <UniqueIdentifier>{e366668c-c870-4fe5-8ea6-616560973fb5}</UniqueIdentifier>
     </Filter>
@@ -67,11 +64,11 @@
     <None Include="wrSceneManager.cpp">
       <Filter>Source Files\Deprecated</Filter>
     </None>
+    <None Include="CacheHair.cpp">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="wrHairRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CFBXRendererDX11.cpp">
       <Filter>Source Files\FBX</Filter>
     </ClCompile>
@@ -81,44 +78,17 @@
     <ClCompile Include="CFBXLoader.cpp">
       <Filter>Source Files\FBX</Filter>
     </ClCompile>
-    <ClCompile Include="CacheHair.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TrainingGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConfigReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Parameter.cpp">
-      <Filter>Source Files\Miscs</Filter>
-    </ClCompile>
-    <ClCompile Include="SphereCollisionObject.cpp">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClCompile>
-    <ClCompile Include="wrLevelsetOctree.cpp">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClCompile>
-    <ClCompile Include="wrSpring.cpp">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClCompile>
-    <ClCompile Include="wrStrand.cpp">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClCompile>
-    <ClCompile Include="wrTetrahedron.cpp">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClCompile>
-    <ClCompile Include="wrLogger.cpp">
-      <Filter>Source Files\Miscs</Filter>
-    </ClCompile>
     <ClCompile Include="wrMeshRenderer.cpp">
       <Filter>Source Files\Deprecated</Filter>
     </ClCompile>
     <ClCompile Include="wrColorGenerator.cpp">
       <Filter>Source Files\Miscs</Filter>
-    </ClCompile>
-    <ClCompile Include="wrHair.cpp">
-      <Filter>Source Files\Dynamic</Filter>
     </ClCompile>
     <ClCompile Include="BasicRenderer.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
@@ -190,9 +160,6 @@
     <ClInclude Include="TrainingGraph.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="wrHairRenderer.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="D3D11Tools.h">
       <Filter>Source Files\Miscs</Filter>
     </ClInclude>
@@ -202,45 +169,6 @@
     <ClInclude Include="IHair.h">
       <Filter>Source Files\Deprecated</Filter>
     </ClInclude>
-    <ClInclude Include="Parameter.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="precompiled.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="ICollisionObject.h">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClInclude>
-    <ClInclude Include="SphereCollisionObject.h">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClInclude>
-    <ClInclude Include="wrLevelsetOctree.h">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClInclude>
-    <ClInclude Include="wrSpring.h">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClInclude>
-    <ClInclude Include="wrStrand.h">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClInclude>
-    <ClInclude Include="wrTripleMatrix.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrTypes.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrMath.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrMacro.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrLogger.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrTetrahedron.h">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClInclude>
     <ClInclude Include="wrMeshRenderer.h">
       <Filter>Source Files\Deprecated</Filter>
     </ClInclude>
@@ -249,12 +177,6 @@
     </ClInclude>
     <ClInclude Include="wrColorGenerator.h">
       <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrGeo.h">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClInclude>
-    <ClInclude Include="wrHair.h">
-      <Filter>Source Files\Dynamic</Filter>
     </ClInclude>
     <ClInclude Include="BasicRenderer.h">
       <Filter>Source Files\XRwyEngine</Filter>
@@ -288,6 +210,9 @@
     </ClInclude>
     <ClInclude Include="XRwy_h.h">
       <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="wrMath.h">
+      <Filter>Source Files\Miscs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
