@@ -192,9 +192,9 @@ namespace XRwy
         delete this;
     }
 
-    void HairManager::RenderAll(CModelViewerCamera* pCamera, double fTime, float fElapsedTime)
+    void HairManager::RenderInstance(CModelViewerCamera* pCamera, int hairId, double fTime, float fElapsedTime)
     {
-        XMMATRIX world = ComputeHeadTransformation(hairManips[0].hair->rigidTrans);
+        XMMATRIX world = ComputeHeadTransformation(hairManips[hairId].hair->rigidTrans);
         pMeshRenderer->SetMatrices(world, pCamera->GetViewMatrix(), pCamera->GetProjMatrix());
         size_t nodeCount = pFbxLoader->GetNodeCount();
 
@@ -208,7 +208,7 @@ namespace XRwy
         pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
 
         HairRenderer::ConstBuffer bf;
-        bf.mode = 0;
+        bf.mode = rendMode;
         XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
         XMStoreFloat4x4(&bf.projViewWorld, XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
 
@@ -224,14 +224,14 @@ namespace XRwy
         pHairRenderer->SetConstantBuffer(&bf);
 
         pd3dImmediateContext->IASetInputLayout(pInputLayout);
-        ID3D11Buffer* buffers[5] = { hairManips[0].pVB[0], hairManips[0].pVB[1], dataBuffers["random"], dataBuffers["seq"], hairManips[1].pVB[0] };
+        ID3D11Buffer* buffers[5] = { hairManips[hairId].pVB[0], hairManips[hairId].pVB[1], dataBuffers["random"], dataBuffers["seq"], hairManips[0].pVB[0] };
         UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
         UINT offsets[5] = { 0 };
         pd3dImmediateContext->IASetVertexBuffers(0, 5, buffers, strides, offsets);
         pHairRenderer->SetRenderState(0);
-        drawStrand(pd3dImmediateContext, 0, hairManips[0].hair->nParticle, &hairManips[0].hair->particlePerStrand);
+        drawStrand(pd3dImmediateContext, 0, hairManips[hairId].hair->nParticle, &hairManips[hairId].hair->particlePerStrand);
         pHairRenderer->SetRenderState(1);
-        drawStrand(pd3dImmediateContext, 0, hairManips[0].hair->nParticle, &hairManips[0].hair->particlePerStrand);
+        drawStrand(pd3dImmediateContext, 0, hairManips[hairId].hair->nParticle, &hairManips[hairId].hair->particlePerStrand);
     }
 
     void HairManager::OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)

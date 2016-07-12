@@ -18,6 +18,7 @@
 //#define IDC_GOTO_FRAME          9
 
 #define IDC_PAUSE               1
+#define IDC_TOGGLE_DIFF         2
 
 
 void GUIManager::InitializeComponents()
@@ -35,6 +36,7 @@ void GUIManager::InitializeComponents()
     //AddButton(IDC_GOTO_FRAME, L"goto frame (F8)", 0, iY += iYo, 170, 22, VK_F9);
 
 	AddButton(IDC_PAUSE, L"Pause (F3)", 0, iY += iYo, 170, 22, VK_F3);
+	AddButton(IDC_TOGGLE_DIFF, L"Diff Disp (F4)", 0, iY += iYo, 170, 22, VK_F4);
 
 }
 
@@ -51,6 +53,9 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
     case IDC_PAUSE:
 		g_SceneMngr->pHairManager->toggleAnimation();
         break;
+	case IDC_TOGGLE_DIFF:
+		g_SceneMngr->pHairManager->toogleDiffDisp();
+		break;
     //case IDC_NEXT_COLOR:
     //    g_SceneMngr.nextColorScheme();
     //    break;

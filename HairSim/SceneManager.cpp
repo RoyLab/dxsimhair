@@ -58,9 +58,23 @@ namespace XRwy
     void SceneManager::OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext, double fTime,
         float fElapsedTime, void* pUserContext)
     {
+		HRESULT hr;
+		UINT nVP = 1;
+		D3D11_VIEWPORT pVP, pVPl;
+		pd3dImmediateContext->RSGetViewports(&nVP, &pVP);
+
+
+		CopyMemory(&pVPl, &pVP, sizeof(D3D11_VIEWPORT));
+		pVPl.Height /= 2;
+		pVPl.Width /= 2;
+		pd3dImmediateContext->RSSetViewports(nVP, &pVPl);
         if (pHairManager)
-            pHairManager->RenderAll(pCamera, fTime, fElapsedTime);
-    }
+            pHairManager->RenderInstance(pCamera, 0, fTime, fElapsedTime);
+
+
+
+		pd3dImmediateContext->RSSetViewports(nVP, &pVP);
+	}
 
 
     bool SceneManager::ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pUserContext)
@@ -103,7 +117,7 @@ namespace XRwy
         auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
         // Setup the camera's view parameters
-        static const XMVECTORF32 s_vecEye = { 1.0f, 1.0f, -2.0f, 0.f };
+        static const XMVECTORF32 s_vecEye = { 3.0f, 3.0f, -6.0f, 0.f };
         pCamera->SetViewParams(s_vecEye, g_XMZero);
 
         // initialize renderers

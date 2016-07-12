@@ -43,10 +43,14 @@ namespace XRwy
 
         bool Initialize();
         void Release();
-        void RenderAll(CModelViewerCamera* camera, double fTime, float fElapsedTime);
+        void RenderInstance(CModelViewerCamera* camera, int hairId, double fTime, float fElapsedTime);
         void OnFrameMove(double fTime, float fElapsedTime, void* pUserContext);
 
 		void toggleAnimation();
+		void toogleDiffDisp()
+		{
+			rendMode = rendMode ? 0 : 1;
+		}
 
     private:
         // do not release
@@ -61,5 +65,6 @@ namespace XRwy
         ID3D11InputLayout*          pInputLayout = nullptr;
 
 		bool						bAnim = true;
+		int							rendMode = 0;
     };
 }
