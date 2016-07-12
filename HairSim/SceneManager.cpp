@@ -44,6 +44,16 @@ namespace XRwy
     LRESULT SceneManager::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool* pbNoFurtherProcessing, void* pUserContext)
     {
         pCamera->HandleMessages(hWnd, uMsg, wParam, lParam);
+
+		if (uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONDBLCLK)
+		{
+			int iMouseX = (short)LOWORD(lParam);
+			int iMouseY = (short)HIWORD(lParam);
+			int id = splitLayout->PosInFrameID(iMouseX, iMouseY);
+			if (id < 0) id = 0;
+			pHairManager->SetActive(id);
+		}
+
         return 0;
     }
 

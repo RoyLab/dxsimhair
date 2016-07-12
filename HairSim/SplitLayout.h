@@ -18,8 +18,11 @@ namespace XRwy
 		void BeginLayout();
 		void EndLayout();
 		void SetupFrame(int i, CModelViewerCamera* pCamera);
+		int PosInFrameID(int x, int y) const;
 
 	private:
+		void GenViewport(int i, D3D11_VIEWPORT& viewport) const;
+
 		int nFrame = 0;
 		D3D11_VIEWPORT mainViewport;
 

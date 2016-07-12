@@ -6,11 +6,19 @@
 #include "HairColor.h"
 #include "BasicRenderer.h"
 
+namespace
+{
+	enum COLOR_SCHEME { CGREY, CRANDOM, CGUIDE, NUM_OF_COLOR_SCHEME };
+
+	const char COLOR_SEMATICS[NUM_OF_COLOR_SCHEME][16] =
+	{
+		"COLOR_grey", "COLOR_random", "COLOR_guide"
+	};
+}
+
 namespace XRwy
 {
     using namespace DirectX;
-
-
 
     XMMATRIX ComputeHeadTransformation(const float* trans4x4)
     {
@@ -178,14 +186,16 @@ namespace XRwy
         color = new GreyHair(example->nParticle, 0x10);
         subRes.pSysMem = color->GetColorArray();
         V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
-        dataBuffers["grey"] = buffer;
+        dataBuffers[COLOR_SEMATICS[CGREY]] = buffer;
         SAFE_DELETE(color);
 
         color = new RandomColorHair(example->nParticle, example->particlePerStrand, genRandSaturatedColor);
         subRes.pSysMem = color->GetColorArray();
         V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
-        dataBuffers["random"] = buffer;
+        dataBuffers[COLOR_SEMATICS[CRANDOM]] = buffer;
         SAFE_DELETE(color);
+
+		SetupContents();
 
         return true;
     }
@@ -218,10 +228,11 @@ namespace XRwy
 		pFbxLoader->RenderNode(pd3dImmediateContext, j);
 
         // render hairs
+		auto &frame = contents[hairId];
         pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
 
         HairRenderer::ConstBuffer bf;
-        bf.mode = 0;
+        bf.mode = frame.rendMode;
         XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
         XMStoreFloat4x4(&bf.projViewWorld, DirectX::XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
 
@@ -237,14 +248,23 @@ namespace XRwy
         pHairRenderer->SetConstantBuffer(&bf);
 
         pd3dImmediateContext->IASetInputLayout(pInputLayout);
-        ID3D11Buffer* buffers[5] = { hairManips[hairId].pVB[0], hairManips[hairId].pVB[1], dataBuffers["random"], dataBuffers["seq"], hairManips[0].pVB[0] };
+        ID3D11Buffer* buffers[5] = { hairManips[frame.animID].pVB[0], hairManips[frame.animID].pVB[1], dataBuffers[COLOR_SEMATICS[frame.colorID]], dataBuffers["seq"], hairManips[0].pVB[0] };
         UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
         UINT offsets[5] = { 0 };
         pd3dImmediateContext->IASetVertexBuffers(0, 5, buffers, strides, offsets);
         pHairRenderer->SetRenderState(0);
-        drawStrand(pd3dImmediateContext, 0, hairManips[hairId].hair->nParticle, &hairManips[hairId].hair->particlePerStrand);
+        drawStrand(pd3dImmediateContext, 0, hairManips[frame.animID].hair->nParticle, &hairManips[frame.animID].hair->particlePerStrand);
         pHairRenderer->SetRenderState(1);
-        drawStrand(pd3dImmediateContext, 0, hairManips[hairId].hair->nParticle, &hairManips[hairId].hair->particlePerStrand);
+        drawStrand(pd3dImmediateContext, 0, hairManips[frame.animID].hair->nParticle, &hairManips[frame.animID].hair->particlePerStrand);
+
+		if (activeContentId == hairId)
+		{
+			g_pTxtHelper->Begin();
+			g_pTxtHelper->SetInsertionPos(5, 100);
+			g_pTxtHelper->SetForegroundColor(Colors::Red);
+			g_pTxtHelper->DrawTextLine(L"Activated");
+			g_pTxtHelper->End();
+		}
     }
 
     void HairManager::OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
@@ -269,7 +289,8 @@ namespace XRwy
 
 	void HairManager::toogleDiffDisp()
 	{
-
+		auto& mode = contents[activeContentId].rendMode;
+		mode = (mode == 0) ? 1 : 0;
 	}
 
 	void HairManager::SetupContents()
@@ -282,7 +303,7 @@ namespace XRwy
 			std::string str("frame");
 			str += itoa(i, buffer, 10);
 			contents[i].animID = std::stoi(g_paramDict[str]);
-			contents[i].colorID = 0;
+			contents[i].colorID = CRANDOM;
 			contents[i].rendMode = 0;
 		}
 	}

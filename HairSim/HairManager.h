@@ -55,6 +55,7 @@ namespace XRwy
 
 		void toggleAnimation();
 		void toogleDiffDisp();
+		void SetActive(int i) { activeContentId = i; }
 
     private:
 		void SetupContents();
