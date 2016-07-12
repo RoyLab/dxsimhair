@@ -404,6 +404,7 @@
     </ClCompile>
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="SplitLayout.cpp" />
     <ClCompile Include="TrainingGraph.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />
     <None Include="wrSceneManager.cpp" />
@@ -436,6 +437,7 @@
     <ClInclude Include="macros.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SplitLayout.h" />
     <ClInclude Include="TrainingGraph.h" />
     <ClInclude Include="linmath.h" />
     <ClInclude Include="wrColorGenerator.h" />

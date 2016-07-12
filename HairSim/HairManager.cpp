@@ -1,4 +1,5 @@
 #include <DXUT.h>
+#include <cstdlib>
 #include "HairManager.h"
 #include "HairLoader.h"
 #include "HairRenderer.h"
@@ -8,6 +9,8 @@
 namespace XRwy
 {
     using namespace DirectX;
+
+
 
     XMMATRIX ComputeHeadTransformation(const float* trans4x4)
     {
@@ -85,10 +88,6 @@ namespace XRwy
         V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, pVSBufferPtr, nVSBufferSz, &pInputLayout));
 
         // load hair animaitions
-        const char animFiles[2][128] = {
-            "D:/data/c0514.anim2",
-            "D:/data/c0524-opt-05-28 04h27m57s.anim2",
-        };
 
         SGeoManip geoManip;
         ZeroMemory(&geoManip, sizeof(SGeoManip));
@@ -103,12 +102,24 @@ namespace XRwy
         bDesc.Usage = D3D11_USAGE_DYNAMIC;
         bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-        for (int i = 0; i < 2; i++)
+		std::vector<std::string> animFiles;
+		int n = std::atoi(g_paramDict["numanim"].c_str());
+		animFiles.emplace_back(g_paramDict["reffile"]);
+
+		char chs[4];
+		for (int i = 1; i < n; i++)
+		{
+			std::string key("animfile");
+			key += itoa(i, chs, 10);
+			animFiles.emplace_back(g_paramDict[key]);
+		}
+
+        for (int i = 0; i < n; i++)
         {
             geoManip.loader = new HairAnimationLoader;
             geoManip.hair = new HairGeometry;
 
-            geoManip.loader->loadFile(animFiles[i], geoManip.hair);
+            geoManip.loader->loadFile(animFiles[i].c_str(), geoManip.hair);
             bDesc.ByteWidth = geoManip.hair->nParticle * sizeof(XMFLOAT3);
 
             V_RETURN(pd3dDevice->CreateBuffer(&bDesc, nullptr, &geoManip.pVB[0]));
@@ -194,6 +205,8 @@ namespace XRwy
 
     void HairManager::RenderInstance(CModelViewerCamera* pCamera, int hairId, double fTime, float fElapsedTime)
     {
+		pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
+
         XMMATRIX world = ComputeHeadTransformation(hairManips[hairId].hair->rigidTrans);
         pMeshRenderer->SetMatrices(world, pCamera->GetViewMatrix(), pCamera->GetProjMatrix());
         size_t nodeCount = pFbxLoader->GetNodeCount();
@@ -202,15 +215,15 @@ namespace XRwy
         auto material = pFbxLoader->GetNodeMaterial(j);
         pMeshRenderer->SetMaterial(&material);
         pMeshRenderer->SetRenderState();
-        pFbxLoader->RenderNode(pd3dImmediateContext, j);
+		pFbxLoader->RenderNode(pd3dImmediateContext, j);
 
         // render hairs
         pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
 
         HairRenderer::ConstBuffer bf;
-        bf.mode = rendMode;
+        bf.mode = 0;
         XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
-        XMStoreFloat4x4(&bf.projViewWorld, XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
+        XMStoreFloat4x4(&bf.projViewWorld, DirectX::XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
 
         XMFLOAT4X4 proj;
         pHairRenderer->GetShadowMapProjMatrix(proj);
@@ -218,7 +231,7 @@ namespace XRwy
         XMFLOAT3 lightTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
         XMFLOAT3 lightUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
 
-        XMStoreFloat4x4(&bf.lightProjViewWorld, XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
+        XMStoreFloat4x4(&bf.lightProjViewWorld, DirectX::XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
             XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
 
         pHairRenderer->SetConstantBuffer(&bf);
@@ -252,6 +265,26 @@ namespace XRwy
 	void HairManager::toggleAnimation()
 	{
 		bAnim = !bAnim;
+	}
+
+	void HairManager::toogleDiffDisp()
+	{
+
+	}
+
+	void HairManager::SetupContents()
+	{
+		int n = std::stoi(g_paramDict["numframe"]);
+		contents.resize(n);
+		char buffer[4];
+		for (int i = 0; i < n; i++)
+		{
+			std::string str("frame");
+			str += itoa(i, buffer, 10);
+			contents[i].animID = std::stoi(g_paramDict[str]);
+			contents[i].colorID = 0;
+			contents[i].rendMode = 0;
+		}
 	}
 
 }

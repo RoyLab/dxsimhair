@@ -120,6 +120,9 @@
     <ClCompile Include="D3D11Tools.cpp">
       <Filter>Source Files\Miscs</Filter>
     </ClCompile>
+    <ClCompile Include="SplitLayout.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleSample.hlsl">
@@ -213,6 +216,9 @@
     </ClInclude>
     <ClInclude Include="wrMath.h">
       <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitLayout.h">
+      <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

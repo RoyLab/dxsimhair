@@ -58,5 +58,8 @@ namespace XRwy
 
     private:
         HRESULT CreateFbxInputLayout(ID3D11Device* pd3dDevice);
+
+		// none with d3d11
+		SplitLayout*				splitLayout;
     };
 }

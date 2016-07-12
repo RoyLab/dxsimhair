@@ -10,6 +10,7 @@
 #include "SceneManager.h"
 #include "BasicRenderer.h"
 #include "HairManager.h"
+#include "SplitLayout.h"
 
 // 所有的全局变量
 namespace XRwy
@@ -33,8 +34,12 @@ namespace XRwy
         if (rs < 0)
             srand(time(0));
         else srand(rs);
-    }
 
+		// initialize layout
+		int numframe = std::stoi(g_paramDict["numframe"]);
+		splitLayout = new SplitLayout(numframe);
+
+    }
 
     LRESULT SceneManager::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool* pbNoFurtherProcessing, void* pUserContext)
     {
@@ -58,22 +63,15 @@ namespace XRwy
     void SceneManager::OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext, double fTime,
         float fElapsedTime, void* pUserContext)
     {
-		HRESULT hr;
-		UINT nVP = 1;
-		D3D11_VIEWPORT pVP, pVPl;
-		pd3dImmediateContext->RSGetViewports(&nVP, &pVP);
+		splitLayout->BeginLayout();
+		for (int i = 0; i < splitLayout->GetFrameNumber(); i++)
+		{
+			splitLayout->SetupFrame(i, pCamera);
+			if (pHairManager)
+				pHairManager->RenderInstance(pCamera, i, fTime, fElapsedTime);
 
-
-		CopyMemory(&pVPl, &pVP, sizeof(D3D11_VIEWPORT));
-		pVPl.Height /= 2;
-		pVPl.Width /= 2;
-		pd3dImmediateContext->RSSetViewports(nVP, &pVPl);
-        if (pHairManager)
-            pHairManager->RenderInstance(pCamera, 0, fTime, fElapsedTime);
-
-
-
-		pd3dImmediateContext->RSSetViewports(nVP, &pVP);
+		}
+		splitLayout->EndLayout();
 	}
 
 
@@ -157,6 +155,7 @@ namespace XRwy
         SAFE_RELEASE(pHairManager);
         SAFE_DELETE(pFbxLoader);
         SAFE_DELETE(pCamera);
+		SAFE_DELETE(splitLayout);
 
         delete this;
     }

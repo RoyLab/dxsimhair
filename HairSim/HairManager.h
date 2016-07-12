@@ -19,6 +19,13 @@ namespace XRwy
         virtual const XMFLOAT3* GetColorArray() const = 0;
     };
 
+	struct FrameContent
+	{
+		int animID;
+		int colorID;
+		int rendMode;
+	};
+
     class HairManager:
         public IUnknown
     {
@@ -47,12 +54,11 @@ namespace XRwy
         void OnFrameMove(double fTime, float fElapsedTime, void* pUserContext);
 
 		void toggleAnimation();
-		void toogleDiffDisp()
-		{
-			rendMode = rendMode ? 0 : 1;
-		}
+		void toogleDiffDisp();
 
     private:
+		void SetupContents();
+
         // do not release
         FBX_LOADER::CFBXRenderDX11*     pFbxLoader;
         MeshRenderer*                   pMeshRenderer;
@@ -64,7 +70,8 @@ namespace XRwy
         HairGeometryList            hairManips;
         ID3D11InputLayout*          pInputLayout = nullptr;
 
+		std::vector<FrameContent>   contents;
+		int							activeContentId = 0;
 		bool						bAnim = true;
-		int							rendMode = 0;
     };
 }
