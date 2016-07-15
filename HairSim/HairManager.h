@@ -6,7 +6,7 @@
 #include <DXUTcamera.h>
 
 #include "XRwy_h.h"
-#include "HairGeometry.h"
+#include "HairStructs.h"
 #include "CFBXRendererDX11.h"
 
 namespace XRwy

@@ -130,6 +130,17 @@ ConfigReader::ConfigReader(const string & filename)
     }
 }
 
+ConfigReader::~ConfigReader()
+{
+	if (infile)
+	{
+		if (infile->is_open())
+			infile->close();
+		delete infile;
+	}
+}
+
+
 void ConfigReader::close()
 {
     if (infile && infile->is_open())

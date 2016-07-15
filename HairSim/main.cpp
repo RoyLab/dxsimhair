@@ -270,6 +270,8 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
 {
     if (g_SceneMngr)
         return g_SceneMngr->ModifyDeviceSettings(pDeviceSettings, pUserContext);
+
+	return true;
 }
 
 

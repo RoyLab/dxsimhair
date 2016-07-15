@@ -25,7 +25,7 @@ private:
 public:
     //参数filename，配置文件的名字
     ConfigReader(const string & filename);
-    ~ConfigReader(void){ if (infile) delete infile; }
+	~ConfigReader(void);
 
     //参数name，配置项的名字
     //返回值，对应配置项name的value值

@@ -34,4 +34,9 @@ namespace XRwy
             SAFE_DELETE_ARRAY(color);
         }
     };
+
+	struct DynamicHair
+	{
+
+	};
 }

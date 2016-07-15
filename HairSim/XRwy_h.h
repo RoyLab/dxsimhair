@@ -36,7 +36,8 @@ namespace XRwy
     class HairManager;
 	class SceneManager;
 	class SplitLayout;
-	class FrameContent;
+
+	struct FrameContent;
 
 	extern ParamDict g_paramDict;
 }

@@ -25,7 +25,7 @@ namespace XRwy
     SceneManager::SceneManager()
     {
         // initialize config parameter
-        ConfigReader reader("../config.ini");
+        ConfigReader reader("../config2.ini");
         reader.getParamDict(g_paramDict);
         reader.close();
 
@@ -79,7 +79,6 @@ namespace XRwy
 			splitLayout->SetupFrame(i, pCamera);
 			if (pHairManager)
 				pHairManager->RenderInstance(pCamera, i, fTime, fElapsedTime);
-
 		}
 		splitLayout->EndLayout();
 	}

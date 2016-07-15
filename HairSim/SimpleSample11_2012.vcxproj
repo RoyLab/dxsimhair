@@ -139,6 +139,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4100;4800;4245;4018</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -222,6 +223,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4100;4800;4245;4018</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -307,6 +309,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4100;4800;4245;4018</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -382,7 +385,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BasicRenderer.cpp" />
-    <None Include="CacheHair.cpp" />
     <ClCompile Include="CFBXLoader.cpp" />
     <ClCompile Include="CFBXRendererDX11.cpp" />
     <ClCompile Include="ConfigReader.cpp" />
@@ -419,7 +421,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BasicRenderer.h" />
-    <ClInclude Include="CacheHair.h" />
     <ClInclude Include="CFBXLoader.h" />
     <ClInclude Include="CFBXRendererDX11.h" />
     <ClInclude Include="ConfigReader.h" />
@@ -429,12 +430,13 @@
     <ClInclude Include="HairColor.h" />
     <ClInclude Include="HairManager.h" />
     <ClInclude Include="HairDebugRenderer.h" />
-    <ClInclude Include="HairGeometry.h" />
+    <ClInclude Include="HairStructs.h" />
     <ClInclude Include="HairLoader.h" />
     <ClInclude Include="HairRenderer.h" />
     <ClInclude Include="IHair.h" />
     <ClInclude Include="IRenderer.h" />
     <ClInclude Include="macros.h" />
+    <ClInclude Include="ReconsReader.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SplitLayout.h" />

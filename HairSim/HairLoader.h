@@ -2,7 +2,7 @@
 #include <fstream>
 
 #include "wrMacro.h"
-#include "HairGeometry.h"
+#include "HairStructs.h"
 
 namespace XRwy
 {

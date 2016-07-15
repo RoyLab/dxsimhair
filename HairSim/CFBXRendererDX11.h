@@ -132,7 +132,7 @@ struct    MESH_NODE
         }
     }
 
-    void SetIndexBit( const size_t indexCount)
+    void SetIndexBit( const size_t indexCount1)
     {
 #if 0
         if(indexCount==0)
@@ -144,7 +144,7 @@ struct    MESH_NODE
 #else
         // ¨F◊¥°¢16bit•§•Û•«•√•Ø•πåùèÍ§œ§ﬁ§¿
         m_indexBit = INDEX_NOINDEX;
-        if(indexCount!=0)
+        if(indexCount1!=0)
             m_indexBit = INDEX_32BIT;
 #endif
     };

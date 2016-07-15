@@ -217,9 +217,9 @@ namespace XRwy
     {
 		pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 
-        XMMATRIX world = ComputeHeadTransformation(hairManips[hairId].hair->rigidTrans);
+		auto &frame = contents[hairId];
+		XMMATRIX world = ComputeHeadTransformation(hairManips[frame.animID].hair->rigidTrans);
         pMeshRenderer->SetMatrices(world, pCamera->GetViewMatrix(), pCamera->GetProjMatrix());
-        size_t nodeCount = pFbxLoader->GetNodeCount();
 
         int j = 2;
         auto material = pFbxLoader->GetNodeMaterial(j);
@@ -228,7 +228,6 @@ namespace XRwy
 		pFbxLoader->RenderNode(pd3dImmediateContext, j);
 
         // render hairs
-		auto &frame = contents[hairId];
         pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
 
         HairRenderer::ConstBuffer bf;
@@ -271,7 +270,7 @@ namespace XRwy
     {
 		if (bAnim)
 		{
-			for (int i = 0; i < 2; i++)
+			for (int i = 0; i < hairManips.size(); i++)
 			{
 				hairManips[i].loader->nextFrame();
 				hairManips[i].sync = false;

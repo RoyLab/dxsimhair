@@ -45,8 +45,6 @@ namespace XRwy
 
 	int SplitLayout::PosInFrameID(int x, int y) const
 	{
-		int select = nFrame - 1;
-
 		for (int i = 0; i < nFrame; i++)
 		{
 			D3D11_VIEWPORT vp;
@@ -65,10 +63,10 @@ namespace XRwy
 	{
 		int select = nFrame - 1;
 		CopyMemory(&vp, &mainViewport, sizeof(D3D11_VIEWPORT));
-		vp.TopLeftX = static_cast<int>(mainViewport.Width * RECTS[select][i][0]);
-		vp.TopLeftY = static_cast<int>(mainViewport.Height * RECTS[select][i][1]);
-		vp.Width = static_cast<int>(mainViewport.Width * RECTS[select][i][2]);
-		vp.Height = static_cast<int>(mainViewport.Height * RECTS[select][i][3]);
+		vp.TopLeftX = static_cast<FLOAT>(mainViewport.Width * RECTS[select][i][0]);
+		vp.TopLeftY = static_cast<FLOAT>(mainViewport.Height * RECTS[select][i][1]);
+		vp.Width = static_cast<FLOAT>(mainViewport.Width * RECTS[select][i][2]);
+		vp.Height = static_cast<FLOAT>(mainViewport.Height * RECTS[select][i][3]);
 	}
 
 }

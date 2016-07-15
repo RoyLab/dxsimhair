@@ -18,8 +18,6 @@ namespace XRwy
 
     void HairRenderer::SetRenderState(int pass, void*)
     {
-        auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
-
         if (pass == 0)
         {
             UINT nvp = 1;

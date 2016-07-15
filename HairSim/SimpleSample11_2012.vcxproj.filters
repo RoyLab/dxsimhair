@@ -64,9 +64,6 @@
     <None Include="wrSceneManager.cpp">
       <Filter>Source Files\Deprecated</Filter>
     </None>
-    <None Include="CacheHair.cpp">
-      <Filter>Source Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CFBXRendererDX11.cpp">
@@ -151,12 +148,6 @@
     <ClInclude Include="ConfigReader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="CacheHair.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HairGeometry.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="HairLoader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -219,6 +210,12 @@
     </ClInclude>
     <ClInclude Include="SplitLayout.h">
       <Filter>Source Files\XRwyEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="ReconsReader.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HairStructs.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
