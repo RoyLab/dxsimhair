@@ -59,6 +59,18 @@ namespace XRwy
 
     void SceneManager::OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
     {
+		if (!bKeyDown) return;
+
+		if (nChar <= '9' && nChar >= '1')
+		{
+			pHairManager->ChangeColorScheme(nChar - '0');
+		}
+
+		switch (nChar)
+		{
+		default:
+			break;
+		}
     }
 
     void SceneManager::OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)

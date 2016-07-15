@@ -114,7 +114,7 @@ void InitApp()
     g_HUD.Init( &g_DialogResourceManager );
     g_HUD.SetCallback( OnGUIEvent );
     g_HUD.InitializeComponents();
-    CreateConsole();
+    //CreateConsole();
 }
 
 

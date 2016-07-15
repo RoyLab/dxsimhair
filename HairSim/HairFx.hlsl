@@ -127,7 +127,7 @@ GeometryInputType VS(VertexInputType input)
     output.position = input.Position;
     output.lightViewPosition = mul(float4(input.Position, 1.0), g_mLightProjViewWorld);
     output.direction            = input.Direction;
-    output.color                = input.Color;
+    output.color                = abs(input.Color);
 
     if (mode == 1)
     {

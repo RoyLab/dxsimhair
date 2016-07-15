@@ -31,25 +31,10 @@
     <None Include="..\DXUT\Optional\directx.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Hair.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shadowps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="depthps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="HairShadow.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="example.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="point.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Line.hlsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="BasicLine.hlsl">
@@ -120,14 +105,9 @@
     <ClCompile Include="SplitLayout.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SimpleSample.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="SimpleSample.fx">
-      <Filter>Shaders</Filter>
-    </None>
+    <ClCompile Include="HairStructs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">

@@ -11,14 +11,6 @@
 
 namespace XRwy
 {
-    // the color generator is responsible for the storage management of color array
-    class IHairColorGenerator
-    {
-    public:
-        virtual ~IHairColorGenerator(){}
-        virtual const XMFLOAT3* GetColorArray() const = 0;
-    };
-
 	struct FrameContent
 	{
 		int animID;
@@ -54,7 +46,8 @@ namespace XRwy
         void OnFrameMove(double fTime, float fElapsedTime, void* pUserContext);
 
 		void toggleAnimation();
-		void toogleDiffDisp();
+		void toggleDiffDisp();
+		void ChangeColorScheme(int i);
 		void SetActive(int i) { activeContentId = i; }
 
     private:

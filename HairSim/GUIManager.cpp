@@ -54,7 +54,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		g_SceneMngr->pHairManager->toggleAnimation();
         break;
 	case IDC_TOGGLE_DIFF:
-		g_SceneMngr->pHairManager->toogleDiffDisp();
+		g_SceneMngr->pHairManager->toggleDiffDisp();
 		break;
     //case IDC_NEXT_COLOR:
     //    g_SceneMngr.nextColorScheme();

@@ -1,5 +1,5 @@
 #pragma once
-#include "HairManager.h"
+#include "HairStructs.h"
 
 namespace XRwy
 {

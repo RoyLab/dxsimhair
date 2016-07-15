@@ -8,9 +8,9 @@
 
 namespace
 {
-	enum COLOR_SCHEME { CGREY, CRANDOM, CGUIDE, NUM_OF_COLOR_SCHEME };
+	enum COLOR_SCHEME { CGREY, CRANDOM, CDIR, NUM_COLOR_SCHEME };
 
-	const char COLOR_SEMATICS[NUM_OF_COLOR_SCHEME][16] =
+	const char COLOR_SEMATICS[NUM_COLOR_SCHEME][16] =
 	{
 		"COLOR_grey", "COLOR_random", "COLOR_guide"
 	};
@@ -164,8 +164,9 @@ namespace XRwy
         int* seq = new int[example->nParticle];
         for (int i = 0; i < example->nParticle;)
         {
-            for (int j = 0; j < example->particlePerStrand; j++)
-                seq[i++] = j;
+			seq[i++] = i;
+            //for (int j = 0; j < example->particlePerStrand; j++)
+            //    seq[i++] = j;
         }
         subRes.pSysMem = seq;
         V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
@@ -247,7 +248,15 @@ namespace XRwy
         pHairRenderer->SetConstantBuffer(&bf);
 
         pd3dImmediateContext->IASetInputLayout(pInputLayout);
-        ID3D11Buffer* buffers[5] = { hairManips[frame.animID].pVB[0], hairManips[frame.animID].pVB[1], dataBuffers[COLOR_SEMATICS[frame.colorID]], dataBuffers["seq"], hairManips[0].pVB[0] };
+
+		ID3D11Buffer* colorBuffer;
+		if (frame.colorID == CDIR)
+			colorBuffer = hairManips[frame.animID].pVB[1];
+		else
+			colorBuffer = dataBuffers[COLOR_SEMATICS[frame.colorID]];
+
+        ID3D11Buffer* buffers[5] = { hairManips[frame.animID].pVB[0], hairManips[frame.animID].pVB[1], 
+			colorBuffer, dataBuffers["seq"], hairManips[0].pVB[0] };
         UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
         UINT offsets[5] = { 0 };
         pd3dImmediateContext->IASetVertexBuffers(0, 5, buffers, strides, offsets);
@@ -286,11 +295,17 @@ namespace XRwy
 		bAnim = !bAnim;
 	}
 
-	void HairManager::toogleDiffDisp()
+	void HairManager::toggleDiffDisp()
 	{
 		auto& mode = contents[activeContentId].rendMode;
 		mode = (mode == 0) ? 1 : 0;
 	}
+
+	void HairManager::ChangeColorScheme(int i)
+	{
+		contents[activeContentId].colorID = i > NUM_COLOR_SCHEME ? NUM_COLOR_SCHEME - 1 : i - 1;
+	}
+
 
 	void HairManager::SetupContents()
 	{
