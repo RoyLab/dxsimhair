@@ -1,5 +1,6 @@
 #pragma once
 #include <fstream>
+#include <d3d11.h>
 #include "HairStructs.h"
 
 namespace XRwy
@@ -34,10 +35,14 @@ namespace XRwy
 		void UpdateGuidance();
 		void SetFrameID(size_t n);
 
+		ID3D11Buffer* CreateGuidanceStructuredBuffer(ID3D11ShaderResourceView** ppRsv) const;
+		ID3D11Buffer* CreateSkinningVertexBuffer() const;
+
 	private:
 		bool				sync = false;
 		size_t				nFrame = 0;
 		size_t				curFrame = -1;
 	};
+
 
 }

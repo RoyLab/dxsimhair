@@ -98,12 +98,11 @@ namespace XRwy
         // load hair animaitions
 
         SGeoManip geoManip;
-        ZeroMemory(&geoManip, sizeof(SGeoManip));
-
         D3D11_BUFFER_DESC bDesc;
-        ZeroMemory(&bDesc, sizeof(D3D11_BUFFER_DESC));
-
         D3D11_SUBRESOURCE_DATA subRes;
+
+        ZeroMemory(&geoManip, sizeof(SGeoManip));
+        ZeroMemory(&bDesc, sizeof(D3D11_BUFFER_DESC));
         ZeroMemory(&subRes, sizeof(D3D11_SUBRESOURCE_DATA));
 
         bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -173,9 +172,6 @@ namespace XRwy
         dataBuffers["seq"] = buffer;
         SAFE_DELETE(seq);
 
-        // load group files
-
-        // load guide information
 
         // init color buffer
         IHairColorGenerator* color = nullptr;
@@ -197,6 +193,7 @@ namespace XRwy
         SAFE_DELETE(color);
 
 		SetupContents();
+
 
         return true;
     }

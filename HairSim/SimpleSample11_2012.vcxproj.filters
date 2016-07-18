@@ -26,6 +26,9 @@
     <Filter Include="Source Files\XRwyEngine">
       <UniqueIdentifier>{3a35098f-869e-45f8-9b71-dad3344573ca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Dynamic">
+      <UniqueIdentifier>{e666c5c5-5e16-45d8-8053-40c06de1576e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\DXUT\Optional\directx.ico">

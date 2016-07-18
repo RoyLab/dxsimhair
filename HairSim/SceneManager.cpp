@@ -132,6 +132,7 @@ namespace XRwy
     HRESULT SceneManager::OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc,
         void* pUserContext)
     {
+		D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT;
         HRESULT hr;
         auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 

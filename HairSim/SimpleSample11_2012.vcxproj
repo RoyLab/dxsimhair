@@ -455,9 +455,6 @@
     <ProjectReference Include="..\DirectXMesh\DirectXMesh\DirectXMesh_Desktop_2013.vcxproj">
       <Project>{6857f086-f6fe-4150-9ed7-7446f1c1c220}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\DirectXMesh\Meshconvert\Meshconvert_Desktop_2013.vcxproj">
-      <Project>{6d4cfd0e-8772-462a-9ac1-7dbad9c16880}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\DirectXTK\DirectXTK_Desktop_2013.vcxproj">
       <Project>{e0b52ae7-e160-4d32-bf3f-910b785e5a8e}</Project>
     </ProjectReference>
