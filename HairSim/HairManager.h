@@ -51,6 +51,7 @@ namespace XRwy
 		void ChangeColorScheme(int i);
 		void SetActive(int i) { activeContentId = i; }
 		void ChangeDrawBase(bool open, int incre = 0);
+		void toggleDisp(char item);
 
     private:
 		void SetupContents();

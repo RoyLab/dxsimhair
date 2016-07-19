@@ -58,7 +58,7 @@ GeometryInputType VS(VertexInputType input)
 ////////////////////////////////////////////////////////////////////////////////
 float4 PS(PixelInputType input) : SV_TARGET
 {
-    return input.color;
+    return abs(input.color);
 }
 
 PixelInputType VS2(VertexInputType input)

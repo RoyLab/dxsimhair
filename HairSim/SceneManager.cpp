@@ -80,6 +80,18 @@ namespace XRwy
 		case 'E':
 			pHairManager->ChangeDrawBase(false, -1);
 			break;
+		case 'f':
+		case 'F':
+			pHairManager->toggleDisp('f');// follicle
+			break;
+		case 'h':
+		case 'H':
+			pHairManager->toggleDisp('h');// hair
+			break;
+		case 'm':
+		case 'M':
+			pHairManager->toggleDisp('m');// mesh
+			break;
 		default:
 			break;
 		}

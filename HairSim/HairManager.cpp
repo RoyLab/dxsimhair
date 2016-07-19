@@ -320,15 +320,6 @@ namespace XRwy
 			drawStrand(pd3dImmediateContext, 0, hair->nParticle, &para);
 			pHairRenderer->SetRenderState(1);
 			drawStrand(pd3dImmediateContext, 0, hair->nParticle, &para);
-
-			if (activeContentId == hairId)
-			{
-				g_pTxtHelper->Begin();
-				g_pTxtHelper->SetInsertionPos(5, 100);
-				g_pTxtHelper->SetForegroundColor(Colors::Red);
-				g_pTxtHelper->DrawTextLine(L"Activated");
-				g_pTxtHelper->End();
-			}
 		}
 
 		// render follicles
@@ -338,7 +329,7 @@ namespace XRwy
 			XMStoreFloat3(&bf2.viewPoint, pCamera->GetEyePt());
 			XMStoreFloat4x4(&bf2.projViewWorld, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&hair->worldMatrix) *
 				pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
-			bf2.pointSize = std::stoi(g_paramDict["pointsize"]);
+			bf2.pointSize = std::stof(g_paramDict["pointsize"]);
 
 			pFollicleRenderer->SetConstantBuffer(&bf2);
 			pFollicleRenderer->SetRenderState();
@@ -357,6 +348,16 @@ namespace XRwy
 			pd3dImmediateContext->IASetInputLayout(pInputLayout);
 			pd3dImmediateContext->IASetIndexBuffer(dataBuffers["follicleindices"], DXGI_FORMAT_R32_UINT, 0);
 			pd3dImmediateContext->DrawIndexed(hair->nStrand, 0, 0);
+		}
+
+
+		if (activeContentId == hairId)
+		{
+			g_pTxtHelper->Begin();
+			g_pTxtHelper->SetInsertionPos(5, 100);
+			g_pTxtHelper->SetForegroundColor(Colors::Red);
+			g_pTxtHelper->DrawTextLine(L"Activated");
+			g_pTxtHelper->End();
 		}
 	}
 
@@ -389,6 +390,24 @@ namespace XRwy
 	void HairManager::ChangeColorScheme(int i)
 	{
 		contents[activeContentId].colorID = i > NUM_COLOR_SCHEME ? NUM_COLOR_SCHEME - 1 : i - 1;
+	}
+
+	void HairManager::toggleDisp(char item)
+	{
+		switch (item)
+		{
+		case 'f':
+			contents[activeContentId].displayMask ^= DISP_FOLLICLE;
+			break;
+		case 'm':
+			contents[activeContentId].displayMask ^= DISP_HEAD;
+			break;
+		case 'h':
+			contents[activeContentId].displayMask ^= DISP_HAIR;
+			break;
+		default:
+			break;
+		}
 	}
 
 	void HairManager::ChangeDrawBase(bool open, int incre)

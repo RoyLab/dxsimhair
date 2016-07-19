@@ -261,8 +261,9 @@ float3 scattering(float Phi_i, float Phi_r, float Theta_i, float Theta_r, float3
 
     float cos2x = cos(theta_d)*cos(theta_d);
 
-    return rgb * (n_r * m_r / cos2x +
-        m_tt*n_tt / cos2x / 10);
+	return rgb * (n_r * m_r / cos2x
+		) / 3;
+	//+        m_tt*n_tt / cos2x / 10);
     //    M_TRT()*N_TRT() / (cos(theta_d)*cos(theta_d)) * 250;
 }
 
