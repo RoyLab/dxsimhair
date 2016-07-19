@@ -1,10 +1,12 @@
 #include <DXUT.h>
 #include <cstdlib>
+#include <cctype>
 #include "HairManager.h"
 #include "HairLoader.h"
 #include "HairRenderer.h"
 #include "HairColor.h"
 #include "BasicRenderer.h"
+#include "ZhouHairLoader.hpp"
 
 namespace
 {
@@ -20,6 +22,13 @@ namespace XRwy
 {
     using namespace DirectX;
 
+	struct DrawPara
+	{
+		int lineSeg;
+		int base;
+		int factor;
+	};
+
     XMMATRIX ComputeHeadTransformation(const float* trans4x4)
     {
         using namespace DirectX;
@@ -29,17 +38,36 @@ namespace XRwy
         return XMMatrixAffineTransformation(XMLoadFloat3(&scale0), XMVectorZero(), XMVectorZero(), XMLoadFloat3(&trans0))*XMMatrixTranspose(XMLoadFloat4x4(&target0));
     }
 
-    void drawStrand(ID3D11DeviceContext* context, int start, int num, void* perStrand)
-    {
-        int factor = *reinterpret_cast<int*>(perStrand);
+	HairLoader* CreateHairLoader(const char* fileName, HairGeometry* geom)
+	{
+		std::string name(fileName);
+		int last = name.rfind('.');
+		std::string posfix = name.substr(last);
+		std::transform(posfix.begin(), posfix.end(), posfix.begin(), std::tolower);
 
-        assert(num % factor == 0);
-        int nStrand = num / factor;
+		HairLoader* result = nullptr;
+		if (posfix == ".anim2")
+			result = new HairAnimationLoader;
+		else if (posfix == ".hair")
+			result = new ZhouHairLoader;
+
+		if (result)
+			result->loadFile(fileName, geom);
+
+		return result;
+	}
+
+    void drawStrand(ID3D11DeviceContext* context, int start, int num, void* drawPara)
+    {
+        auto para = reinterpret_cast<DrawPara*>(drawPara);
+
+        assert(num % para->factor == 0);
+        int nStrand = num / para->factor;
 
         context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
         int ptr = start;
-        for (int i = 0; i < nStrand; i++, ptr += factor)
-            context->DrawIndexed(factor, ptr, 0);
+        for (int i = 0; i < nStrand; i++, ptr += para->factor)
+            context->DrawIndexed(1 + para->lineSeg, ptr, para->base);
     }
 
     void HairManager::SGeoManip::Release()
@@ -59,9 +87,12 @@ namespace XRwy
         CopyMemory(MappedResource.pData, hair->position, sizeof(XMFLOAT3)* hair->nParticle);
         pd3dImmediateContext->Unmap(pVB[0], 0);
 
-        V(pd3dImmediateContext->Map(pVB[1], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
-        CopyMemory(MappedResource.pData, hair->direction, sizeof(XMFLOAT3)* hair->nParticle);
-        pd3dImmediateContext->Unmap(pVB[1], 0);
+		if (hair->direction)
+		{
+			V(pd3dImmediateContext->Map(pVB[1], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+			CopyMemory(MappedResource.pData, hair->direction, sizeof(XMFLOAT3)* hair->nParticle);
+			pd3dImmediateContext->Unmap(pVB[1], 0);
+		}
     }
 
     HairManager::HairManager(FBX_LOADER::CFBXRenderDX11* fbx, MeshRenderer* meshrend):
@@ -80,6 +111,8 @@ namespace XRwy
 
         pHairRenderer = new HairRenderer;
         V_RETURN(pHairRenderer->Initialize());
+
+		nDisplayBase = std::atoi(g_paramDict["linesegbase"].c_str());
 
         // create input layout
         D3D11_INPUT_ELEMENT_DESC layout[5];
@@ -123,10 +156,8 @@ namespace XRwy
 
         for (int i = 0; i < n; i++)
         {
-            geoManip.loader = new HairAnimationLoader;
             geoManip.hair = new HairGeometry;
-
-            geoManip.loader->loadFile(animFiles[i].c_str(), geoManip.hair);
+            geoManip.loader = CreateHairLoader(animFiles[i].c_str(), geoManip.hair);
             bDesc.ByteWidth = geoManip.hair->nParticle * sizeof(XMFLOAT3);
 
             V_RETURN(pd3dDevice->CreateBuffer(&bDesc, nullptr, &geoManip.pVB[0]));
@@ -172,7 +203,6 @@ namespace XRwy
         dataBuffers["seq"] = buffer;
         SAFE_DELETE(seq);
 
-
         // init color buffer
         IHairColorGenerator* color = nullptr;
         bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -216,7 +246,8 @@ namespace XRwy
 		pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 
 		auto &frame = contents[hairId];
-		XMMATRIX world = ComputeHeadTransformation(hairManips[frame.animID].hair->rigidTrans);
+		auto& hair = hairManips[frame.animID].hair;
+		XMMATRIX world = ComputeHeadTransformation(hair->rigidTrans);
         pMeshRenderer->SetMatrices(world, pCamera->GetViewMatrix(), pCamera->GetProjMatrix());
 
         int j = 2;
@@ -231,7 +262,8 @@ namespace XRwy
         HairRenderer::ConstBuffer bf;
         bf.mode = frame.rendMode;
         XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
-        XMStoreFloat4x4(&bf.projViewWorld, DirectX::XMMatrixTranspose(pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
+        XMStoreFloat4x4(&bf.projViewWorld, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&hair->worldMatrix) * 
+			pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
 
         XMFLOAT4X4 proj;
         pHairRenderer->GetShadowMapProjMatrix(proj);
@@ -243,7 +275,6 @@ namespace XRwy
             XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
 
         pHairRenderer->SetConstantBuffer(&bf);
-
         pd3dImmediateContext->IASetInputLayout(pInputLayout);
 
 		ID3D11Buffer* colorBuffer;
@@ -257,10 +288,14 @@ namespace XRwy
         UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
         UINT offsets[5] = { 0 };
         pd3dImmediateContext->IASetVertexBuffers(0, 5, buffers, strides, offsets);
+
+		DrawPara para = { bFullShow? hair->particlePerStrand - 1 : std::atoi(g_paramDict["lineseg"].c_str()),
+			bFullShow? 0 : nDisplayBase, hair->particlePerStrand };
+
         pHairRenderer->SetRenderState(0);
-        drawStrand(pd3dImmediateContext, 0, hairManips[frame.animID].hair->nParticle, &hairManips[frame.animID].hair->particlePerStrand);
+        drawStrand(pd3dImmediateContext, 0, hair->nParticle, &para);
         pHairRenderer->SetRenderState(1);
-        drawStrand(pd3dImmediateContext, 0, hairManips[frame.animID].hair->nParticle, &hairManips[frame.animID].hair->particlePerStrand);
+        drawStrand(pd3dImmediateContext, 0, hair->nParticle, &para);
 
 		if (activeContentId == hairId)
 		{
@@ -301,6 +336,15 @@ namespace XRwy
 	void HairManager::ChangeColorScheme(int i)
 	{
 		contents[activeContentId].colorID = i > NUM_COLOR_SCHEME ? NUM_COLOR_SCHEME - 1 : i - 1;
+	}
+
+	void HairManager::ChangeDrawBase(bool open, int incre)
+	{
+		if (open)
+			bFullShow = !bFullShow;
+
+		if (incre)
+			nDisplayBase = (nDisplayBase + hairManips[0].hair->particlePerStrand - 1 + incre) % (hairManips[0].hair->particlePerStrand - 1);
 	}
 
 

@@ -300,6 +300,7 @@ float4 PS(PixelInputType input) : SV_TARGET
     if (dot(-viewVec, vecW) < 0) phi_r = -phi_r;
 
     float3 diffuse = scattering(phi_i, phi_r, theta_i, theta_r, input.color.rgb);
+	//diffuse = input.color.rgb;
 
     // Set the bias value for fixing the floating point precision issues.
     bias = 0.001f;

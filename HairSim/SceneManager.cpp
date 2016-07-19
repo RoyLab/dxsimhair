@@ -68,6 +68,18 @@ namespace XRwy
 
 		switch (nChar)
 		{
+		case 'q':
+		case 'Q':
+			pHairManager->ChangeDrawBase(true);
+			break;
+		case 'w':
+		case 'W':
+			pHairManager->ChangeDrawBase(false, 1);
+			break;
+		case 'e':
+		case 'E':
+			pHairManager->ChangeDrawBase(false, -1);
+			break;
 		default:
 			break;
 		}

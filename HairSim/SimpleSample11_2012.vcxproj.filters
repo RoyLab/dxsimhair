@@ -204,5 +204,8 @@
     <ClInclude Include="GroupPBD.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="ZhouHairLoader.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

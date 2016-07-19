@@ -17,13 +17,15 @@ namespace XRwy
 
 	struct HairGeometry
 	{
+		XMFLOAT4X4			worldMatrix;
+		float               rigidTrans[16];
+		XMFLOAT3*           position = nullptr;
+		XMFLOAT3*           direction = nullptr;
+
 		size_t              nParticle;
 		size_t              nStrand;
 		size_t              particlePerStrand;
 
-		XMFLOAT3*           position = nullptr;
-		XMFLOAT3*           direction = nullptr;
-		float               rigidTrans[16];
 
 		~HairGeometry()
 		{

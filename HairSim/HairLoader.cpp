@@ -3,11 +3,6 @@
 
 namespace XRwy
 {
-    namespace
-    {
-        const int N_PARTICLE_PER_STRAND = 25;
-    }
-
     class BinaryHelper :
         public HairAnimationLoader::IHelper
     {
@@ -99,10 +94,11 @@ namespace XRwy
 		sampleRate = std::stoi(g_paramDict["hairsample"]);
 
 		helper->init(m_nFrame, nRealParticle);
-        geom->particlePerStrand = N_PARTICLE_PER_STRAND;
+        geom->particlePerStrand = std::stoi(g_paramDict["particleperstrand"]);
 		nRealStrand = nRealParticle / geom->particlePerStrand;
-		geom->nStrand  = nRealStrand / sampleRate + 1;
+		geom->nStrand  = nRealStrand / sampleRate + (sampleRate > 1? 1:0);
 		geom->nParticle = geom->nStrand * geom->particlePerStrand;
+		DirectX::XMStoreFloat4x4(&geom->worldMatrix, DirectX::XMMatrixIdentity());
 
         firstFrame = file.tellg();
         m_curFrame = -1;

@@ -37,6 +37,8 @@ namespace XRwy
         typedef std::map<std::string, ID3D11Buffer*>    VertexBufferDict;
         typedef std::vector<SGeoManip>                  HairGeometryList;
 
+	public:
+
     public:
         HairManager(FBX_LOADER::CFBXRenderDX11*, MeshRenderer*);
 
@@ -49,6 +51,7 @@ namespace XRwy
 		void toggleDiffDisp();
 		void ChangeColorScheme(int i);
 		void SetActive(int i) { activeContentId = i; }
+		void ChangeDrawBase(bool open, int incre = 0);
 
     private:
 		void SetupContents();
@@ -67,5 +70,7 @@ namespace XRwy
 		std::vector<FrameContent>   contents;
 		int							activeContentId = 0;
 		bool						bAnim = true;
-    };
+		bool						bFullShow = true;
+		int							nDisplayBase = 0;
+	};
 }
