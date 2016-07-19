@@ -1,4 +1,5 @@
 #include "HairLoader.h"
+#include "XRwy_h.h"
 
 namespace XRwy
 {
@@ -41,6 +42,26 @@ namespace XRwy
             file.read(bytes, sizeof(float)*np * 3);
         }
 
+		void readFrame20sample(float* rigidTrans, float* pos, float* dir, size_t ns, size_t factor, int sampleRate)
+		{
+			char* bytes = reinterpret_cast<char*>(rigidTrans);
+			file.read(bytes, sizeof(float) * 16);
+
+			float* buffer = new float[ns*factor * 3];
+
+			bytes = reinterpret_cast<char*>(buffer);
+			file.read(bytes, sizeof(float)*ns*factor * 3);
+
+			for (int i = 0, count = 0; i < ns; i += sampleRate, count++)
+				memcpy(pos + count*factor * 3, buffer + i*factor * 3, sizeof(float)*factor * 3);
+
+			file.read(bytes, sizeof(float)*ns*factor * 3);
+			for (int i = 0, count = 0; i < ns; i += sampleRate, count++)
+				memcpy(dir + count*factor * 3, buffer + i*factor * 3, sizeof(float)*factor * 3);
+
+			delete[] buffer;
+		}
+
         bool hasNextFrame(size_t &id)
         {
             char bytes[4];
@@ -74,9 +95,14 @@ namespace XRwy
 
         if (!file.is_open()) throw std::exception("file not found!");
 
-        helper->init(m_nFrame, geom->nParticle);
+		/* for sample display */
+		sampleRate = std::stoi(g_paramDict["hairsample"]);
+
+		helper->init(m_nFrame, nRealParticle);
         geom->particlePerStrand = N_PARTICLE_PER_STRAND;
-        geom->nStrand = geom->nParticle / geom->particlePerStrand;
+		nRealStrand = nRealParticle / geom->particlePerStrand;
+		geom->nStrand  = nRealStrand / sampleRate + 1;
+		geom->nParticle = geom->nStrand * geom->particlePerStrand;
 
         firstFrame = file.tellg();
         m_curFrame = -1;
@@ -85,7 +111,6 @@ namespace XRwy
         geom->direction = new XMFLOAT3[geom->nParticle];
 
 		nextFrame();
-
         return true;
     }
 
@@ -114,8 +139,9 @@ namespace XRwy
     void HairAnimationLoader::readFrame()
     {
         auto hair = pCurrentHair;
-        helper->readFrame20((float*)(&hair->rigidTrans), 
-            (float*)hair->position, (float*)hair->direction, hair->nParticle);
+        helper->readFrame20sample((float*)(&hair->rigidTrans),
+            (float*)hair->position, (float*)hair->direction, 
+			nRealStrand, hair->particlePerStrand, sampleRate);
 
         set_curFrame(get_curFrame() + 1);
     }
@@ -131,11 +157,11 @@ namespace XRwy
         auto hair = pCurrentHair;
 
         file.seekg(firstFrame + std::streamoff(get_curFrame()*(sizeof(int)+
-            sizeof(float)*(16 + 3 * 2 * hair->nParticle))));
+            sizeof(float)*(16 + 3 * 2 * nRealParticle))));
         if (hasNextFrame())
         {
-            helper->readFrame20((float*)(&hair->rigidTrans), (float*)hair->position,
-                (float*)hair->direction, hair->nParticle);
+            helper->readFrame20sample((float*)(&hair->rigidTrans), (float*)hair->position,
+                (float*)hair->direction, nRealStrand, hair->particlePerStrand, sampleRate);
         }
     }
 

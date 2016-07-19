@@ -201,5 +201,8 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="SkinningEngine.h" />
+    <ClInclude Include="GroupPBD.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
