@@ -6,11 +6,13 @@
 #include "HairRenderer.h"
 #include "HairColor.h"
 #include "BasicRenderer.h"
+#include "FollicleRenderer.h"
 #include "ZhouHairLoader.hpp"
 
 namespace
 {
 	enum COLOR_SCHEME { CGREY, CRANDOM, CDIR, NUM_COLOR_SCHEME };
+	enum DISPLAY_MASK { DISP_HEAD = 0x01, DISP_FOLLICLE = 0x02, DISP_HAIR = 0x04 };
 
 	const char COLOR_SEMATICS[NUM_COLOR_SCHEME][16] =
 	{
@@ -112,6 +114,9 @@ namespace XRwy
         pHairRenderer = new HairRenderer;
         V_RETURN(pHairRenderer->Initialize());
 
+		pFollicleRenderer = new FollicleRenderer;
+		V_RETURN(pFollicleRenderer->Initialize());
+
 		nDisplayBase = std::atoi(g_paramDict["linesegbase"].c_str());
 
         // create input layout
@@ -185,6 +190,18 @@ namespace XRwy
         dataBuffers["indices"] = buffer;
         SAFE_DELETE_ARRAY(indices);
 
+		// create follicle index buffer
+		bDesc.ByteWidth = example->nStrand * sizeof(DWORD);
+
+		indices = new DWORD[example->nStrand];
+		for (int i = 0; i < example->nStrand; i++)
+			indices[i] = i * example->particlePerStrand;
+
+		subRes.pSysMem = indices;
+		V_RETURN(pd3dDevice->CreateBuffer(&bDesc, &subRes, &buffer));
+		dataBuffers["follicleindices"] = buffer;
+		SAFE_DELETE_ARRAY(indices);
+
         // init sequence buffer
         bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -224,14 +241,14 @@ namespace XRwy
 
 		SetupContents();
 
-
         return true;
     }
 
     void HairManager::Release()
     {
         SAFE_RELEASE(pInputLayout);
-        SAFE_RELEASE(pHairRenderer);
+		SAFE_RELEASE(pHairRenderer);
+		SAFE_RELEASE(pFollicleRenderer);
         for (auto &manip : hairManips)
             manip.Release();
 
@@ -247,65 +264,101 @@ namespace XRwy
 
 		auto &frame = contents[hairId];
 		auto& hair = hairManips[frame.animID].hair;
-		XMMATRIX world = ComputeHeadTransformation(hair->rigidTrans);
-        pMeshRenderer->SetMatrices(world, pCamera->GetViewMatrix(), pCamera->GetProjMatrix());
 
-        int j = 2;
-        auto material = pFbxLoader->GetNodeMaterial(j);
-        pMeshRenderer->SetMaterial(&material);
-        pMeshRenderer->SetRenderState();
-		pFbxLoader->RenderNode(pd3dImmediateContext, j);
+		if (frame.displayMask & DISP_HEAD)
+		{
+			XMMATRIX world = ComputeHeadTransformation(hair->rigidTrans);
+			pMeshRenderer->SetMatrices(world, pCamera->GetViewMatrix(), pCamera->GetProjMatrix());
+
+			int j = 2;
+			auto material = pFbxLoader->GetNodeMaterial(j);
+			pMeshRenderer->SetMaterial(&material);
+			pMeshRenderer->SetRenderState();
+			pFbxLoader->RenderNode(pd3dImmediateContext, j);
+		}
+
 
         // render hairs
-        pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
-
-        HairRenderer::ConstBuffer bf;
-        bf.mode = frame.rendMode;
-        XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
-        XMStoreFloat4x4(&bf.projViewWorld, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&hair->worldMatrix) * 
-			pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
-
-        XMFLOAT4X4 proj;
-        pHairRenderer->GetShadowMapProjMatrix(proj);
-        XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, -10.0f);
-        XMFLOAT3 lightTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
-        XMFLOAT3 lightUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
-
-        XMStoreFloat4x4(&bf.lightProjViewWorld, DirectX::XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
-            XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
-
-        pHairRenderer->SetConstantBuffer(&bf);
-        pd3dImmediateContext->IASetInputLayout(pInputLayout);
-
-		ID3D11Buffer* colorBuffer;
-		if (frame.colorID == CDIR)
-			colorBuffer = hairManips[frame.animID].pVB[1];
-		else
-			colorBuffer = dataBuffers[COLOR_SEMATICS[frame.colorID]];
-
-        ID3D11Buffer* buffers[5] = { hairManips[frame.animID].pVB[0], hairManips[frame.animID].pVB[1], 
-			colorBuffer, dataBuffers["seq"], hairManips[0].pVB[0] };
-        UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
-        UINT offsets[5] = { 0 };
-        pd3dImmediateContext->IASetVertexBuffers(0, 5, buffers, strides, offsets);
-
-		DrawPara para = { bFullShow? hair->particlePerStrand - 1 : std::atoi(g_paramDict["lineseg"].c_str()),
-			bFullShow? 0 : nDisplayBase, hair->particlePerStrand };
-
-        pHairRenderer->SetRenderState(0);
-        drawStrand(pd3dImmediateContext, 0, hair->nParticle, &para);
-        pHairRenderer->SetRenderState(1);
-        drawStrand(pd3dImmediateContext, 0, hair->nParticle, &para);
-
-		if (activeContentId == hairId)
+		if (frame.displayMask & DISP_HAIR)
 		{
-			g_pTxtHelper->Begin();
-			g_pTxtHelper->SetInsertionPos(5, 100);
-			g_pTxtHelper->SetForegroundColor(Colors::Red);
-			g_pTxtHelper->DrawTextLine(L"Activated");
-			g_pTxtHelper->End();
+			pd3dImmediateContext->IASetIndexBuffer(dataBuffers["indices"], DXGI_FORMAT_R32_UINT, 0);
+
+			HairRenderer::ConstBuffer bf;
+			bf.mode = frame.rendMode;
+			XMStoreFloat3(&bf.viewPoint, pCamera->GetEyePt());
+			XMStoreFloat4x4(&bf.projViewWorld, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&hair->worldMatrix) *
+				pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
+
+			XMFLOAT4X4 proj;
+			pHairRenderer->GetShadowMapProjMatrix(proj);
+			XMFLOAT3 lightPos = XMFLOAT3(10.0f, 10.0f, -10.0f);
+			XMFLOAT3 lightTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			XMFLOAT3 lightUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
+
+			XMStoreFloat4x4(&bf.lightProjViewWorld, DirectX::XMMatrixTranspose(XMMatrixLookAtLH(XMLoadFloat3(&lightPos),
+				XMLoadFloat3(&lightTarget), XMLoadFloat3(&lightUp))*XMLoadFloat4x4(&proj)));
+
+			pHairRenderer->SetConstantBuffer(&bf);
+			pd3dImmediateContext->IASetInputLayout(pInputLayout);
+
+			ID3D11Buffer* colorBuffer;
+			if (frame.colorID == CDIR)
+				colorBuffer = hairManips[frame.animID].pVB[1];
+			else
+				colorBuffer = dataBuffers[COLOR_SEMATICS[frame.colorID]];
+
+			ID3D11Buffer* buffers[5] = { hairManips[frame.animID].pVB[0], hairManips[frame.animID].pVB[1],
+				colorBuffer, dataBuffers["seq"], hairManips[0].pVB[0] };
+			UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
+			UINT offsets[5] = { 0 };
+			pd3dImmediateContext->IASetVertexBuffers(0, 5, buffers, strides, offsets);
+
+			DrawPara para = { bFullShow ? hair->particlePerStrand - 1 : std::atoi(g_paramDict["lineseg"].c_str()),
+				bFullShow ? 0 : nDisplayBase, hair->particlePerStrand };
+
+			pHairRenderer->SetRenderState(0);
+			drawStrand(pd3dImmediateContext, 0, hair->nParticle, &para);
+			pHairRenderer->SetRenderState(1);
+			drawStrand(pd3dImmediateContext, 0, hair->nParticle, &para);
+
+			if (activeContentId == hairId)
+			{
+				g_pTxtHelper->Begin();
+				g_pTxtHelper->SetInsertionPos(5, 100);
+				g_pTxtHelper->SetForegroundColor(Colors::Red);
+				g_pTxtHelper->DrawTextLine(L"Activated");
+				g_pTxtHelper->End();
+			}
 		}
-    }
+
+		// render follicles
+		if (frame.displayMask & DISP_FOLLICLE)
+		{
+			FollicleRenderer::ConstBuffer bf2;
+			XMStoreFloat3(&bf2.viewPoint, pCamera->GetEyePt());
+			XMStoreFloat4x4(&bf2.projViewWorld, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&hair->worldMatrix) *
+				pCamera->GetViewMatrix() * pCamera->GetProjMatrix()));
+			bf2.pointSize = std::stoi(g_paramDict["pointsize"]);
+
+			pFollicleRenderer->SetConstantBuffer(&bf2);
+			pFollicleRenderer->SetRenderState();
+
+			ID3D11Buffer* colorBuffer;
+			if (frame.colorID == CDIR)
+				colorBuffer = hairManips[frame.animID].pVB[1];
+			else
+				colorBuffer = dataBuffers[COLOR_SEMATICS[frame.colorID]];
+			ID3D11Buffer* buffers[5] = { hairManips[frame.animID].pVB[0], hairManips[frame.animID].pVB[1],
+				colorBuffer, dataBuffers["seq"], hairManips[0].pVB[0] };
+			UINT strides[5] = { sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(XMFLOAT3), sizeof(int), sizeof(XMFLOAT3) };
+			UINT offsets[5] = { 0 };
+			pd3dImmediateContext->IASetVertexBuffers(0, 5, buffers, strides, offsets);
+			pd3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+			pd3dImmediateContext->IASetInputLayout(pInputLayout);
+			pd3dImmediateContext->IASetIndexBuffer(dataBuffers["follicleindices"], DXGI_FORMAT_R32_UINT, 0);
+			pd3dImmediateContext->DrawIndexed(hair->nStrand, 0, 0);
+		}
+	}
 
     void HairManager::OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
     {
@@ -360,6 +413,7 @@ namespace XRwy
 			contents[i].animID = std::stoi(g_paramDict[str]);
 			contents[i].colorID = CRANDOM;
 			contents[i].rendMode = 0;
+			contents[i].displayMask = std::stoi(g_paramDict["dispmask"], nullptr, 16);
 		}
 	}
 

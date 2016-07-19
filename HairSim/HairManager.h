@@ -16,6 +16,7 @@ namespace XRwy
 		int animID;
 		int colorID;
 		int rendMode;
+		int displayMask;
 	};
 
     class HairManager:
@@ -36,9 +37,7 @@ namespace XRwy
 
         typedef std::map<std::string, ID3D11Buffer*>    VertexBufferDict;
         typedef std::vector<SGeoManip>                  HairGeometryList;
-
-	public:
-
+		
     public:
         HairManager(FBX_LOADER::CFBXRenderDX11*, MeshRenderer*);
 
@@ -62,7 +61,8 @@ namespace XRwy
         ID3D11Device*                   pd3dDevice;
         ID3D11DeviceContext*            pd3dImmediateContext;
 
-        HairRenderer*               pHairRenderer = nullptr;
+		HairRenderer*               pHairRenderer = nullptr;
+		FollicleRenderer*           pFollicleRenderer = nullptr;
         VertexBufferDict            dataBuffers;
         HairGeometryList            hairManips;
         ID3D11InputLayout*          pInputLayout = nullptr;

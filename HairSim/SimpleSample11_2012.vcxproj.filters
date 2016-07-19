@@ -111,6 +111,9 @@
     <ClCompile Include="HairStructs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FollicleRenderer.cpp">
+      <Filter>Source Files\XRwyEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -206,6 +209,9 @@
     </ClInclude>
     <ClInclude Include="ZhouHairLoader.hpp">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FollicleRenderer.h">
+      <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

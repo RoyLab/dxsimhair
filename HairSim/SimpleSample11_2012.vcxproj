@@ -394,6 +394,7 @@
     <ClCompile Include="ConfigReader.cpp" />
     <ClCompile Include="D3D11Tools.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="FollicleRenderer.cpp" />
     <ClCompile Include="GUIManager.cpp" />
     <None Include="HairDebugRenderer.cpp" />
     <ClCompile Include="HairColor.cpp" />
@@ -435,6 +436,7 @@
     <ClInclude Include="HairStructs.h" />
     <ClInclude Include="HairLoader.h" />
     <ClInclude Include="HairRenderer.h" />
+    <ClInclude Include="FollicleRenderer.h" />
     <ClInclude Include="IHair.h" />
     <ClInclude Include="IRenderer.h" />
     <ClInclude Include="macros.h" />

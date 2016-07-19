@@ -28,6 +28,7 @@ namespace XRwy
     class LineRenderer;
     class MeshRenderer;
     class HairRenderer;
+	class FollicleRenderer;
 
 	class SceneManager;
 	class SplitLayout;
