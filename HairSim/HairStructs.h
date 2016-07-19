@@ -8,6 +8,13 @@ namespace XRwy
 	using DirectX::XMFLOAT3;
 	using DirectX::XMFLOAT4X4;
 
+	class HairAnimationLoader;
+	class HairManager;
+	struct FrameContent;
+	class SkinningInfo;
+	class ReconsReader;
+	class GroupPBD;
+
 	struct HairGeometry
 	{
 		size_t              nParticle;
@@ -33,13 +40,26 @@ namespace XRwy
 		float	weights[MAX_GUIDANCE];
 	};
 
-	struct SkinningScheme
+	struct SkinningStaticInfo
 	{
 		HairGeometry* restState = nullptr;
 		std::vector<InterpItem> items;
 
-		~SkinningScheme() { SAFE_DELETE_ARRAY(restState); }
+		~SkinningStaticInfo() { SAFE_DELETE_ARRAY(restState); }
 	};
+
+	// all interfaces are sync method
+	class HairLoader
+	{
+	public:
+		virtual bool loadFile(const char* fileName, HairGeometry * geom) = 0;
+		virtual void rewind() {}
+		virtual void nextFrame() {}
+		virtual void jumpTo(int frameNo) {}
+
+		virtual ~HairLoader() {}
+	};
+
 
 	///////////////////////////////////////////////////////
 	///////////////color interface/////////////////////////

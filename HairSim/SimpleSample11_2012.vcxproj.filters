@@ -200,5 +200,6 @@
     <ClInclude Include="HairStructs.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="SkinningEngine.h" />
   </ItemGroup>
 </Project>

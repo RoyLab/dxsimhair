@@ -1,12 +1,14 @@
 #pragma once
 #include <fstream>
 
-#include "wrMacro.h"
+#include "macros.h"
 #include "HairStructs.h"
 
 namespace XRwy
 {
-    class HairAnimationLoader
+
+    class HairAnimationLoader:
+		public HairLoader
     {
         COMMON_PROPERTY(size_t, nFrame);
         COMMON_PROPERTY(size_t, curFrame);

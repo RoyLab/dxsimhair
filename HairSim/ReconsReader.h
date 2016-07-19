@@ -16,21 +16,21 @@ namespace XRwy
 		HairColorsPerStrand* GetGuidanceColor() const;
 
 	private:
-		void ScanFile(SkinningScheme* skinning);
+		void ScanFile(SkinningStaticInfo* skinning);
 
 		size_t				nFrame = 0;
 		size_t				curFrame = -1;
 		bool				bDynamicState = false;
 	};
 
-	class SkinningEngine
+	class SkinningInfo
 	{
 	public:
-		SkinningScheme*		skinning = nullptr; // static part
+		SkinningStaticInfo*	skinning = nullptr; // static part
 		HairGeometry*		guidances = nullptr; // dynamic part
 		ReconsReader*		reader = nullptr;
 
-		~SkinningEngine();
+		~SkinningInfo();
 		void LoadReconsFile(const wchar_t* fileName);
 		void UpdateGuidance();
 		void SetFrameID(size_t n);

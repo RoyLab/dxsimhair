@@ -23,21 +23,15 @@ namespace XRwy
         virtual void Release() = 0;
     };
 
-
     // class declaration
     class IRenderer;
     class LineRenderer;
     class MeshRenderer;
     class HairRenderer;
 
-    class RenderTextureClass;
-    class HairAnimationLoader;
-
-    class HairManager;
 	class SceneManager;
 	class SplitLayout;
-
-	struct FrameContent;
+    class RenderTextureClass;
 
 	extern ParamDict g_paramDict;
 }

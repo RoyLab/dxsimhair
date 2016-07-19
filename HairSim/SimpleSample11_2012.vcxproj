@@ -440,6 +440,7 @@
     <ClInclude Include="ReconsReader.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SkinningEngine.h" />
     <ClInclude Include="SplitLayout.h" />
     <ClInclude Include="TrainingGraph.h" />
     <ClInclude Include="linmath.h" />

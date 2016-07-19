@@ -25,7 +25,7 @@ namespace XRwy
 
         struct SGeoManip
         {
-            HairAnimationLoader*    loader;
+            HairLoader*				loader;
             HairGeometry*           hair;
             ID3D11Buffer*           pVB[2];
             bool                    sync;

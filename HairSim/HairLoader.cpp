@@ -84,6 +84,8 @@ namespace XRwy
         geom->position = new XMFLOAT3[geom->nParticle];
         geom->direction = new XMFLOAT3[geom->nParticle];
 
+		nextFrame();
+
         return true;
     }
 
