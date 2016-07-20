@@ -57,7 +57,7 @@ namespace XRwy
 
 					vec3 dir;
 					float* pos1, *pos2;
-					for (int j = 0; j < factor - 1; j++)
+					for (int j = 1; j < factor; j++)
 					{
 						pos1 = reinterpret_cast<float*>(geom->position + i*factor + j);
 						pos2 = reinterpret_cast<float*>(geom->position + i*factor + j+1);
@@ -66,7 +66,7 @@ namespace XRwy
 						vec3_scale(dir, dir, 1 / norm);
 						memcpy(geom->direction + i*factor + j, dir, sizeof(vec3));
 					}
-					memcpy(geom->direction + (i+1)*factor -1, dir, sizeof(vec3));
+					memcpy(geom->direction + i*factor, geom->direction + i*factor+1, sizeof(vec3));
 
 					file.seekg(sizeof(int) + (sampleRatio * i + static_cast<int>(sampleRatio * randf()))
 						* sizeof(float) * 3 * factor);

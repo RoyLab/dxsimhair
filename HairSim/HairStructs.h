@@ -34,23 +34,8 @@ namespace XRwy
 		}
 	};
 
-	struct InterpItem
-	{
-		static const int MAX_GUIDANCE = 10;
-	public:
-		int		guideID[MAX_GUIDANCE]; // local ID !!
-		float	weights[MAX_GUIDANCE];
-	};
-
-	struct SkinningStaticInfo
-	{
-		HairGeometry* restState = nullptr;
-		std::vector<InterpItem> items;
-
-		~SkinningStaticInfo() { SAFE_DELETE_ARRAY(restState); }
-	};
-
 	// all interfaces are sync method
+	// do not require specific hair reps since hair anim reps may change
 	class HairLoader
 	{
 	public:

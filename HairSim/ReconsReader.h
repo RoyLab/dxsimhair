@@ -5,43 +5,51 @@
 
 namespace XRwy
 {
-	class ReconsReader
+	struct BlendHairGeometry:
+		public HairGeometry
+	{
+		std::vector<XMFLOAT3> trans;
+	};
+
+	class ReconsReader:
+		public HairLoader
 	{
 	public:
 		~ReconsReader();
-		void LoadFile(const wchar_t* fileName);
-		void PrepareForGuidanceDynamic(HairGeometry* guidance);
-		void SetFrameID(size_t n);
+
+		bool loadFile(const char* fileName, HairGeometry * geom); // different meaning, geom is first state.
+		void rewind();
+		void nextFrame();
+		void jumpTo(int frameNo);
+
 		HairColorsPerStrand* GetGroupColor() const;
 		HairColorsPerStrand* GetGuidanceColor() const;
 
 	private:
-		void ScanFile(SkinningStaticInfo* skinning);
-
+		BlendHairGeometry*	hair = nullptr;
 		size_t				nFrame = 0;
 		size_t				curFrame = -1;
 		bool				bDynamicState = false;
 	};
 
-	class SkinningInfo
+
+	struct WeightItem
 	{
+		static const int MAX_GUIDANCE = 10;
 	public:
-		SkinningStaticInfo*	skinning = nullptr; // static part
-		HairGeometry*		guidances = nullptr; // dynamic part
-		ReconsReader*		reader = nullptr;
+		int		guideID[MAX_GUIDANCE]; // local ID !!
+		float	weights[MAX_GUIDANCE];
+	};
 
-		~SkinningInfo();
-		void LoadReconsFile(const wchar_t* fileName);
-		void UpdateGuidance();
-		void SetFrameID(size_t n);
+	struct SkinningInfo
+	{
+		BlendHairGeometry*			guidances = nullptr;
+		HairGeometry*				restState = nullptr;
 
-		ID3D11Buffer* CreateGuidanceStructuredBuffer(ID3D11ShaderResourceView** ppRsv) const;
-		ID3D11Buffer* CreateSkinningVertexBuffer() const;
+		std::vector<WeightItem>		weights;
 
-	private:
-		bool				sync = false;
-		size_t				nFrame = 0;
-		size_t				curFrame = -1;
+		size_t						nFrame = 0;
+		size_t						curFrame = -1;
 	};
 
 

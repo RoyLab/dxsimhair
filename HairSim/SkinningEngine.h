@@ -14,8 +14,10 @@ namespace XRwy
 		void jumpTo(int frameNo);
 
 	private:
-		SkinningInfo* skinInfo = nullptr;
-		ReconsReader* reader = nullptr;
+		SkinningInfo*	skinInfo = nullptr;
+		HairGeometry*	skinResult = nullptr;
+		HairLoader*		reader = nullptr;
+		int				sampleRate = 1;
 	};
 
 	class SkinningAndHairBodyCollisionEngineCPU :
@@ -32,7 +34,7 @@ namespace XRwy
 		ReducedModel();
 		~ReducedModel();
 
-		bool loadFile(const char* fileName, HairGeometry * geom);
+		bool loadFile(const char* fileName, HairGeometry* geom);
 		void rewind();
 		void nextFrame();
 		void jumpTo(int frameNo);

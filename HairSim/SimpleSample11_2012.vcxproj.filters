@@ -29,6 +29,9 @@
     <Filter Include="Source Files\Dynamic">
       <UniqueIdentifier>{e666c5c5-5e16-45d8-8053-40c06de1576e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\StaticHair">
+      <UniqueIdentifier>{bea39297-8e57-4a89-bdd2-22824b1d2672}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\DXUT\Optional\directx.ico">
@@ -63,9 +66,6 @@
     <ClCompile Include="CFBXLoader.cpp">
       <Filter>Source Files\FBX</Filter>
     </ClCompile>
-    <ClCompile Include="TrainingGraph.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,29 +90,32 @@
     <ClCompile Include="rendertextureclass.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
-    <ClCompile Include="HairLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HairRenderer.cpp">
-      <Filter>Source Files\XRwyEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="HairManager.cpp">
-      <Filter>Source Files\XRwyEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="HairColor.cpp">
-      <Filter>Source Files\XRwyEngine</Filter>
-    </ClCompile>
     <ClCompile Include="D3D11Tools.cpp">
       <Filter>Source Files\Miscs</Filter>
     </ClCompile>
     <ClCompile Include="SplitLayout.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
-    <ClCompile Include="HairStructs.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="HairColor.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="HairManager.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="HairRenderer.cpp">
+      <Filter>Source Files\StaticHair</Filter>
     </ClCompile>
     <ClCompile Include="FollicleRenderer.cpp">
-      <Filter>Source Files\XRwyEngine</Filter>
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="HairLoader.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="HairStructs.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="TrainingGraph.cpp">
+      <Filter>Source Files\StaticHair</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -132,12 +135,6 @@
       <Filter>Source Files\FBX</Filter>
     </ClInclude>
     <ClInclude Include="ConfigReader.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HairLoader.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TrainingGraph.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="D3D11Tools.h">
@@ -173,20 +170,11 @@
     <ClInclude Include="macros.h">
       <Filter>Source Files\Miscs</Filter>
     </ClInclude>
-    <ClInclude Include="HairRenderer.h">
-      <Filter>Source Files\XRwyEngine</Filter>
-    </ClInclude>
     <ClInclude Include="IRenderer.h">
-      <Filter>Source Files\XRwyEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="HairManager.h">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
     <ClInclude Include="HairDebugRenderer.h">
       <Filter>Source Files\Deprecated</Filter>
-    </ClInclude>
-    <ClInclude Include="HairColor.h">
-      <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
     <ClInclude Include="XRwy_h.h">
       <Filter>Source Files\XRwyEngine</Filter>
@@ -197,21 +185,38 @@
     <ClInclude Include="SplitLayout.h">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
-    <ClInclude Include="ReconsReader.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="HairColor.h">
+      <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
-    <ClInclude Include="HairStructs.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="HairManager.h">
+      <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
-    <ClInclude Include="SkinningEngine.h" />
-    <ClInclude Include="GroupPBD.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ZhouHairLoader.hpp">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="HairRenderer.h">
+      <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
     <ClInclude Include="FollicleRenderer.h">
-      <Filter>Source Files\XRwyEngine</Filter>
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="HairLoader.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="HairStructs.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="TrainingGraph.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="ZhouHairLoader.hpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinningEngine.h">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="GroupPBD.h">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="ReconsReader.h">
+      <Filter>Source Files\Dynamic</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

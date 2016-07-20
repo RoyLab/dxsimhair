@@ -172,7 +172,17 @@ namespace XRwy
         }
 
         // suppose the two animation are for the same hair
-        auto &example = hairManips[0].hair;
+		int ei = 0;
+		int maxnHair = 0;
+		for (int i = 0; i < hairManips.size(); i++)
+		{
+			if (maxnHair < hairManips[i].hair->nParticle)
+			{
+				maxnHair = hairManips[i].hair->nParticle;
+				ei = i;
+			}
+		}
+        auto &example = hairManips[ei].hair;
         ID3D11Buffer* buffer = nullptr;
 
         // create index buffer
