@@ -11,7 +11,7 @@ namespace XRwy
 	class HairAnimationLoader;
 	class HairManager;
 	struct FrameContent;
-	class SkinningInfo;
+	struct SkinningInfo;
 	class ReconsReader;
 	class GroupPBD;
 
@@ -26,8 +26,7 @@ namespace XRwy
 		size_t              nStrand;
 		size_t              particlePerStrand;
 
-
-		~HairGeometry()
+		virtual ~HairGeometry()
 		{
 			SAFE_DELETE_ARRAY(position);
 			SAFE_DELETE_ARRAY(direction);
@@ -38,6 +37,8 @@ namespace XRwy
 	// do not require specific hair reps since hair anim reps may change
 	class HairLoader
 	{
+		COMMON_PROPERTY(size_t, nFrame);
+		COMMON_PROPERTY(size_t, curFrame);
 	public:
 		virtual bool loadFile(const char* fileName, HairGeometry * geom) = 0;
 		virtual void rewind() {}

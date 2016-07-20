@@ -1,6 +1,7 @@
 #pragma once
 #include "macros.h"
 #include "HairStructs.h"
+#include "GroupPBD.h"
 
 namespace XRwy
 {
@@ -8,23 +9,32 @@ namespace XRwy
 		public HairLoader
 	{
 	public:
+		SkinningAndHairBodyCollisionEngine();
+		~SkinningAndHairBodyCollisionEngine();
+
+	protected:
+		SkinningInfo*	skinInfo = nullptr;
+		ReconsReader*	reader = nullptr;
+		int				sampleRate = 1;
+
+		ExternPtr HairGeometry*	skinResult = nullptr;
+	};
+
+	class SkinningAndHairBodyCollisionEngineCPU :
+		public SkinningAndHairBodyCollisionEngine
+	{
+	public:
+		SkinningAndHairBodyCollisionEngineCPU();
+		~SkinningAndHairBodyCollisionEngineCPU();
+
 		bool loadFile(const char* fileName, HairGeometry * geom);
 		void rewind();
 		void nextFrame();
 		void jumpTo(int frameNo);
 
 	private:
-		SkinningInfo*	skinInfo = nullptr;
-		HairGeometry*	skinResult = nullptr;
-		HairLoader*		reader = nullptr;
-		int				sampleRate = 1;
-	};
-
-	class SkinningAndHairBodyCollisionEngineCPU :
-		public SkinningAndHairBodyCollisionEngine
-	{
-	private:
-
+		void interpolate();
+		void hairBodyCollision();
 	};
 
 	class ReducedModel :
@@ -41,7 +51,8 @@ namespace XRwy
 
 	private:
 		HairLoader*		skinning = nullptr;
-		HairGeometry*	hairGeom = nullptr;
-		GroupPBD*		PDB = nullptr;
+		GroupPBD*		pPDB = nullptr;
+
+		ExternPtr HairGeometry* hairGeom = nullptr;
 	};
 }

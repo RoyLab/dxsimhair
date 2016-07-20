@@ -8,6 +8,7 @@
 #include "BasicRenderer.h"
 #include "FollicleRenderer.h"
 #include "ZhouHairLoader.hpp"
+#include "SkinningEngine.h"
 
 namespace
 {
@@ -52,6 +53,8 @@ namespace XRwy
 			result = new HairAnimationLoader;
 		else if (posfix == ".hair")
 			result = new ZhouHairLoader;
+		else if (posfix == ".recons")
+			result = new ReducedModel;
 
 		if (result)
 			result->loadFile(fileName, geom);

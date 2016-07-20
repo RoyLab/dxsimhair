@@ -410,8 +410,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ReconsReader.cpp" />
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="SkinningEngine.cpp" />
     <ClCompile Include="SplitLayout.cpp" />
     <ClCompile Include="TrainingGraph.cpp" />
     <ClCompile Include="wrMeshRenderer.cpp" />

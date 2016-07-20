@@ -117,6 +117,12 @@
     <ClCompile Include="TrainingGraph.cpp">
       <Filter>Source Files\StaticHair</Filter>
     </ClCompile>
+    <ClCompile Include="SkinningEngine.cpp">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClCompile>
+    <ClCompile Include="ReconsReader.cpp">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">

@@ -30,7 +30,7 @@
 
 #ifndef COMMON_PROPERTY
 #define COMMON_PROPERTY(__type__,__name__) \
-private: \
+protected: \
 __type__ m_##__name__; \
 public: \
 const __type__ & get_##__name__() const{ \
@@ -49,7 +49,7 @@ m_##__name__ = _##__name__##_; \
 
 #ifndef STATIC_PROPERTY
 #define STATIC_PROPERTY(__type__,__name__) \
-private: \
+protected: \
 static __type__ m_##__name__; \
 public: \
 static __type__ & get_##__name__(){ \
@@ -73,3 +73,5 @@ m_##__name__ = _##__name__##_; \
 
 
 #define UNIMPLEMENTED_METHOD "This is an unimplemented method. "
+
+#define ExternPtr

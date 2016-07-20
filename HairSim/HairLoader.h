@@ -10,9 +10,6 @@ namespace XRwy
     class HairAnimationLoader:
 		public HairLoader
     {
-        COMMON_PROPERTY(size_t, nFrame);
-        COMMON_PROPERTY(size_t, curFrame);
-
     public:
         class IHelper
         {

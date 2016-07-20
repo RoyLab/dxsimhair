@@ -1,6 +1,7 @@
 #pragma once
 #include <fstream>
 #include <d3d11.h>
+#include "macros.h"
 #include "HairStructs.h"
 
 namespace XRwy
@@ -10,28 +11,6 @@ namespace XRwy
 	{
 		std::vector<XMFLOAT3> trans;
 	};
-
-	class ReconsReader:
-		public HairLoader
-	{
-	public:
-		~ReconsReader();
-
-		bool loadFile(const char* fileName, HairGeometry * geom); // different meaning, geom is first state.
-		void rewind();
-		void nextFrame();
-		void jumpTo(int frameNo);
-
-		HairColorsPerStrand* GetGroupColor() const;
-		HairColorsPerStrand* GetGuidanceColor() const;
-
-	private:
-		BlendHairGeometry*	hair = nullptr;
-		size_t				nFrame = 0;
-		size_t				curFrame = -1;
-		bool				bDynamicState = false;
-	};
-
 
 	struct WeightItem
 	{
@@ -52,5 +31,31 @@ namespace XRwy
 		size_t						curFrame = -1;
 	};
 
+	class ReconsReader
+	{
+		COMMON_PROPERTY(size_t, nFrame);
+		COMMON_PROPERTY(size_t, curFrame);
+	public:
+		ReconsReader();
+		~ReconsReader();
+
+		// not a hairloader since it load other things like weights
+		bool loadFile(const char* fileName, SkinningInfo* skinHair);
+		void rewind();
+		void nextFrame();
+		void jumpTo(int frameNo);
+
+		HairColorsPerStrand* GetGroupColor() const;
+		HairColorsPerStrand* GetGuidanceColor() const;
+
+	private:
+		void readHead(HairGeometry* geom);
+		void readHead2(BlendHairGeometry* guidance);
+
+		ExternPtr SkinningInfo*	hair = nullptr;
+
+		std::ifstream		file;
+		size_t				fileShortcut[6];
+	};
 
 }
