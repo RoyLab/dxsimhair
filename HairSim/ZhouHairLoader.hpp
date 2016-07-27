@@ -52,7 +52,6 @@ namespace XRwy
 					if (file.eof())
 						throw std::exception("unexpected end of file");
 
-					auto buffer = reinterpret_cast<float*>(cbuffer);
 					memcpy(geom->position + i*factor, cbuffer, sizeof(float)*factor * 3);
 
 					vec3 dir;

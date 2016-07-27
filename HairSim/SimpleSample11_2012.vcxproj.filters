@@ -72,9 +72,6 @@
     <ClCompile Include="wrMeshRenderer.cpp">
       <Filter>Source Files\Deprecated</Filter>
     </ClCompile>
-    <ClCompile Include="wrColorGenerator.cpp">
-      <Filter>Source Files\Miscs</Filter>
-    </ClCompile>
     <ClCompile Include="BasicRenderer.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
@@ -89,9 +86,6 @@
     </ClCompile>
     <ClCompile Include="rendertextureclass.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="D3D11Tools.cpp">
-      <Filter>Source Files\Miscs</Filter>
     </ClCompile>
     <ClCompile Include="SplitLayout.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
@@ -123,6 +117,12 @@
     <ClCompile Include="ReconsReader.cpp">
       <Filter>Source Files\Dynamic</Filter>
     </ClCompile>
+    <ClCompile Include="D3D11Tools.cpp">
+      <Filter>Source Files\Miscs</Filter>
+    </ClCompile>
+    <ClCompile Include="wrColorGenerator.cpp">
+      <Filter>Source Files\Miscs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -143,12 +143,6 @@
     <ClInclude Include="ConfigReader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="D3D11Tools.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="linmath.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
     <ClInclude Include="IHair.h">
       <Filter>Source Files\Deprecated</Filter>
     </ClInclude>
@@ -157,9 +151,6 @@
     </ClInclude>
     <ClInclude Include="wrSceneManager.h">
       <Filter>Source Files\Deprecated</Filter>
-    </ClInclude>
-    <ClInclude Include="wrColorGenerator.h">
-      <Filter>Source Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="BasicRenderer.h">
       <Filter>Source Files\XRwyEngine</Filter>
@@ -173,9 +164,6 @@
     <ClInclude Include="rendertextureclass.h">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
-    <ClInclude Include="macros.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
     <ClInclude Include="IRenderer.h">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClInclude>
@@ -184,9 +172,6 @@
     </ClInclude>
     <ClInclude Include="XRwy_h.h">
       <Filter>Source Files\XRwyEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="wrMath.h">
-      <Filter>Source Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="SplitLayout.h">
       <Filter>Source Files\XRwyEngine</Filter>
@@ -223,6 +208,21 @@
     </ClInclude>
     <ClInclude Include="ReconsReader.h">
       <Filter>Source Files\Dynamic</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D11Tools.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="linmath.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="macros.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrColorGenerator.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="wrMath.h">
+      <Filter>Source Files\Miscs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

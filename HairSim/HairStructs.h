@@ -26,6 +26,15 @@ namespace XRwy
 		size_t              nStrand;
 		size_t              particlePerStrand;
 
+		virtual void allocMemory()
+		{
+			SAFE_DELETE_ARRAY(position);
+			SAFE_DELETE_ARRAY(direction);
+
+			position = new XMFLOAT3[nParticle];
+			direction = new XMFLOAT3[nParticle];
+		}
+
 		virtual ~HairGeometry()
 		{
 			SAFE_DELETE_ARRAY(position);

@@ -6,8 +6,8 @@ namespace XRwy
 	class GroupPBD
 	{
 	public:
-		bool initialize(HairGeometry* hair);
-		void solve(HairGeometry* hair);
+		bool initialize(HairGeometry* hair) { return true; }
+		void solve(HairGeometry* hair) {}
 
 	private:
 		int			nWorker;

@@ -24,8 +24,8 @@ namespace XRwy
 		public SkinningAndHairBodyCollisionEngine
 	{
 	public:
-		SkinningAndHairBodyCollisionEngineCPU();
-		~SkinningAndHairBodyCollisionEngineCPU();
+		SkinningAndHairBodyCollisionEngineCPU() {}
+		~SkinningAndHairBodyCollisionEngineCPU(){}
 
 		bool loadFile(const char* fileName, HairGeometry * geom);
 		void rewind();
@@ -33,8 +33,8 @@ namespace XRwy
 		void jumpTo(int frameNo);
 
 	private:
-		void interpolate();
-		void hairBodyCollision();
+		void interpolate() {}
+		void hairBodyCollision() {}
 	};
 
 	class ReducedModel :

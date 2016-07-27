@@ -66,6 +66,9 @@ namespace XRwy
 		{
 			SAFE_DELETE(skinInfo->restState);
 			SAFE_DELETE(skinInfo->guidances);
+			for (auto ptr : skinInfo->neighbor)
+				delete ptr;
+
 			delete skinInfo;
 			skinInfo = nullptr;
 		}
@@ -79,7 +82,7 @@ namespace XRwy
 		skinResult = geom;
 		sampleRate = std::stoi(g_paramDict["hairsample"]);
 
-		reader->loadFile(fileName, skinInfo);
+		V_RETURN(reader->loadFile(fileName, skinInfo));
 		set_nFrame(reader->get_nFrame());
 		set_curFrame(-1);
 
