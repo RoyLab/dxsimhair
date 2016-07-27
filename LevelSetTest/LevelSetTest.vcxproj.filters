@@ -15,36 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="LevelSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ADFCollisionObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ADFOctree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UnitTest.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wrGeo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="LevelSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ADFOctree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HairSim\ConfigReader.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ADFCollisionObject.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

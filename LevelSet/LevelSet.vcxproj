@@ -93,13 +93,13 @@
     <ClInclude Include="LevelSet.h" />
     <ClInclude Include="ADFOctree.h" />
     <ClInclude Include="UnitTest.h" />
+    <ClInclude Include="wrGeo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\HairSim\ConfigReader.cpp" />
     <ClCompile Include="ADFCollisionObject.cpp" />
     <ClCompile Include="ADFOctree.cpp" />
     <ClCompile Include="LevelSet.cpp" />
-    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

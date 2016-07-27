@@ -1,13 +1,16 @@
 #include "UnitTest.h"
+#include "ADFOctree.h"
 #include <boost/foreach.hpp>
 #include <CGAL/point_generators_3.h>
-#include "LevelSet.h"
-#include "ConfigReader.h"
-#include "wrMath.h"
 #include <vector>
 #include <fstream>
 
-#include <limits>
+#include "LevelSet.h"
+#include "ADFCollisionObject.h"
+#include "ConfigReader.h"
+
+
+
 using std::cout;
 using std::endl;
 
@@ -71,7 +74,7 @@ namespace WR
 
     void runLevelSetBenchMark(const wchar_t* fileName)
     {
-        ConfigReader reader("..\\HairSim\\config.ini");
+        ConfigReader reader("..\\config.ini");
         int level = std::stoi(reader.getValue("maxlevel"));
         int number = std::stoi(reader.getValue("testnumber"));
         bool loadArray = std::stoi(reader.getValue("loadtest"));

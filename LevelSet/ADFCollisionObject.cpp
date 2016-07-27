@@ -1,9 +1,13 @@
+#include "UnitTest.h"// must be the first
+
 #include "ADFCollisionObject.h"
 #include "wrMacro.h"
 #include <fstream>
 #include "wrLogger.h"
 #include "wrMath.h"
 #include "ADFOctree.h"
+#include "LevelSet.h"
+#include "ConfigReader.h"
 
 namespace
 {
@@ -144,6 +148,12 @@ namespace WR
 
         return dist;
     }
+
+	float ADFCollisionObject::cgal_distance(const Point_3& p, const Point_3 v[], size_t infId, Dt::Cell_handle ch) const
+	{
+
+	}
+
 
     float ADFCollisionObject::query_distance_template(const Point_3& p, ExtrapolateFunc func) const
     {
@@ -392,14 +402,19 @@ namespace WR
         step[1] = Vector_3(0, coef * (m_bbox.ymax() - m_bbox.ymin()), 0);
         step[2] = Vector_3(0, 0, coef * (m_bbox.zmax() - m_bbox.zmin()));
 
+		ConfigReader reader("..\\config.ini");
+
+		assert(pModel);
+		auto* tester = CGAL::Ext::createDistanceTester<Polyhedron_3_FaceWithId, K>(*pModel);
+
         vec3 v;
         for (auto vItr = pDt->finite_vertices_begin(); vItr != pDt->finite_vertices_end(); vItr++)
         {
             auto &pos = vItr->point();
             for (size_t i = 0; i < 3; i++)
             {
-                auto dist1 = query_distance_with_fake_extrapolation(pos + step[i]);
-                auto dist2 = query_distance_with_fake_extrapolation(pos - step[i]);
+                auto dist1 = tester->query_signed_distance(pos + step[i]);
+                auto dist2 = tester->query_signed_distance(pos - step[i]);
 
                 if (dist1 > 1e6 && dist2 > 1e6)
                 {
@@ -425,6 +440,8 @@ namespace WR
             grad = grad / sqrt(grad.squared_length());
             vItr->info().gradient = grad;
         }
+
+		delete tester;
     }
 
 

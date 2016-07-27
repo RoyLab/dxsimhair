@@ -1,7 +1,7 @@
 #pragma once
-#include "wrGeo.h"
-#include "ADFOctree.h"
 #include <CGAL\Polyhedron_3.h>
+#include "ADFOctree.h"
+#include "wrGeo.h"
 
 namespace WR
 {

@@ -439,6 +439,7 @@
     <ClInclude Include="HairLoader.h" />
     <ClInclude Include="HairRenderer.h" />
     <ClInclude Include="FollicleRenderer.h" />
+    <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="IHair.h" />
     <ClInclude Include="IRenderer.h" />
     <ClInclude Include="macros.h" />

@@ -224,5 +224,8 @@
     <ClInclude Include="wrMath.h">
       <Filter>Source Files\Miscs</Filter>
     </ClInclude>
+    <ClInclude Include="ICollisionObject.h">
+      <Filter>Source Files\Dynamic</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

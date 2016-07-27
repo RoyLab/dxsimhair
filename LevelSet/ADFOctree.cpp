@@ -1,4 +1,5 @@
-﻿#include "ADFOctree.h"
+﻿#include "UnitTest.h"
+#include "ADFOctree.h"
 #include "wrMacro.h"
 #include "wrLogger.h"
 #include "wrGeo.h"
@@ -52,7 +53,7 @@ namespace WR
 
     ADFCollisionObject* ADFOctree::releaseAndCreateCollisionObject()
     {
-        ADFCollisionObject* pCO = new ADFCollisionObject(dt, box, nMaxLevel, m_box_enlarge_size);
+        ADFCollisionObject* pCO = new ADFCollisionObject(dt, box, nMaxLevel, m_box_enlarge_size, pModel);
         releaseExceptDt();
         dt = nullptr;
         return pCO;
@@ -61,6 +62,8 @@ namespace WR
 
     bool ADFOctree::construct(Polyhedron_3& geom, size_t maxLvl)
     {
+		pModel = &geom;
+
         release();
         nMaxLevel = maxLvl;
         dt = new Dt;
@@ -90,12 +93,14 @@ namespace WR
 
         pRoot = createRootNode(geom);
 
-        constructChildren(pRoot);
+		auto* tester = CGAL::Ext::createDistanceTester2<Polyhedron_3_FaceWithId, K>(*pModel);
+		constructChildren(pRoot, tester);
+		delete tester;
         WR_LOG_INFO << "constructed: depth, " << maxLvl;
         return true;
     }
 
-    void ADFOctree::constructChildren(Node* root)
+    void ADFOctree::constructChildren(Node* root, CGAL::Ext::DistanceTester2<Polyhedron_3_FaceWithId, K>* tester)
     {
 
         //   /----0----/            •-----y
@@ -158,8 +163,8 @@ namespace WR
 
             // if has elements and not max level, split
             if (!child->eList.empty() && child->level < nMaxLevel)
-                constructChildren(child);
-            else computeMinDistance(child);
+                constructChildren(child, tester);
+            else computeMinDistance(child, tester);
 
             root->children[i] = child;
         }
@@ -203,7 +208,7 @@ namespace WR
     }
 
 
-    void ADFOctree::computeMinDistance(Node* node)
+    void ADFOctree::computeMinDistance(Node* node, CGAL::Ext::DistanceTester2<Polyhedron_3_FaceWithId, K>* tester)
     {
         static int count = 0;
         for (size_t i = 0; i < 8; i++)
@@ -212,30 +217,31 @@ namespace WR
             auto& dist = vh->info().minDist;
             if (dist < 1.0e8) continue;
 
-            int type = -1;
-            size_t triIdx = 0;
-            Node* curNode = node;
-            Vector_3 diff;
-            float tmpSquaredDist, distLimit;
+            //int type = -1;
+            //size_t triIdx = 0;
+            //Node* curNode = node;
+            //Vector_3 diff;
+            //float tmpSquaredDist, distLimit;
 
-            while (true)
-            {
-                if (!curNode->eList.empty())
-                {
-                    tmpSquaredDist = minSquaredDist(vh->point(), curNode->eList.cbegin(), curNode->eList.cend(), &diff, &triIdx, &type);
-                    distLimit = minDist(curNode->triple, vh->point());
+            //while (true)
+            //{
+            //    if (!curNode->eList.empty())
+            //    {
+            //        tmpSquaredDist = minSquaredDist(vh->point(), curNode->eList.cbegin(), curNode->eList.cend(), &diff, &triIdx, &type);
+            //        distLimit = minDist(curNode->triple, vh->point());
 
-                    if (tmpSquaredDist < distLimit * distLimit || !curNode->pParent)
-                    {
-                        dist = sqrt(tmpSquaredDist);
-                        break;
-                    }
-                }
-                curNode = curNode->pParent;
-            }
+            //        if (tmpSquaredDist < distLimit * distLimit || !curNode->pParent)
+            //        {
+            //            dist = sqrt(tmpSquaredDist);
+            //            break;
+            //        }
+            //    }
+            //    curNode = curNode->pParent;
+            //}
 
-            int sign = determineSign(type, vh->point(), diff, triIdx);
-            dist *= sign;
+            //int sign = determineSign(type, vh->point(), diff, triIdx);
+            //dist *= sign;
+			dist = tester->query_signed_distance(vh->point());
         }
     }
 

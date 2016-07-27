@@ -1,6 +1,7 @@
 #include "ConfigReader.h"
 #include <fstream>
 #include <iostream>
+#include <cassert>
 using namespace std;
 
 bool IsSpace(char c)//判断是不是空格
@@ -52,6 +53,7 @@ void Trim(string & str)//去除字符串的首尾空格
 //返回值，对应配置项name的value值
 string ConfigReader::getValue(const string & name)
 {
+	assert(infile->is_open());
     string line;
     string new_line;
     while (getline(*infile, line))
