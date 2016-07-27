@@ -1,6 +1,7 @@
 #include <DXUT.h>
 #include <cstdlib>
 #include <cctype>
+#include <algorithm>
 #include "HairManager.h"
 #include "HairLoader.h"
 #include "HairRenderer.h"

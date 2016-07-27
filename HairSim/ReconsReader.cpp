@@ -139,6 +139,7 @@ namespace XRwy
 
 		ReadNBytes(file, ptr, sizeof(int) * n);
 		hair->groupId.assign(ptr, ptr + n);
+		delete[] ptr;
 	}
 
 	void ReconsReader::setupNeighbSection()

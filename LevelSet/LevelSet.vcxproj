@@ -90,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ADFCollisionObject.h" />
+    <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="LevelSet.h" />
     <ClInclude Include="ADFOctree.h" />
     <ClInclude Include="UnitTest.h" />

@@ -149,12 +149,6 @@ namespace WR
         return dist;
     }
 
-	float ADFCollisionObject::cgal_distance(const Point_3& p, const Point_3 v[], size_t infId, Dt::Cell_handle ch) const
-	{
-
-	}
-
-
     float ADFCollisionObject::query_distance_template(const Point_3& p, ExtrapolateFunc func) const
     {
         assert(pDt);

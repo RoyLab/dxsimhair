@@ -3,6 +3,11 @@
 #include "HairStructs.h"
 #include "GroupPBD.h"
 
+namespace WR
+{
+	class ICollisionObject;
+}
+
 namespace XRwy
 {
 	class SkinningAndHairBodyCollisionEngine:
@@ -37,6 +42,7 @@ namespace XRwy
 		void hairBodyCollision();
 
 		int hairRendererVersion = 1;
+		WR::ICollisionObject* pCollision = nullptr;
 	};
 
 	class ReducedModel :

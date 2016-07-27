@@ -1,8 +1,17 @@
+#include "LevelSet.h"
 #include "macros.h"
 #include "XRwy_h.h"
 #include "SkinningEngine.h"
 #include "ReconsReader.h"
 #include "wrMath.h"
+#include "wrTypes.h"
+
+#ifdef _DEBUG
+#define ADF_FILE L"../../models/head_d"
+//#include <vld.h>
+#else
+#define ADF_FILE L"../../models/head"
+#endif
 
 namespace XRwy
 {
@@ -85,10 +94,12 @@ namespace XRwy
 	SkinningAndHairBodyCollisionEngineCPU::SkinningAndHairBodyCollisionEngineCPU()
 	{
 		hairRendererVersion = std::stoi(g_paramDict["hairrendversion"]);
+		pCollision = WR::loadCollisionObject(ADF_FILE);
 	}
 
 	SkinningAndHairBodyCollisionEngineCPU::~SkinningAndHairBodyCollisionEngineCPU()
 	{
+		SAFE_DELETE(pCollision);
 	}
 
 	bool SkinningAndHairBodyCollisionEngineCPU::loadFile(const char* fileName, HairGeometry * geom)
@@ -189,9 +200,38 @@ namespace XRwy
 		}
 	}
 
+
 	void SkinningAndHairBodyCollisionEngineCPU::hairBodyCollision()
 	{
+		mat4x4 rigid;
+		mat4x4_transpose(rigid, reinterpret_cast<vec4*>(skinResult->rigidTrans));
+		DirectX::XMMATRIX dxWorld = pCamera->GetWorldMatrix();
+		DirectX::XMFLOAT3X3 dxmWorld;
+		XMStoreFloat3x3(&dxmWorld, dxWorld);
 
+		WR::Mat3 wrmWorld;
+		WR::convert3x3(wrmWorld, dxmWorld);
+
+		auto mInvWorld = mWorld.inverse();
+		size_t ns = m_strands.size();
+		for (size_t i = 0; i < ns; i++)
+		{
+			size_t nvp = m_strands[i].m_visibleParticles.size();
+			for (size_t j = 1; j < nvp; j++)
+			{
+				size_t idx = m_strands[i].m_visibleParticles[j];
+				Vec3 p = mInvWorld * triple(pos, idx);
+				ICollisionObject::Point_3 p1, p0 = ICollisionObject::Point_3(p[0], p[1], p[2]);
+				bool isCollide = mp_data->pCollisionHead->position_correlation(p0, &p1, 3e-3f);
+				if (isCollide)
+				{
+					convert3(p, p1);
+					p = mWorld * p;
+					triple(pos, idx) = p;
+					triple(vel, idx) = (p - Vec3(get_particle_position(idx))) / t;
+				}
+			}
+		}
 	}
 }
 
