@@ -45,7 +45,7 @@ namespace XRwy
 				geom->particlePerStrand = factor;
 
 				DirectX::XMStoreFloat4x4(&geom->worldMatrix, DirectX::XMMatrixIdentity());
-
+				int hairRendererVersion = std::stoi(g_paramDict["hairrendversion"]);
 				for (int i = 0; i < geom->nStrand; i++)
 				{
 					file.read(cbuffer, sizeof(float) * 3 * factor);
@@ -54,18 +54,21 @@ namespace XRwy
 
 					memcpy(geom->position + i*factor, cbuffer, sizeof(float)*factor * 3);
 
-					vec3 dir;
-					float* pos1, *pos2;
-					for (int j = 1; j < factor; j++)
+					if (hairRendererVersion == 1)
 					{
-						pos1 = reinterpret_cast<float*>(geom->position + i*factor + j);
-						pos2 = reinterpret_cast<float*>(geom->position + i*factor + j+1);
-						vec3_sub(dir, pos2, pos1);
-						float norm = vec3_len(dir);
-						vec3_scale(dir, dir, 1 / norm);
-						memcpy(geom->direction + i*factor + j, dir, sizeof(vec3));
+						vec3 dir;
+						float* pos1, *pos2;
+						for (int j = 1; j < factor; j++)
+						{
+							pos1 = reinterpret_cast<float*>(geom->position + i*factor + j);
+							pos2 = reinterpret_cast<float*>(geom->position + i*factor + j + 1);
+							vec3_sub(dir, pos2, pos1);
+							float norm = vec3_len(dir);
+							vec3_scale(dir, dir, 1 / norm);
+							memcpy(geom->direction + i*factor + j, dir, sizeof(vec3));
+						}
+						memcpy(geom->direction + i*factor, geom->direction + i*factor + 1, sizeof(vec3));
 					}
-					memcpy(geom->direction + i*factor, geom->direction + i*factor+1, sizeof(vec3));
 
 					file.seekg(sizeof(int) + (sampleRatio * i + static_cast<int>(sampleRatio * randf()))
 						* sizeof(float) * 3 * factor);

@@ -50,6 +50,8 @@ namespace XRwy
 		if (fileShortcut[iInterpolation] > 0)
 			setupInplSection();
 
+		file.clear();
+		set_nFrame(hair->nFrame);
 		rewind(); // only rewind guide hair
 
 		return true;
@@ -110,7 +112,7 @@ namespace XRwy
 
 	void ReconsReader::setupWeights()
 	{
-		file.seekg(fileShortcut[iWeights]+4);
+		file.seekg(fileShortcut[iWeights] + 4);
 		size_t nStrand = hair->restState->nStrand;
 		hair->weights.reserve(nStrand);
 
@@ -136,7 +138,7 @@ namespace XRwy
 		auto n = hair->restState->nStrand;
 
 		ReadNBytes(file, ptr, sizeof(int) * n);
-		hair->groupId.assign(ptr, ptr+n);
+		hair->groupId.assign(ptr, ptr + n);
 	}
 
 	void ReconsReader::setupNeighbSection()
@@ -160,6 +162,45 @@ namespace XRwy
 		file.seekg(fileShortcut[iInterpolation]);
 		ZeroMemory(hair->anim2, sizeof(char) * 128);
 		file.read(hair->anim2, 128);
+	}
+
+	void ReconsReader::rewind()
+	{
+		jumpTo(0);
+	}
+
+	void ReconsReader::nextFrame()
+	{
+		set_curFrame(get_curFrame() + 1);
+		if (get_curFrame() >= get_nFrame())
+		{
+			jumpTo(0);
+			return;
+		}
+
+		int frameNo = -1;
+		Read4Bytes(file, frameNo);
+		assert(frameNo == get_curFrame());
+
+		ReadNBytes(file, hair->guidances->rigidTrans, sizeof(float) * 16);
+		for (int i = 0; i < hair->guidances->nParticle; i++)
+		{
+			file.seekg(sizeof(float) * 9, std::ios_base::cur);
+			ReadNBytes(file, &hair->guidances->trans[i], sizeof(float) * 3);
+		}
+	}
+
+	void ReconsReader::jumpTo(int frameNo)
+	{
+		const size_t offset = 72 + 48 * hair->guidances->nParticle;
+
+		file.seekg(fileShortcut[iGuideHair]
+			+ hair->guidances->nStrand * 4
+			+ hair->guidances->nParticle * 24
+			+ offset * frameNo);
+
+		set_curFrame(-1);
+		nextFrame();
 	}
 
 }

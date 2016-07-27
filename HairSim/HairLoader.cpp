@@ -47,12 +47,13 @@ namespace XRwy
 			bytes = reinterpret_cast<char*>(buffer);
 			file.read(bytes, sizeof(float)*ns*factor * 3);
 
-			for (int i = 0, count = 0; i < ns; i += sampleRate, count++)
-				memcpy(pos + count*factor * 3, buffer + i*factor * 3, sizeof(float)*factor * 3);
+			size_t nSample = ns / sampleRate;
+			for (int i = 0; i < nSample; i++)
+				memcpy(pos + i*factor * 3, buffer + i*sampleRate*factor * 3, sizeof(float)*factor * 3);
 
 			file.read(bytes, sizeof(float)*ns*factor * 3);
-			for (int i = 0, count = 0; i < ns; i += sampleRate, count++)
-				memcpy(dir + count*factor * 3, buffer + i*factor * 3, sizeof(float)*factor * 3);
+			for (int i = 0; i < nSample; i++)
+				memcpy(dir + i*factor * 3, buffer + i*sampleRate*factor * 3, sizeof(float)*factor * 3);
 
 			delete[] buffer;
 		}
@@ -96,7 +97,7 @@ namespace XRwy
 		helper->init(m_nFrame, nRealParticle);
         geom->particlePerStrand = std::stoi(g_paramDict["particleperstrand"]);
 		nRealStrand = nRealParticle / geom->particlePerStrand;
-		geom->nStrand  = nRealStrand / sampleRate + (sampleRate > 1? 1:0);
+		geom->nStrand  = nRealStrand / sampleRate;
 		geom->nParticle = geom->nStrand * geom->particlePerStrand;
 		DirectX::XMStoreFloat4x4(&geom->worldMatrix, DirectX::XMMatrixIdentity());
 

@@ -66,8 +66,8 @@ namespace XRwy
 		void nextFrame();
 		void jumpTo(int frameNo);
 
-		HairColorsPerStrand* GetGroupColor() const { return nullptr; }
-		HairColorsPerStrand* GetGuidanceColor() const { return nullptr; }
+		HairColorsPerStrand* GetGroupColor() const;
+		HairColorsPerStrand* GetGuidanceColor() const;
 
 	private:
 		static const int NUM_SECTION = 6;

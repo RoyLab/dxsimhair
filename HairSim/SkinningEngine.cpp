@@ -2,6 +2,7 @@
 #include "XRwy_h.h"
 #include "SkinningEngine.h"
 #include "ReconsReader.h"
+#include "wrMath.h"
 
 namespace XRwy
 {
@@ -54,6 +55,11 @@ namespace XRwy
 		set_curFrame(skinning->get_curFrame());
 	}
 
+	//////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////
+	///////////////////////SkinningEngine/////////////////////////
+	//////////////////////////////////////////////////////////////
+
 	SkinningAndHairBodyCollisionEngine::SkinningAndHairBodyCollisionEngine()
 	{
 		skinInfo = new SkinningInfo;
@@ -76,6 +82,15 @@ namespace XRwy
 		SAFE_DELETE(reader);
 	}
 
+	SkinningAndHairBodyCollisionEngineCPU::SkinningAndHairBodyCollisionEngineCPU()
+	{
+		hairRendererVersion = std::stoi(g_paramDict["hairrendversion"]);
+	}
+
+	SkinningAndHairBodyCollisionEngineCPU::~SkinningAndHairBodyCollisionEngineCPU()
+	{
+	}
+
 	bool SkinningAndHairBodyCollisionEngineCPU::loadFile(const char* fileName, HairGeometry * geom)
 	{
 		bool hr;
@@ -83,6 +98,14 @@ namespace XRwy
 		sampleRate = std::stoi(g_paramDict["hairsample"]);
 
 		V_RETURN(reader->loadFile(fileName, skinInfo));
+
+		skinResult->nStrand = skinInfo->restState->nStrand / sampleRate;
+		skinResult->particlePerStrand = skinInfo->restState->particlePerStrand;
+		skinResult->nParticle = skinResult->nStrand * skinResult->particlePerStrand;
+
+		skinResult->allocMemory();
+		DirectX::XMStoreFloat4x4(&skinResult->worldMatrix, DirectX::XMMatrixIdentity());
+
 		set_nFrame(reader->get_nFrame());
 		set_curFrame(-1);
 
@@ -96,6 +119,7 @@ namespace XRwy
 		reader->rewind();
 		interpolate();
 		hairBodyCollision();
+
 		set_curFrame(0);
 	}
 
@@ -116,6 +140,58 @@ namespace XRwy
 		interpolate();
 		hairBodyCollision();
 		set_curFrame(reader->get_curFrame());
+	}
+
+	void SkinningAndHairBodyCollisionEngineCPU::interpolate()
+	{
+		CopyMemory(skinResult->rigidTrans, skinInfo->guidances->rigidTrans, sizeof(float) * 16);
+		mat4x4 rigid;
+		mat4x4_transpose(rigid, reinterpret_cast<vec4*>(skinResult->rigidTrans));
+		auto factor = skinInfo->guidances->particlePerStrand;
+		for (int i = 0; i < skinResult->nStrand; i++)
+		{
+			auto& weight = skinInfo->weights[i*sampleRate];
+			for (int i2 = 0; i2 < factor; i2++)
+			{
+				size_t idx = i * factor + i2;
+				size_t idxNosample = i * factor * sampleRate + i2;
+				vec3 tmp{ 0, 0, 0 }, tmp2;
+				for (int j = 0; j < weight.n; j++)
+				{
+					size_t guideId = weight.guideID[j];
+					vec3_scale(tmp2,
+						reinterpret_cast<float*>(&skinInfo->guidances->trans[guideId*factor+i2]),
+						weight.weights[j]);
+					vec3_add(tmp, tmp, tmp2);
+				}
+				auto dest = reinterpret_cast<float*>(skinResult->position + idx);
+				auto rest = reinterpret_cast<float*>(&skinInfo->restState->position[idxNosample]);
+				vec3 pos;
+				mat4x4_mul_vec3(pos, rigid, rest);
+				vec3_add(dest, pos, tmp);
+			}
+
+			if (hairRendererVersion == 1)
+			{
+				vec3 dir;
+				float* pos1, *pos2;
+				for (int j = 1; j < factor; j++)
+				{
+					pos1 = reinterpret_cast<float*>(skinResult->position + i*factor + j);
+					pos2 = reinterpret_cast<float*>(skinResult->position + i*factor + j + 1);
+					vec3_sub(dir, pos2, pos1);
+					float norm = vec3_len(dir);
+					vec3_scale(dir, dir, 1 / norm);
+					memcpy(skinResult->direction + i*factor + j, dir, sizeof(vec3));
+				}
+				memcpy(skinResult->direction + i*factor, skinResult->direction + i*factor + 1, sizeof(vec3));
+			}
+		}
+	}
+
+	void SkinningAndHairBodyCollisionEngineCPU::hairBodyCollision()
+	{
+
 	}
 }
 
