@@ -203,33 +203,21 @@ namespace XRwy
 
 	void SkinningAndHairBodyCollisionEngineCPU::hairBodyCollision()
 	{
-		mat4x4 rigid;
+		mat4x4 rigid, rigidInv;
 		mat4x4_transpose(rigid, reinterpret_cast<vec4*>(skinResult->rigidTrans));
-		DirectX::XMMATRIX dxWorld = pCamera->GetWorldMatrix();
-		DirectX::XMFLOAT3X3 dxmWorld;
-		XMStoreFloat3x3(&dxmWorld, dxWorld);
-
-		WR::Mat3 wrmWorld;
-		WR::convert3x3(wrmWorld, dxmWorld);
-
-		auto mInvWorld = mWorld.inverse();
-		size_t ns = m_strands.size();
-		for (size_t i = 0; i < ns; i++)
+		mat4x4_invert(rigidInv, rigid);
+		for (size_t i = 0; i < skinResult->nParticle; i++)
 		{
-			size_t nvp = m_strands[i].m_visibleParticles.size();
-			for (size_t j = 1; j < nvp; j++)
+			if (i % skinResult->particlePerStrand == 0) continue;
+			vec3 pos; mat4x4_mul_vec3(pos, rigidInv, reinterpret_cast<float*>(skinResult->position+i));
+			WR::ICollisionObject::Point_3 p1, p0 = WR::ICollisionObject::Point_3(pos[0], pos[1], pos[2]);
+			bool isCollide = pCollision->position_correlation(p0, &p1, 6e-2f);
+			if (isCollide)
 			{
-				size_t idx = m_strands[i].m_visibleParticles[j];
-				Vec3 p = mInvWorld * triple(pos, idx);
-				ICollisionObject::Point_3 p1, p0 = ICollisionObject::Point_3(p[0], p[1], p[2]);
-				bool isCollide = mp_data->pCollisionHead->position_correlation(p0, &p1, 3e-3f);
-				if (isCollide)
-				{
-					convert3(p, p1);
-					p = mWorld * p;
-					triple(pos, idx) = p;
-					triple(vel, idx) = (p - Vec3(get_particle_position(idx))) / t;
-				}
+				vec3 p;
+				WR::convert3(p, p1);
+				mat4x4_mul_vec3(pos, rigid, p);
+				CopyMemory(skinResult->position + i, pos, sizeof(vec3));
 			}
 		}
 	}

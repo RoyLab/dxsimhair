@@ -377,7 +377,11 @@ namespace XRwy
 
     void HairManager::OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
     {
-		if (bAnim)
+		bool force = false;
+		if (pUserContext && *reinterpret_cast<int*>(pUserContext) == 1)
+			force = true;
+
+		if (bAnim || force)
 		{
 			for (int i = 0; i < hairManips.size(); i++)
 			{

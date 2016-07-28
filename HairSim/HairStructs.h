@@ -18,7 +18,7 @@ namespace XRwy
 	struct HairGeometry
 	{
 		XMFLOAT4X4			worldMatrix;
-		float               rigidTrans[16];
+		float               rigidTrans[16]; // row major
 		XMFLOAT3*           position = nullptr;
 		XMFLOAT3*           direction = nullptr;
 

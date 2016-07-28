@@ -66,6 +66,7 @@ namespace XRwy
 			pHairManager->ChangeColorScheme(nChar - '0');
 		}
 
+		int p = 1;
 		switch (nChar)
 		{
 		case 'q':
@@ -91,6 +92,10 @@ namespace XRwy
 		case 'm':
 		case 'M':
 			pHairManager->toggleDisp('m');// mesh
+			break;
+		case 's':
+		case 'S':
+			pHairManager->OnFrameMove(0, 0, &p);
 			break;
 		default:
 			break;
