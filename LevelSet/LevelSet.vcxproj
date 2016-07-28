@@ -14,16 +14,17 @@
     <ProjectGuid>{9FD2CD8C-B136-421C-BFDE-5BBE2F2AC3B9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>LevelSet</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -90,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ADFCollisionObject.h" />
+    <ClInclude Include="GroupPBD.h" />
     <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="LevelSet.h" />
     <ClInclude Include="ADFOctree.h" />
@@ -100,6 +102,7 @@
     <ClCompile Include="..\HairSim\ConfigReader.cpp" />
     <ClCompile Include="ADFCollisionObject.cpp" />
     <ClCompile Include="ADFOctree.cpp" />
+    <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="LevelSet.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

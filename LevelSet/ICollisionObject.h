@@ -20,8 +20,6 @@ namespace CGAL
 
 namespace WR
 {
-
-
     typedef CGAL::FloatKernel     K;
 
     // since most are geometry computation, using CGAL Point_3

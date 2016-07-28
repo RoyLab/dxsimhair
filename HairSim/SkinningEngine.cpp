@@ -18,7 +18,7 @@ namespace XRwy
 	ReducedModel::ReducedModel()
 	{
 		skinning = new SkinningAndHairBodyCollisionEngineCPU;
-		pPDB = new GroupPBD;
+		pPDB = CreateHairCorrectionObject();
 	}
 
 	ReducedModel::~ReducedModel()

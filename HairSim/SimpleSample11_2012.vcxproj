@@ -427,7 +427,6 @@
     <ClInclude Include="ConfigReader.h" />
     <ClInclude Include="D3D11Tools.h" />
     <ClInclude Include="DDSTextureLoader.h" />
-    <ClInclude Include="GroupPBD.h" />
     <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairColor.h" />
     <ClInclude Include="HairManager.h" />

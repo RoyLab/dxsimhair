@@ -58,8 +58,8 @@ namespace XRwy
 		void jumpTo(int frameNo);
 
 	private:
-		HairLoader*		skinning = nullptr;
-		GroupPBD*		pPDB = nullptr;
+		HairLoader*			skinning = nullptr;
+		IHairCorrection*	pPDB = nullptr;
 
 		ExternPtr HairGeometry* hairGeom = nullptr;
 	};

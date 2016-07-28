@@ -91,11 +91,16 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     InitApp();
 
+	g_SceneMngr = new XRwy::SceneManager;
+	g_SceneMngr->Initialize();
+
     DXUTInit( true, true, nullptr ); // Parse the command line, show msgboxes on error, no extra command line params
     DXUTSetCursorSettings( true, true );
     DXUTCreateWindow( L"XRwy-Demo" );
     DXUTCreateDevice( D3D_FEATURE_LEVEL_10_1, true, 800, 600 );
     DXUTMainLoop(); // Enter into the DXUT render loop
+
+	SAFE_RELEASE(g_SceneMngr);
 
     return DXUTGetExitCode();
 }
@@ -154,10 +159,6 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
                                      void* pUserContext )
 {
 	HRESULT hr;
-
-	g_SceneMngr = new XRwy::SceneManager;
-	V_RETURN(g_SceneMngr->Initialize());
-
 
     auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
     V_RETURN( g_DialogResourceManager.OnD3D11CreateDevice( pd3dDevice, pd3dImmediateContext ) );
@@ -261,7 +262,6 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     if (g_SceneMngr)
         g_SceneMngr->OnD3D11DestroyDevice(pUserContext);
 
-	SAFE_RELEASE(g_SceneMngr);
 }
 
 

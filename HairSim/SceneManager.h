@@ -19,11 +19,11 @@ namespace XRwy
         typedef std::unique_ptr<DirectX::BasicEffect> EffectPtr;
 
     public:
-        HairGeometry                    hairModel;
-        CModelViewerCamera*             pCamera = nullptr;
-        FBX_LOADER::CFBXRenderDX11*     pFbxLoader = nullptr;
+		// none with d3d11
+		CModelViewerCamera*             pCamera = nullptr;
 
         EffectPtr                       upEffect;
+        FBX_LOADER::CFBXRenderDX11*     pFbxLoader = nullptr;
         MeshRenderer*                   pMeshRenderer = nullptr;
         HairManager*                    pHairManager = nullptr;
 
@@ -58,6 +58,8 @@ namespace XRwy
 
     private:
         HRESULT CreateFbxInputLayout(ID3D11Device* pd3dDevice);
+		bool CreateD3DRelatedResource();
+		void ReleaseD3DRelatedResource();
 
 		// none with d3d11
 		SplitLayout*				splitLayout;

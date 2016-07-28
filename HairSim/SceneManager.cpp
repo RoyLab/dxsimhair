@@ -165,6 +165,8 @@ namespace XRwy
         HRESULT hr;
         auto pd3dImmediateContext = DXUTGetD3D11DeviceContext();
 
+		V_RETURN(CreateD3DRelatedResource());
+
         // Setup the camera's view parameters
         static const XMVECTORF32 s_vecEye = { 3.0f, 3.0f, -6.0f, 0.f };
         pCamera->SetViewParams(s_vecEye, g_XMZero);
@@ -176,7 +178,6 @@ namespace XRwy
         if (pHairManager)
             V_RETURN(pHairManager->Initialize());
 
-
         // load contents
         V_RETURN(pFbxLoader->LoadFBX(g_paramDict["headfbx"].c_str(), pd3dDevice, pd3dImmediateContext));
         V_RETURN(CreateFbxInputLayout(pd3dDevice));
@@ -186,6 +187,7 @@ namespace XRwy
 
     void SceneManager::OnD3D11DestroyDevice(void* pUserContext)
     {
+		ReleaseD3DRelatedResource();
     }
 
 
@@ -193,23 +195,36 @@ namespace XRwy
     bool SceneManager::Initialize()
     {
         pCamera = new CModelViewerCamera;
-        pFbxLoader = new FBX_LOADER::CFBXRenderDX11;
-        pMeshRenderer = new MeshRenderer;
-        pHairManager = new HairManager(pFbxLoader, pMeshRenderer);
 
         return true;
     }
 
     void SceneManager::Release()
     {
-        SAFE_RELEASE(pMeshRenderer);
-        SAFE_RELEASE(pHairManager);
-        SAFE_DELETE(pFbxLoader);
+		ReleaseD3DRelatedResource();
+
         SAFE_DELETE(pCamera);
 		SAFE_DELETE(splitLayout);
 
         delete this;
     }
+
+	bool SceneManager::CreateD3DRelatedResource()
+	{
+		pFbxLoader = new FBX_LOADER::CFBXRenderDX11;
+		pMeshRenderer = new MeshRenderer;
+		pHairManager = new HairManager(pFbxLoader, pMeshRenderer);
+
+		return true;
+	}
+
+	void SceneManager::ReleaseD3DRelatedResource()
+	{
+		SAFE_DELETE(pFbxLoader);
+		SAFE_RELEASE(pMeshRenderer);
+		SAFE_RELEASE(pHairManager);
+		upEffect.reset(nullptr);
+	}
 
     void SceneManager::RenderText(CDXUTTextHelper* helper)
     {

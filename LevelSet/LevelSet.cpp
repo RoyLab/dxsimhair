@@ -6,6 +6,7 @@
 #include <fstream>
 #include <DirectXMath.h>
 
+#define WR_EXPORTS
 #include "LevelSet.h"
 #include "ADFCollisionObject.h"
 #include "ConfigReader.h"
@@ -40,13 +41,12 @@ namespace WR
             Point p;
             file >> p;
             parr.push_back(p);
-
         }
         file.close();
     }
 
 
-    ICollisionObject* createCollisionObject(Polyhedron_3_FaceWithId& poly)
+	extern "C" WR_API ICollisionObject* createCollisionObject(Polyhedron_3_FaceWithId& poly)
     {
         ADFOctree* pTree = new ADFOctree;
         pTree->construct(poly, 2);
@@ -55,12 +55,12 @@ namespace WR
         return pCO;
     }
 
-    ICollisionObject* loadCollisionObject(const wchar_t* fileName)
+	extern "C" WR_API ICollisionObject* loadCollisionObject(const wchar_t* fileName)
     {
         return new ADFCollisionObject(fileName);
     }
 
-    ICollisionObject* createCollisionObject(const wchar_t* fileName)
+	extern "C" WR_API ICollisionObject* createCollisionObject2(const wchar_t* fileName)
     {
         Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
         assert(pModel);

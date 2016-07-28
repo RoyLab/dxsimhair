@@ -179,9 +179,6 @@
     <ClInclude Include="SkinningEngine.h">
       <Filter>Source Files\Dynamic</Filter>
     </ClInclude>
-    <ClInclude Include="GroupPBD.h">
-      <Filter>Source Files\Dynamic</Filter>
-    </ClInclude>
     <ClInclude Include="ReconsReader.h">
       <Filter>Source Files\Dynamic</Filter>
     </ClInclude>
