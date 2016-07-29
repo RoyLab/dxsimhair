@@ -446,7 +446,6 @@
     <ClInclude Include="wrColorGenerator.h" />
     <ClInclude Include="wrMath.h" />
     <CLInclude Include="resource.h" />
-    <ClInclude Include="wrTypes.h" />
     <ClInclude Include="XRwy_h.h" />
     <ClInclude Include="ZhouHairLoader.hpp" />
     <ResourceCompile Include="SimpleSample.rc" />

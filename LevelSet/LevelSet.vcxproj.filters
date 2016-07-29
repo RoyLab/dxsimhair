@@ -39,6 +39,12 @@
     <ClInclude Include="GroupPBD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EigenTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CGALKernel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LevelSet.cpp">

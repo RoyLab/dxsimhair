@@ -23,5 +23,6 @@ namespace XRwy
 	private:
 		int			nWorker;
 		int			nHairParticleGroup;
+		float		dr;
 	};
 }

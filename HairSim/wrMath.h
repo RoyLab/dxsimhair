@@ -145,9 +145,37 @@ static inline void computeWeightForTripleLever(vec3& r, const vec3& a, const vec
     vec3_scale(r, r, 1.0f / sum);
 }
 
-template <typename T>
-inline int sgn(T val)
+
+namespace WR
 {
-    return (T(0) < val) - (val < T(0));
+	template <typename T>
+	inline int sgn(T val)
+	{
+		return (T(0) < val) - (val < T(0));
+	}
+
+	template <class _matA, class _matB>
+	void convert3x3(_matA& a, const _matB& b)
+	{
+		for (size_t i = 0; i < 3; i++)
+			for (size_t j = 0; j < 3; j++)
+				a(i, j) = b(i, j);
+	}
+
+	template <class _vecA, class _vecB>
+	void convert3(_vecA& a, const _vecB& b)
+	{
+		for (size_t i = 0; i < 3; i++)
+			a[i] = b[i];
+	}
+
+	template<class _MAT>
+	void write(char* fileName, _MAT& mat)
+	{
+		std::ofstream f(fileName);
+		f << mat;
+		f.close();
+	}
+
 }
 

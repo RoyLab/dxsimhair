@@ -4,7 +4,6 @@
 #include "SkinningEngine.h"
 #include "ReconsReader.h"
 #include "wrMath.h"
-#include "wrTypes.h"
 
 #ifdef _DEBUG
 #define ADF_FILE L"../../models/head_d"

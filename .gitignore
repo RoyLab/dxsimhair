@@ -24,6 +24,7 @@
 *.db
 *.opendb
 *.ini
+*.adf
 
 # Build results
 [Dd]ebug/

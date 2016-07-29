@@ -69,27 +69,4 @@ namespace WR
     class Vec :
         public Eigen::Matrix<float, _row, 1>
     {};
-
-    template <class _matA, class _matB>
-    void convert3x3(_matA& a, const _matB& b)
-    {
-        for (size_t i = 0; i < 3; i++)
-            for (size_t j = 0; j < 3; j++)
-                a(i, j) = b(i, j);
-    }
-
-    template <class _vecA, class _vecB>
-    void convert3(_vecA& a, const _vecB& b)
-    {
-        for (size_t i = 0; i < 3; i++)
-            a[i] = b[i];
-    }
-
-    template<class _MAT>
-    void write(char* fileName, _MAT& mat)
-    {
-        std::ofstream f(fileName);
-        f << mat;
-        f.close();
-    }
 }

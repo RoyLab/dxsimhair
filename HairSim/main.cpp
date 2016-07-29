@@ -328,35 +328,68 @@ void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool bAltDown, void* pUserC
 }
 
 
+#define UNUSED(x) (void)(x)       // Unused param (C compatible - not applicable to expressions)
+
+class outbuf : public std::streambuf {
+public:
+	outbuf() {
+		setp(0, 0);
+	}
+
+	virtual int_type overflow(int_type c = traits_type::eof()) {
+		return fputc(c, stdout) == EOF ? traits_type::eof() : c;
+	}
+};
+
+
 void CreateConsole(){
 
-    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-    int consoleHandleR, consoleHandleW;
-    long stdioHandle;
-    FILE *fptr;
+    //CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    //int consoleHandleR, consoleHandleW;
+    //long stdioHandle;
+    //FILE *fptr;
 
-    AllocConsole();
-    std::wstring strW = L"Dev Console";
-    SetConsoleTitle(strW.c_str());
+    //AllocConsole();
+    //std::wstring strW = L"Dev Console";
+    //SetConsoleTitle(strW.c_str());
 
-    EnableMenuItem(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_GRAYED);
-    DrawMenuBar(GetConsoleWindow());
+    //EnableMenuItem(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_GRAYED);
+    //DrawMenuBar(GetConsoleWindow());
 
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &consoleInfo);
+    //GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &consoleInfo);
 
-    stdioHandle = (long)GetStdHandle(STD_INPUT_HANDLE);
-    consoleHandleR = _open_osfhandle(stdioHandle, _O_TEXT);
-    fptr = _fdopen(consoleHandleR, "r");
-    *stdin = *fptr;
-    setvbuf(stdin, NULL, _IONBF, 0);
+    //stdioHandle = (long)GetStdHandle(STD_INPUT_HANDLE);
+    //consoleHandleR = _open_osfhandle(stdioHandle, _O_TEXT);
+    //fptr = _fdopen(consoleHandleR, "r");
+    //*stdin = *fptr;
+    //setvbuf(stdin, NULL, _IONBF, 0);
 
-    stdioHandle = (long)GetStdHandle(STD_OUTPUT_HANDLE);
-    consoleHandleW = _open_osfhandle(stdioHandle, _O_TEXT);
-    fptr = _fdopen(consoleHandleW, "w");
-    *stdout = *fptr;
-    setvbuf(stdout, NULL, _IONBF, 0);
+    //stdioHandle = (long)GetStdHandle(STD_OUTPUT_HANDLE);
+    //consoleHandleW = _open_osfhandle(stdioHandle, _O_TEXT);
+    //fptr = _fdopen(consoleHandleW, "w");
+    //*stdout = *fptr;
+    //setvbuf(stdout, NULL, _IONBF, 0);
 
-    stdioHandle = (long)GetStdHandle(STD_ERROR_HANDLE);
-    *stderr = *fptr;
-    setvbuf(stderr, NULL, _IONBF, 0);
+    //stdioHandle = (long)GetStdHandle(STD_ERROR_HANDLE);
+    //*stderr = *fptr;
+    //setvbuf(stderr, NULL, _IONBF, 0);
+
+	// create the console
+	if (AllocConsole()) {
+		FILE* pCout;
+		freopen_s(&pCout, "CONOUT$", "w", stdout);
+		SetConsoleTitle(L"Debug Console");
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED);
+	}
+
+	// set std::cout to use my custom streambuf
+	outbuf ob;
+	std::streambuf *sb = std::cout.rdbuf(&ob);
+
+	std::cout << "nShowCmd = " << 1 << std::endl;
+	std::cout << "Now making my first Windows window!" << std::endl;
+
+	// make sure to restore the original so we don't get a crash on close!
+	std::cout.rdbuf(sb);
+
 }

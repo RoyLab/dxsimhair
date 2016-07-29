@@ -197,8 +197,5 @@
     <ClInclude Include="wrMath.h">
       <Filter>Source Files\Miscs</Filter>
     </ClInclude>
-    <ClInclude Include="wrTypes.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
