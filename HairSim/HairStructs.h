@@ -14,6 +14,7 @@ namespace XRwy
 	struct SkinningInfo;
 	class ReconsReader;
 	class GroupPBD;
+	class HairSampleSelector;
 
 	struct HairGeometry
 	{

@@ -328,6 +328,8 @@ float4 PS(PixelInputType input) : SV_TARGET
         float dvs3 = shaderTexture.Load(int3(orgin.x + 1, orgin.y + 1, 0)).r;
         float4 dvs = float4(dvs0, dvs1, dvs2, dvs3);
 
+		dvs = 1;
+
         //depthValue = shaderTexture.Sample(SampleTypeClamp, projectTexCoord).r;
 
         // Calculate the depth of the light.

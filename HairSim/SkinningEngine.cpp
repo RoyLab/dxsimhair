@@ -4,6 +4,7 @@
 #include "SkinningEngine.h"
 #include "ReconsReader.h"
 #include "wrMath.h"
+#include "HairSampleSelector.h"
 
 #ifdef _DEBUG
 #define ADF_FILE L"../../models/head_d"
@@ -88,6 +89,7 @@ namespace XRwy
 		}
 
 		SAFE_DELETE(reader);
+		SAFE_DELETE(sampler);
 	}
 
 	SkinningAndHairBodyCollisionEngineCPU::SkinningAndHairBodyCollisionEngineCPU()
@@ -105,13 +107,13 @@ namespace XRwy
 	{
 		bool hr;
 		skinResult = geom;
-		sampleRate = std::stoi(g_paramDict["hairsample"]);
-
 		V_RETURN(reader->loadFile(fileName, skinInfo));
 
-		skinResult->nStrand = skinInfo->restState->nStrand / sampleRate;
-		skinResult->particlePerStrand = skinInfo->restState->particlePerStrand;
-		skinResult->nParticle = skinResult->nStrand * skinResult->particlePerStrand;
+		int sampleRate = std::stoi(g_paramDict["hairsample"]);
+		int groupSampleNumber = std::stoi(g_paramDict["hairsamplegroup"]);
+		int groupSampleSeed = std::stoi(g_paramDict["hairsamplegroupseed"]);
+		sampler = new HairSampleSelector(skinInfo->restState, sampleRate, groupSampleNumber, groupSampleSeed);
+		sampler->FillInHairStructs(skinResult);
 
 		skinResult->allocMemory();
 		DirectX::XMStoreFloat4x4(&skinResult->worldMatrix, DirectX::XMMatrixIdentity());
@@ -158,13 +160,15 @@ namespace XRwy
 		mat4x4 rigid;
 		mat4x4_transpose(rigid, reinterpret_cast<vec4*>(skinResult->rigidTrans));
 		auto factor = skinInfo->guidances->particlePerStrand;
+		sampler->ResetIterator();
 		for (int i = 0; i < skinResult->nStrand; i++)
 		{
-			auto& weight = skinInfo->weights[i*sampleRate];
+			int thisId = sampler->GetNextId();
+			auto& weight = skinInfo->weights[thisId];
 			for (int i2 = 0; i2 < factor; i2++)
 			{
 				size_t idx = i * factor + i2;
-				size_t idxNosample = i * factor * sampleRate + i2;
+				size_t idxNosample = factor * thisId + i2;
 				vec3 tmp{ 0, 0, 0 }, tmp2;
 				for (int j = 0; j < weight.n; j++)
 				{

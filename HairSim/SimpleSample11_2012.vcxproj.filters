@@ -111,6 +111,12 @@
     <ClCompile Include="wrColorGenerator.cpp">
       <Filter>Source Files\Miscs</Filter>
     </ClCompile>
+    <ClCompile Include="HairSampleSelector.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="wrLogger.cpp">
+      <Filter>Source Files\Miscs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -195,6 +201,12 @@
       <Filter>Source Files\Miscs</Filter>
     </ClInclude>
     <ClInclude Include="wrMath.h">
+      <Filter>Source Files\Miscs</Filter>
+    </ClInclude>
+    <ClInclude Include="HairSampleSelector.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="wrLogger.h">
       <Filter>Source Files\Miscs</Filter>
     </ClInclude>
   </ItemGroup>

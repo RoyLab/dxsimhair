@@ -127,8 +127,8 @@ namespace XRwy
 		std::vector<Point_3> points;
 		for (size_t i = 0; i < hair->nParticle; i++)
 		{
-			points.push_back(Point_3(hair->position[i].x,
-				hair->position[i].y, hair->position[i].z, i));
+			points.emplace_back(hair->position[i].x,
+				hair->position[i].y, hair->position[i].z, i);
 		}
 
 		// build KD-tree

@@ -19,6 +19,8 @@ namespace XRwy
 			virtual void readFrame20(float* rigidTrans, float* pos, float* dir, size_t np) { assert(0); }
 			virtual void readFrame20sample(float* rigidTrans, float* pos, float* dir, 
 				size_t ns, size_t factor, int sampleRate){ assert(0); }
+			virtual void readFrame20sampleInstance(float* rigidTrans, float* pos, float* dir,
+				size_t ns, size_t factor, HairSampleSelector* sampler) {assert(0);}
             virtual bool hasNextFrame(size_t &id) = 0;
         };
 
@@ -32,19 +34,18 @@ namespace XRwy
         void jumpTo(int frameNo);
 
     private:
-        void jumpTo();
         void readFrame();
         bool hasNextFrame();
 
         HairGeometry*   pCurrentHair = nullptr;
         IHelper*        helper = nullptr;
+		HairSampleSelector* sampler = nullptr;
+		HairGeometry*	restState = nullptr;
 
 		size_t			nRealParticle, nRealStrand;
 
         std::ifstream   file;
         std::streampos  firstFrame = 0;
-
-		int				sampleRate = 1;
     };
 
 }

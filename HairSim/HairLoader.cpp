@@ -1,5 +1,6 @@
 #include "HairLoader.h"
 #include "XRwy_h.h"
+#include "HairSampleSelector.h"
 
 namespace XRwy
 {
@@ -58,6 +59,29 @@ namespace XRwy
 			delete[] buffer;
 		}
 
+		void readFrame20sampleInstance(float* rigidTrans, float* pos, float* dir,
+			size_t nRealSz, size_t factor, HairSampleSelector* sampler) 
+		{
+			char* bytes = reinterpret_cast<char*>(rigidTrans);
+			file.read(bytes, sizeof(float) * 16);
+
+			float* buffer = new float[nRealSz*factor * 3];
+
+			bytes = reinterpret_cast<char*>(buffer);
+
+			file.read(bytes, sizeof(float)*nRealSz*factor * 3);
+			sampler->ResetIterator();
+			for (int i = 0; i < sampler->GetNumberOfStrand(); i++)
+				memcpy(pos + i*factor * 3, buffer + sampler->GetNextId()*factor * 3, sizeof(float)*factor * 3);
+
+			file.read(bytes, sizeof(float)*nRealSz*factor * 3);
+			sampler->ResetIterator();
+			for (int i = 0; i < sampler->GetNumberOfStrand(); i++)
+				memcpy(dir + i*factor * 3, buffer + sampler->GetNextId()*factor * 3, sizeof(float)*factor * 3);
+
+			delete[] buffer;
+		}
+
         bool hasNextFrame(size_t &id)
         {
             char bytes[4];
@@ -79,53 +103,69 @@ namespace XRwy
         if (file && file.is_open())
             file.close();
 
-        SAFE_DELETE(helper);
+		SAFE_DELETE(helper);
+		SAFE_DELETE(sampler);
+		SAFE_DELETE(restState);
     }
 
     bool HairAnimationLoader::loadFile(const char* fileName, HairGeometry * geom)
     {
-        pCurrentHair = geom;
-
         file = std::ifstream(fileName, std::ios::binary);
         helper = new BinaryHelper(file);
 
         if (!file.is_open()) throw std::exception("file not found!");
 
 		/* for sample display */
-		sampleRate = std::stoi(g_paramDict["hairsample"]);
-
 		helper->init(m_nFrame, nRealParticle);
-        geom->particlePerStrand = std::stoi(g_paramDict["particleperstrand"]);
-		nRealStrand = nRealParticle / geom->particlePerStrand;
-		geom->nStrand  = nRealStrand / sampleRate;
-		geom->nParticle = geom->nStrand * geom->particlePerStrand;
+		int factor = std::stoi(g_paramDict["particleperstrand"]);
+		nRealStrand = nRealParticle / factor;
+		firstFrame = file.tellg();
+
+		restState = new HairGeometry;
+		geom->particlePerStrand = factor;
+		geom->nParticle = nRealParticle;
+		geom->nStrand = nRealStrand;
+
+		sampler = new HairSampleSelector(geom, 1); // null sampler
+		sampler->FillInHairStructs(restState);
+		restState->allocMemory();
+
+		pCurrentHair = restState;
+		rewind();
+
+		pCurrentHair = geom;
+		SAFE_DELETE(sampler);
+
+		int sampleRate = std::stoi(g_paramDict["hairsample"]);
+		int groupSampleNumber = std::stoi(g_paramDict["hairsamplegroup"]);
+		int groupSampleSeed = std::stoi(g_paramDict["hairsamplegroupseed"]);
+		sampler = new HairSampleSelector(restState, sampleRate, groupSampleNumber, groupSampleSeed);
+		sampler->FillInHairStructs(geom);
+		geom->allocMemory();
+
 		DirectX::XMStoreFloat4x4(&geom->worldMatrix, DirectX::XMMatrixIdentity());
 
-        firstFrame = file.tellg();
-        m_curFrame = -1;
-
-        geom->position = new XMFLOAT3[geom->nParticle];
-        geom->direction = new XMFLOAT3[geom->nParticle];
-
-		nextFrame();
+		rewind();
         return true;
     }
 
     void HairAnimationLoader::rewind()
     {
-        file.clear();
-        file.seekg(firstFrame);
-        set_curFrame(0);
+		jumpTo(0);
     }
 
     void HairAnimationLoader::nextFrame()
     {
-        if (!hasNextFrame())
-        {
+		if (!hasNextFrame())
+		{
+			file.clear();
             rewind();
-            hasNextFrame();
-        }
-        readFrame();
+		}
+		else
+		{
+			set_curFrame(get_curFrame() + 1);
+			readFrame();
+		}
     }
 
     bool HairAnimationLoader::hasNextFrame()
@@ -136,30 +176,24 @@ namespace XRwy
     void HairAnimationLoader::readFrame()
     {
         auto hair = pCurrentHair;
-        helper->readFrame20sample((float*)(&hair->rigidTrans),
+        helper->readFrame20sampleInstance((float*)(&hair->rigidTrans),
             (float*)hair->position, (float*)hair->direction, 
-			nRealStrand, hair->particlePerStrand, sampleRate);
-
-        set_curFrame(get_curFrame() + 1);
+			nRealStrand, hair->particlePerStrand, sampler);
     }
 
     void HairAnimationLoader::jumpTo(int frameNo)
     {
         set_curFrame(frameNo);
-        jumpTo();
-    }
+		file.seekg(firstFrame + std::streamoff(get_curFrame()*(sizeof(int) +
+			sizeof(float)*(16 + 3 * 2 * nRealParticle))));
 
-    void HairAnimationLoader::jumpTo()
-    {
-        auto hair = pCurrentHair;
-
-        file.seekg(firstFrame + std::streamoff(get_curFrame()*(sizeof(int)+
-            sizeof(float)*(16 + 3 * 2 * nRealParticle))));
-        if (hasNextFrame())
-        {
-            helper->readFrame20sample((float*)(&hair->rigidTrans), (float*)hair->position,
-                (float*)hair->direction, nRealStrand, hair->particlePerStrand, sampleRate);
-        }
-    }
+		if (hasNextFrame())
+			readFrame();
+		else
+		{
+			file.clear();
+			rewind();
+		}
+	}
 
 }

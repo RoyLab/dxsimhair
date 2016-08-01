@@ -400,6 +400,7 @@
     <ClCompile Include="HairLoader.cpp" />
     <ClCompile Include="HairManager.cpp" />
     <ClCompile Include="HairRenderer.cpp" />
+    <ClCompile Include="HairSampleSelector.cpp" />
     <ClCompile Include="HairStructs.cpp" />
     <ClCompile Include="main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
@@ -416,6 +417,7 @@
     <ClCompile Include="SplitLayout.cpp" />
     <ClCompile Include="TrainingGraph.cpp" />
     <ClCompile Include="wrColorGenerator.cpp" />
+    <ClCompile Include="wrLogger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HairShadow.hlsl" />
@@ -430,6 +432,7 @@
     <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairColor.h" />
     <ClInclude Include="HairManager.h" />
+    <ClInclude Include="HairSampleSelector.h" />
     <ClInclude Include="HairStructs.h" />
     <ClInclude Include="HairLoader.h" />
     <ClInclude Include="HairRenderer.h" />
@@ -444,6 +447,7 @@
     <ClInclude Include="TrainingGraph.h" />
     <ClInclude Include="linmath.h" />
     <ClInclude Include="wrColorGenerator.h" />
+    <ClInclude Include="wrLogger.h" />
     <ClInclude Include="wrMath.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="XRwy_h.h" />

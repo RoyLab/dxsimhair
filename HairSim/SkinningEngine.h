@@ -20,7 +20,7 @@ namespace XRwy
 	protected:
 		SkinningInfo*	skinInfo = nullptr;
 		ReconsReader*	reader = nullptr;
-		int				sampleRate = 1;
+		HairSampleSelector* sampler = nullptr;
 
 		ExternPtr HairGeometry*	skinResult = nullptr;
 	};
