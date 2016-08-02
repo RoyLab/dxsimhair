@@ -6,6 +6,7 @@
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
 #include "EigenTypes.h"
+#include "wrTripleMatrix.h"
 
 #include "CGALKernel.h"
 
@@ -77,6 +78,7 @@ namespace XRwy
 
 		int IntWrapper::curNumber;
 
+		// let the number > i
 		void filter(std::list<IntWrapper>& l)
 		{
 			for (auto itr = l.begin(); itr != l.end(); itr++)
@@ -90,19 +92,29 @@ namespace XRwy
 		}
 
 		void assembleMatrix(std::list<IntWrapper>& l, std::vector<Point_3>& pts,
-			WR::SparseMat& m, WR::VecX& b, float dr)
+			WR::SparseMatAssemble& m, WR::VecX& b, float dr)
 		{
 			size_t dim = 3*pts.size();
 			m.resize(dim, dim);
 			b.resize(dim);
 
-			m.setIdentity();
+			// dummy assemble routine
+			//m.setIdentity();
 
-			for (size_t i = 0; i < pts.size(); i++)
+			//for (size_t i = 0; i < pts.size(); i++)
+			//{
+			//	b[3*i] = pts[i].x();
+			//	b[3*i+1] = pts[i].y();
+			//	b[3*i+2] = pts[i].z();
+			//}
+
+			// assume
+			const float balance = 1.0f; // TODO time step related
+			m.setIdentity();
+			for (auto& item : l)
 			{
-				b[3*i] = pts[i].x();
-				b[3*i+1] = pts[i].y();
-				b[3*i+2] = pts[i].z();
+				assert(item.i > item.number);
+				m.
 			}
 		}
 	}
@@ -145,7 +157,7 @@ namespace XRwy
 		filter(output);
 
 		// assemble matrix
-		WR::SparseMat A;
+		WR::SparseMatAssemble A;
 		WR::VecX b, x;
 		assembleMatrix(output, points, A, b, dr);
 
