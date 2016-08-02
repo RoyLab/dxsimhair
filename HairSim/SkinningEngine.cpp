@@ -15,8 +15,14 @@
 
 namespace XRwy
 {
-	ReducedModel::ReducedModel()
+	ReducedModel::ReducedModel(int para)
 	{
+		if (para & 1) bPDB = true;
+		else bPDB = false;
+
+		if (para & 2) bHairBody = true;
+		else bHairBody = false;
+
 		skinning = new SkinningAndHairBodyCollisionEngineCPU;
 		pPDB = CreateHairCorrectionObject();
 	}
@@ -31,9 +37,9 @@ namespace XRwy
 	{
 		bool hr;
 		hairGeom = geom;
-
+		
 		V_RETURN(skinning->loadFile(fileName, hairGeom));
-		V_RETURN(pPDB->initialize(hairGeom));
+		V_RETURN(pPDB->initialize(hairGeom, std::stof(g_paramDict["dr"])));
 
 		set_nFrame(skinning->get_nFrame());
 		set_curFrame(-1);
@@ -43,24 +49,23 @@ namespace XRwy
 
 	void ReducedModel::rewind()
 	{
-		skinning->rewind();
-		pPDB->solve(hairGeom);
-		set_curFrame(0);
+		jumpTo(0);
 	}
 
 	void ReducedModel::nextFrame()
 	{
 		skinning->nextFrame();
-		pPDB->solve(hairGeom);
+		if (bPDB)
+			pPDB->solve(hairGeom);
 		set_curFrame(skinning->get_curFrame());
 	}
 
 	void ReducedModel::jumpTo(int frameNo)
 	{
 		if (frameNo % get_nFrame() == get_curFrame()) return;
-
 		skinning->jumpTo(frameNo);
-		pPDB->solve(hairGeom);
+		if (bPDB)
+			pPDB->solve(hairGeom);
 		set_curFrame(skinning->get_curFrame());
 	}
 

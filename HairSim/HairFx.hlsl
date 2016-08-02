@@ -132,7 +132,7 @@ GeometryInputType VS(VertexInputType input)
     if (mode == 1)
     {
         float3 diff = input.Position - input.Reference;
-        float error = sqrt(dot(diff, diff)) * 3;
+        float error = sqrt(dot(diff, diff)) * 10;
         output.color = saturate(GetColour(error));
     }
 
@@ -301,7 +301,8 @@ float4 PS(PixelInputType input) : SV_TARGET
     if (dot(-viewVec, vecW) < 0) phi_r = -phi_r;
 
     float3 diffuse = scattering(phi_i, phi_r, theta_i, theta_r, input.color.rgb);
-	//return float4(input.color.rgb, 1.0);
+	diffuse = input.color.rgb;
+	//return float4(input.color.rgb*0.8f, 1.0);
 
     // Set the bias value for fixing the floating point precision issues.
     bias = 0.001f;

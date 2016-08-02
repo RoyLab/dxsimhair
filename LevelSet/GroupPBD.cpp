@@ -5,6 +5,7 @@
 
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
+#include <fstream>
 #include "EigenTypes.h"
 #include "wrTripleMatrix.h"
 
@@ -91,8 +92,19 @@ namespace XRwy
 			}
 		}
 
+#define BATCH3_MAT_PUSH(m, i, j, value) \
+	(m).push_back(Eigen::Triplet<float>((3*i), (3*j), value));\
+	(m).push_back(Eigen::Triplet<float>((3*i+1), (3*j+1), value));\
+	(m).push_back(Eigen::Triplet<float>((3*i+2), (3*j+2), value));\
+	(m).push_back(Eigen::Triplet<float>((3*i), (3*i), -value));\
+	(m).push_back(Eigen::Triplet<float>((3*i+1), (3*i+1), -value));\
+	(m).push_back(Eigen::Triplet<float>((3*i+2), (3*i+2), -value))
+
+#define BATCH3_VEC_SUM(m, i, vec)
+
+
 		void assembleMatrix(std::list<IntWrapper>& l, std::vector<Point_3>& pts,
-			WR::SparseMatAssemble& m, WR::VecX& b, float dr)
+			WR::SparseMat& m, WR::VecX& b, float dr)
 		{
 			size_t dim = 3*pts.size();
 			m.resize(dim, dim);
@@ -101,21 +113,44 @@ namespace XRwy
 			// dummy assemble routine
 			//m.setIdentity();
 
-			//for (size_t i = 0; i < pts.size(); i++)
-			//{
-			//	b[3*i] = pts[i].x();
-			//	b[3*i+1] = pts[i].y();
-			//	b[3*i+2] = pts[i].z();
-			//}
-
-			// assume
+			std::list<Eigen::Triplet<float>> assemble;
 			const float balance = 1.0f; // TODO time step related
-			m.setIdentity();
+
+			for (size_t i = 0; i < pts.size(); i++)
+			{
+				b[3*i] = pts[i].x();
+				b[3*i+1] = pts[i].y();
+				b[3*i+2] = pts[i].z();
+			}
+
+			for (int i = 0; i < dim; i++)
+				assemble.push_back(Eigen::Triplet<float>(i, i, 1.0f));
+
 			for (auto& item : l)
 			{
-				assert(item.i > item.number);
-				m.
+				assert(item.i < item.number);
+				assemble.push_back(Eigen::Triplet<float>((3 * item.i), (3 * item.number), -balance)); 
+				assemble.push_back(Eigen::Triplet<float>((3 * item.i + 1), (3 * item.number + 1), -balance));
+				assemble.push_back(Eigen::Triplet<float>((3 * item.i + 2), (3 * item.number + 2), -balance));
+				
+				assemble.push_back(Eigen::Triplet<float>((3 * item.i), (3 * item.i), balance));
+				assemble.push_back(Eigen::Triplet<float>((3 * item.i + 1), (3 * item.i + 1), balance));
+				assemble.push_back(Eigen::Triplet<float>((3 * item.i + 2), (3 * item.i + 2), balance));
+
+				assemble.push_back(Eigen::Triplet<float>((3 * item.number), (3 * item.number), balance));
+				assemble.push_back(Eigen::Triplet<float>((3 * item.number + 1), (3 * item.number + 1), balance));
+				assemble.push_back(Eigen::Triplet<float>((3 * item.number + 2), (3 * item.number + 2), balance));
+
+				auto diff = (pts[item.i] - pts[item.number]);
+				auto v3 = balance * dr * diff / sqrt(diff.squared_length());
+				b[3 * item.i] += v3.x();
+				b[3 * item.i + 1] += v3.y();
+				b[3 * item.i + 2] += v3.z();
+				b[3 * item.number] -= v3.x();
+				b[3 * item.number + 1] -= v3.y();
+				b[3 * item.number + 2] -= v3.z();
 			}
+			m.setFromTriplets(assemble.begin(), assemble.end());
 		}
 	}
 
@@ -124,12 +159,12 @@ namespace XRwy
 		return new GroupPBD;
 	}
 
-	bool GroupPBD::initialize(HairGeometry* hair)
+	bool GroupPBD::initialize(HairGeometry* hair, float dr)
 	{
 		// currently there is only one group
 		nWorker = 1;
-		dr = 0.1f;
-		
+		this->dr = dr;
+
 		return true;
 	}
 
@@ -167,7 +202,10 @@ namespace XRwy
 		solver.compute(A);
 		if (Eigen::Success != solver.info())
 		{
-			std::cout << solver.info() << std::endl;
+			std::cout << "Matrix A is not factorizable." << std::endl;
+			std::ofstream f("D:/error.mylog");
+			f << A;
+			f.close();
 			system("pause");
 			exit(0);
 		}

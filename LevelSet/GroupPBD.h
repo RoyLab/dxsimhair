@@ -9,7 +9,7 @@ namespace XRwy
 	{
 	public:
 		virtual void solve(HairGeometry* hair) = 0;
-		virtual bool initialize(HairGeometry* hair) = 0;
+		virtual bool initialize(HairGeometry* hair, float dr) = 0;
 		virtual ~IHairCorrection() {}
 	};
 
@@ -17,7 +17,8 @@ namespace XRwy
 		public IHairCorrection
 	{
 	public:
-		bool initialize(HairGeometry* hair);
+		GroupPBD() {}
+		bool initialize(HairGeometry* hair, float dr);
 		void solve(HairGeometry* hair);
 
 	private:

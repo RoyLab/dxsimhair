@@ -42,7 +42,7 @@ namespace XRwy
         return XMMatrixAffineTransformation(XMLoadFloat3(&scale0), XMVectorZero(), XMVectorZero(), XMLoadFloat3(&trans0))*XMMatrixTranspose(XMLoadFloat4x4(&target0));
     }
 
-	HairLoader* CreateHairLoader(const char* fileName, HairGeometry* geom)
+	HairLoader* CreateHairLoader(const char* fileName, HairGeometry* geom, void* para)
 	{
 		std::string name(fileName);
 		int last = name.rfind('.');
@@ -55,7 +55,7 @@ namespace XRwy
 		else if (posfix == ".hair")
 			result = new ZhouHairLoader;
 		else if (posfix == ".recons")
-			result = new ReducedModel;
+			result = new ReducedModel(*reinterpret_cast<int*>(para));
 
 		if (result)
 			result->loadFile(fileName, geom);
@@ -138,7 +138,6 @@ namespace XRwy
         V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, pVSBufferPtr, nVSBufferSz, &pInputLayout));
 
         // load hair animaitions
-
         SGeoManip geoManip;
         D3D11_BUFFER_DESC bDesc;
         D3D11_SUBRESOURCE_DATA subRes;
@@ -151,22 +150,25 @@ namespace XRwy
         bDesc.Usage = D3D11_USAGE_DYNAMIC;
         bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-		std::vector<std::string> animFiles;
+		struct AnimItem { std::string name; int para; } aitem;
+		std::vector<AnimItem> animFiles;
 		int n = std::atoi(g_paramDict["numanim"].c_str());
-		animFiles.emplace_back(g_paramDict["reffile"]);
+		aitem.name = g_paramDict["reffile"];
+		aitem.para = std::stoi(g_paramDict["para0"], 0, 2);
+		animFiles.push_back(aitem);
 
 		char chs[4];
 		for (int i = 1; i < n; i++)
 		{
-			std::string key("animfile");
-			key += itoa(i, chs, 10);
-			animFiles.emplace_back(g_paramDict[key]);
+			std::string key("animfile"), key2("para");
+			key += itoa(i, chs, 10); key2 += itoa(i, chs, 10);
+			animFiles.push_back(AnimItem{ g_paramDict[key], std::stoi(g_paramDict[key2], 0, 2) });
 		}
 
         for (int i = 0; i < n; i++)
         {
             geoManip.hair = new HairGeometry;
-            geoManip.loader = CreateHairLoader(animFiles[i].c_str(), geoManip.hair);
+            geoManip.loader = CreateHairLoader(animFiles[i].name.c_str(), geoManip.hair, &(animFiles[i].para));
             bDesc.ByteWidth = geoManip.hair->nParticle * sizeof(XMFLOAT3);
 
             V_RETURN(pd3dDevice->CreateBuffer(&bDesc, nullptr, &geoManip.pVB[0]));

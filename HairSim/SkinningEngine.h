@@ -49,7 +49,7 @@ namespace XRwy
 		public HairLoader
 	{
 	public:
-		ReducedModel();
+		ReducedModel(int para);
 		~ReducedModel();
 
 		bool loadFile(const char* fileName, HairGeometry* geom);
@@ -60,6 +60,7 @@ namespace XRwy
 	private:
 		HairLoader*			skinning = nullptr;
 		IHairCorrection*	pPDB = nullptr;
+		bool				bHairBody, bPDB;
 
 		ExternPtr HairGeometry* hairGeom = nullptr;
 	};
