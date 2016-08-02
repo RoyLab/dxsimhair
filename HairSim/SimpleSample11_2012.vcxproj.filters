@@ -49,9 +49,6 @@
     <None Include="Line.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="BasicLine.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wrColorGenerator.cpp">
@@ -235,5 +232,10 @@
     <ClInclude Include="TrainingGraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="BasicLine.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
