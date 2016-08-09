@@ -1,7 +1,7 @@
 #include "UnitTest.h"// must be the first
 
 #include "ADFCollisionObject.h"
-#include "wrMacro.h"
+#include "macros.h"
 #include <fstream>
 #include "wrLogger.h"
 #include "wrMath.h"

@@ -4,7 +4,7 @@
 #include <CGAL\Iso_cuboid_3.h>
 
 #include "ICollisionObject.h"
-#include "wrMacro.h"
+#include "macros.h"
 #include "ADFOctree.h"
 #include <string.h>
 

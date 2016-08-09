@@ -1,3 +1,5 @@
+#include "SkinningEngine.h"
+
 #include <DXUT.h>
 #include <cstdlib>
 #include <cctype>
@@ -9,7 +11,6 @@
 #include "BasicRenderer.h"
 #include "FollicleRenderer.h"
 #include "ZhouHairLoader.hpp"
-#include "SkinningEngine.h"
 
 namespace
 {
@@ -47,7 +48,7 @@ namespace XRwy
 		std::string name(fileName);
 		int last = name.rfind('.');
 		std::string posfix = name.substr(last);
-		std::transform(posfix.begin(), posfix.end(), posfix.begin(), std::tolower);
+		std::transform(posfix.begin(), posfix.end(), posfix.begin(), [](unsigned char c) { return std::tolower(c); });
 
 		HairLoader* result = nullptr;
 		if (posfix == ".anim2")

@@ -2,7 +2,7 @@
 #include <fstream>
 
 #include "TrainingGraph.h"
-#include "wrMacro.h"
+#include "macros.h"
 
 namespace XRwy
 {

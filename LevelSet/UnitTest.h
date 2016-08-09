@@ -12,7 +12,7 @@
 #include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
 #include <CGAL/point_generators_3.h>
 #include <CGAL/Side_of_triangle_mesh.h>
-#include "wrMacro.h"
+#include "macros.h"
 
 namespace CGAL
 {

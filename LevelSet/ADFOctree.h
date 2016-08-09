@@ -19,7 +19,7 @@
 
 #include "wrGeo.h"
 #include "ICollisionObject.h"
-#include "wrMacro.h"
+#include "macros.h"
 
 namespace CGAL
 {

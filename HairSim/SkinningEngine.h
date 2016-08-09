@@ -1,7 +1,7 @@
 #pragma once
+#include "GroupPBD.h"
 #include "macros.h"
 #include "HairStructs.h"
-#include "GroupPBD.h"
 
 namespace WR
 {

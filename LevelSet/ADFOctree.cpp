@@ -1,6 +1,6 @@
 ﻿#include "UnitTest.h"
 #include "ADFOctree.h"
-#include "wrMacro.h"
+#include "macros.h"
 #include "wrLogger.h"
 #include "wrGeo.h"
 #include "linmath.h"

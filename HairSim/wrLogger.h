@@ -1,5 +1,5 @@
 #pragma once
-#include "wrMacro.h"
+#include "macros.h"
 
 #define USE_BOOST_LOGGER
 
