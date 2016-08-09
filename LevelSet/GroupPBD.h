@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include "HairStructs.h"
 
 namespace XRwy
@@ -9,7 +10,7 @@ namespace XRwy
 	{
 	public:
 		virtual void solve(HairGeometry* hair) = 0;
-		virtual bool initialize(HairGeometry* hair, float dr) = 0;
+		virtual bool initialize(HairGeometry* hair, float dr, const int* groupInfo, size_t ngi, int nGroup) = 0;
 		virtual ~IHairCorrection() {}
 	};
 
@@ -18,12 +19,19 @@ namespace XRwy
 	{
 	public:
 		GroupPBD() {}
-		bool initialize(HairGeometry* hair, float dr);
+		~GroupPBD();
+		bool initialize(HairGeometry* hair, float dr, const int* groupInfo, size_t ngi, int nGroup);
 		void solve(HairGeometry* hair);
 
 	private:
+		void solveSampled(HairGeometry* hair);
+		void solveFullMulti(HairGeometry* hair);
+		void solveFullSingle(HairGeometry* hair);
+
 		int			nWorker;
 		int			nHairParticleGroup;
 		float		dr;
+		std::vector<int>* groupIds;
+		size_t		nHairParticle;
 	};
 }

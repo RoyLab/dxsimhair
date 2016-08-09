@@ -75,3 +75,6 @@ m_##__name__ = _##__name__##_; \
 #define UNIMPLEMENTED_METHOD "This is an unimplemented method. "
 
 #define ExternPtr
+
+#define ReadNBytes(f, b, n) (f.read(reinterpret_cast<char*>(b), n))
+#define Read4Bytes(f, b) (ReadNBytes(f, &b, 4))

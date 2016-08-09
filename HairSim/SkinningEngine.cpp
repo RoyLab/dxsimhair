@@ -23,7 +23,7 @@ namespace XRwy
 		if (para & 2) bHairBody = true;
 		else bHairBody = false;
 
-		skinning = new SkinningAndHairBodyCollisionEngineCPU;
+		skinning = new SkinningAndHairBodyCollisionEngineCPU(bHairBody);
 		pPDB = CreateHairCorrectionObject();
 	}
 
@@ -39,7 +39,15 @@ namespace XRwy
 		hairGeom = geom;
 		
 		V_RETURN(skinning->loadFile(fileName, hairGeom));
-		V_RETURN(pPDB->initialize(hairGeom, std::stof(g_paramDict["dr"])));
+
+		std::ifstream file(g_paramDict["pbdfile"], std::ios::binary);
+		int ngi;
+		Read4Bytes(file, ngi);
+
+		int *gid = new int[ngi];
+		ReadNBytes(file, gid, ngi * sizeof(4));
+		V_RETURN(pPDB->initialize(hairGeom, std::stof(g_paramDict["dr"]), gid, ngi, std::stoi(g_paramDict["npbdgroup"])));
+		delete[]gid;
 
 		set_nFrame(skinning->get_nFrame());
 		set_curFrame(-1);
@@ -97,10 +105,12 @@ namespace XRwy
 		SAFE_DELETE(sampler);
 	}
 
-	SkinningAndHairBodyCollisionEngineCPU::SkinningAndHairBodyCollisionEngineCPU()
+	SkinningAndHairBodyCollisionEngineCPU::SkinningAndHairBodyCollisionEngineCPU(bool flag)
 	{
+		bHairBody = flag;
 		hairRendererVersion = std::stoi(g_paramDict["hairrendversion"]);
-		pCollision = WR::loadCollisionObject(ADF_FILE);
+		if (bHairBody)
+			pCollision = WR::loadCollisionObject(ADF_FILE);
 	}
 
 	SkinningAndHairBodyCollisionEngineCPU::~SkinningAndHairBodyCollisionEngineCPU()
@@ -135,7 +145,8 @@ namespace XRwy
 
 		reader->rewind();
 		interpolate();
-		hairBodyCollision();
+		if (bHairBody)
+			hairBodyCollision();
 
 		set_curFrame(0);
 	}
@@ -144,7 +155,8 @@ namespace XRwy
 	{
 		reader->nextFrame();
 		interpolate();
-		hairBodyCollision();
+		if (bHairBody)
+			hairBodyCollision();
 
 		set_curFrame(reader->get_curFrame());
 	}
@@ -155,7 +167,8 @@ namespace XRwy
 
 		reader->jumpTo(frameNo);
 		interpolate();
-		hairBodyCollision();
+		if (bHairBody)
+			hairBodyCollision();
 		set_curFrame(reader->get_curFrame());
 	}
 

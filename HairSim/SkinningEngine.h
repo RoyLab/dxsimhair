@@ -29,7 +29,7 @@ namespace XRwy
 		public SkinningAndHairBodyCollisionEngine
 	{
 	public:
-		SkinningAndHairBodyCollisionEngineCPU();
+		SkinningAndHairBodyCollisionEngineCPU(bool flag);
 		~SkinningAndHairBodyCollisionEngineCPU();
 
 		bool loadFile(const char* fileName, HairGeometry * geom);
@@ -43,6 +43,7 @@ namespace XRwy
 
 		int hairRendererVersion = 1;
 		WR::ICollisionObject* pCollision = nullptr;
+		bool bHairBody;
 	};
 
 	class ReducedModel :

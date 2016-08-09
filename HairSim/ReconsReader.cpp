@@ -5,9 +5,6 @@ namespace XRwy
 	namespace
 	{
 		enum { iGuideHair, iInitialFrame, iWeights, iGroup, iNeighboring, iInterpolation };
-
-#define ReadNBytes(f, b, n) (f.read(reinterpret_cast<char*>(b), n))
-#define Read4Bytes(f, b) (ReadNBytes(f, &b, 4))
 	}
 
 	ReconsReader::ReconsReader()

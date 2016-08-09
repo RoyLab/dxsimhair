@@ -32,6 +32,9 @@ namespace WR
 
 		struct VInfo
 		{
+#ifdef max
+#undef max
+#endif
 			float           minDist = std::numeric_limits<float>::max();
 			Vector_3        gradient;
 			//int             idx; // for dubug

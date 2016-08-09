@@ -25,6 +25,7 @@
 *.opendb
 *.ini
 *.adf
+3rdparty/tbb44*
 
 # Build results
 [Dd]ebug/

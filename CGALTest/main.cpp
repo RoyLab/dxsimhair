@@ -12,6 +12,8 @@
 #include <boost/timer/timer.hpp>
 #include <windows.h>
 
+#include <tbb/tbb.h>
+
 
 const int D = 4;
 typedef CGAL::Epick_d<CGAL::Dimension_tag<D> > K;
@@ -24,7 +26,7 @@ typedef CGAL::Counting_iterator<Random_points_iterator> N_Random_points_iterator
 typedef CGAL::Kd_tree<Traits> Tree;
 typedef CGAL::Fuzzy_sphere<Traits> Fuzzy_sphere;
 typedef CGAL::Fuzzy_iso_box<Traits> Fuzzy_iso_box;
-int main() {
+int mainCGAL() {
 
 	const int N = 30000;
 	// generator for random data points in the square ( (-1000,-1000), (1000,1000) )
@@ -82,4 +84,52 @@ int main() {
 	system("pause");
 
 	return 0;
+}
+
+using namespace tbb;
+
+void Foo(float x)
+{
+	for (int i = x; i < x + 10; i++)
+		std::cout << i << " " << x << std::endl;
+}
+
+class ApplyFoo {
+	float *const my_a;
+public:
+	void operator()(const blocked_range<size_t>& r) const {
+		float *a = my_a;
+		for (size_t i = r.begin(); i != r.end(); ++i)
+			Foo(a[i]);
+	}
+	ApplyFoo(float a[]) :
+		my_a(a)
+	{}
+};
+
+void SerialApplyFoo(float a[], size_t n) {
+	for (size_t i = 0; i != n; ++i)
+		Foo(a[i]);
+}
+
+void ParallelApplyFoo(float a[], size_t n) {
+	parallel_for(blocked_range<size_t>(0, n, 8), [=](const blocked_range<size_t>& r) {
+		for (size_t i = r.begin(); i != r.end(); ++i)
+			Foo(a[i]);
+	});
+}
+
+int mainTBB()
+{
+	task_scheduler_init();
+	float k[] = { 1, 2, 3,4 ,55, 6, 7, 87, 98 };
+	SerialApplyFoo(k, 9);
+	ParallelApplyFoo(k, 9);
+	system("pause");
+	return 0;
+}
+
+int main()
+{
+	return mainTBB();
 }
