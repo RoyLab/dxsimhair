@@ -138,32 +138,39 @@ namespace XRwy
 	GroupPBD::~GroupPBD()
 	{
 		SAFE_DELETE_ARRAY(groupIds);
+		SAFE_DELETE_ARRAY(groupMatrixMapping);
 	}
 
-	bool GroupPBD::initialize(HairGeometry* hair, float dr, const int* groupInfo, size_t ngi, int nGroup)
+	bool GroupPBD::initialize(HairGeometry* hair, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup)
 	{
-		this->nWorker = 1;
 		this->dr = dr;
 		this->nHairParticleGroup = nGroup;
+		this->nHairParticle = ngi;
+		this->balance = balance;
+
+		bMatrixInited = false;
 
 		rawGroupId.assign(groupInfo, groupInfo + ngi);
 		groupIds = new std::vector<int>[nGroup];
+		groupMatrixMapping = new std::vector<int>[nGroup];
+		matrixSeq.resize(ngi);
+
 		int *counter = new int[nGroup];
 		memset(counter, 0, sizeof(int) * nGroup);
-		matrixSeq.resize(ngi);
 
 		for (size_t i = 0; i < ngi; i++)
 		{
-			int id = groupInfo[i];
-			if (id % hair->particlePerStrand != 0)
+			int groupId = groupInfo[i];
+			if (i % hair->particlePerStrand != 0)
 			{
-				matrixSeq[id] = counter[rawGroupId[id]]++;
-				groupIds[groupInfo[i]].push_back(i);
+				matrixSeq[i] = counter[groupId]++;
+				groupIds[groupId].push_back(i);
+				groupMatrixMapping[groupId].push_back(i);
 			}
-			else matrixSeq[id] = -1;
+			else matrixSeq[i] = -1;
 		}
+		delete[]counter;
 
-		nHairParticle = ngi;
 		return true;
 	}
 
@@ -174,6 +181,101 @@ namespace XRwy
 			solveFull(hair);
 		else
 			solveSampled(hair);
+	}
+
+	void GroupPBD::assembleMatA(std::list<IntPair>& oldl, std::list<IntPair>& oldl2, int gId)
+	{
+		auto& infos = solverCacheBuffer[gId];
+		auto& m = infos.A;
+		m.setZero();
+		std::list<Eigen::Triplet<float>> assemble;
+		const float balance = this->balance;
+		for (int i = 0; i < m.rows(); i++)
+			assemble.push_back(Eigen::Triplet<float>(i, i, 1.0f));
+
+		for (auto& item : infos.l)
+		{
+			assert(item.i < item.number);
+
+			int id0 = matrixSeq[item.i];
+			int id1 = matrixSeq[item.number];
+
+			assemble.push_back(Eigen::Triplet<float>((3 * id0), (3 * id1), -balance));
+			assemble.push_back(Eigen::Triplet<float>((3 * id0 + 1), (3 * id1 + 1), -balance));
+			assemble.push_back(Eigen::Triplet<float>((3 * id0 + 2), (3 * id1 + 2), -balance));
+
+			assemble.push_back(Eigen::Triplet<float>((3 * id0), (3 * id0), balance));
+			assemble.push_back(Eigen::Triplet<float>((3 * id0 + 1), (3 * id0 + 1), balance));
+			assemble.push_back(Eigen::Triplet<float>((3 * id0 + 2), (3 * id0 + 2), balance));
+
+			assemble.push_back(Eigen::Triplet<float>((3 * id1), (3 * id1), balance));
+			assemble.push_back(Eigen::Triplet<float>((3 * id1 + 1), (3 * id1 + 1), balance));
+			assemble.push_back(Eigen::Triplet<float>((3 * id1 + 2), (3 * id1 + 2), balance));
+		}
+
+		for (auto& item : infos.l2)
+		{
+			assert(!belongTo(item.i, gId));
+			int id1 = matrixSeq[item.number];
+			assemble.push_back(Eigen::Triplet<float>((3 * id1), (3 * id1), balance));
+			assemble.push_back(Eigen::Triplet<float>((3 * id1 + 1), (3 * id1 + 1), balance));
+			assemble.push_back(Eigen::Triplet<float>((3 * id1 + 2), (3 * id1 + 2), balance));
+		}
+
+		m.setFromTriplets(assemble.begin(), assemble.end());
+	}
+
+	void GroupPBD::computeVecb(int gId, XMFLOAT3* pts, float dr, WR::VecX& b)
+	{
+		auto& particleList = groupIds[gId];
+		auto& infos = solverCacheBuffer[gId];
+		auto n = particleList.size();
+		const float balance = this->balance;
+
+		for (size_t i = 0; i < n; i++)
+		{
+			auto& point = pts[particleList[i]];
+			b[3*i] = point.x;
+			b[3*i+1] = point.y;
+			b[3*i+2] = point.z;
+		}
+
+		for (auto& item : infos.l)
+		{
+			auto &pi = pts[item.i], &pj = pts[item.number];
+
+			KernelPBD::Point_3 p0(pi.x, pi.y, pi.z);
+			KernelPBD::Point_3 p1(pj.x, pj.y, pj.z);
+			int id0 = matrixSeq[item.i];
+			int id1 = matrixSeq[item.number];
+
+			auto diff = (p0 - p1);
+			auto v3 = balance * dr * diff / sqrt(diff.squared_length());
+
+			b[3*id0] +=		v3.x();
+			b[3*id0+1] +=	v3.y();
+			b[3*id0+2] +=	v3.z();
+
+			b[3*id1] -=		v3.x();
+			b[3*id1+1] -=	v3.y();
+			b[3*id1+2] -=	v3.z();
+		}
+
+		for (auto& item : infos.l2)
+		{
+			auto &pi = pts[item.i], &pj = pts[item.number];
+
+			KernelPBD::Point_3 p0(pi.x, pi.y, pi.z);
+			KernelPBD::Point_3 p1(pj.x, pj.y, pj.z);
+			int id1 = matrixSeq[item.number];
+
+			auto diff = (p0 - p1);
+			auto v3 = balance * dr * diff / sqrt(diff.squared_length());
+
+			b[3*id1] -=		(v3.x() + pi.x);
+			b[3*id1+1] -=	(v3.y() + pi.y);
+			b[3*id1+2] -=	(v3.z() + pj.z);
+		}
 	}
 
 	void GroupPBD::assembleMatrix(std::list<IntPair>& l, std::list<IntPair>& l2,
@@ -234,7 +336,7 @@ namespace XRwy
 		m.setFromTriplets(assemble.begin(), assemble.end());
 	}
 
-	void GroupPBD::solveSingleGroup(int gId, Tree* pTree, XMFLOAT3* p0, WR::VecX& x, int pps)
+	void GroupPBD::solveSingleGroup(int gId, const Tree* pTree, XMFLOAT3* p0, WR::VecX& x, int pps, bool bAssembleA)
 	{
 		std::list<IntPair> output, output2;
 		auto& particleList = groupIds[gId];
@@ -305,17 +407,17 @@ namespace XRwy
 		float dr;
 
 		GroupPBD* thiz;
-		Tree* tree;
+		const Tree* tree;
 		HairGeometry* pHair;
 
 
 	public:
-		TbbPbdItem(GroupPBD* pp, Tree* tree, XMFLOAT3* p0, XMFLOAT3* p1, float dr, HairGeometry* hair)
+		TbbPbdItem(GroupPBD* pp, Tree* tr, XMFLOAT3* p0, XMFLOAT3* p1, float dr, HairGeometry* hair):
+			tree(tr)
 		{
 			pos0 = p0;
 			newpos = p1;
 			thiz = pp;
-			this->tree = tree;
 			pHair = hair;
 			this->dr = dr;
 		}
@@ -338,34 +440,44 @@ namespace XRwy
 
 	void GroupPBD::solveFull(HairGeometry* hair)
 	{
+		// construct tree and use dummy search to init precomputation.
+		// if not doing dummy search, the thread safety is not guranteed.
+		std::vector<Point_3> points;
+		for (size_t i = 0; i < hair->nParticle; i++)
+		{
+			auto &pos = hair->position[i];
+			points.emplace_back(pos.x, pos.y, pos.z, i);
+		}
+
+		Tree tree(points.begin(), points.end());
+		std::vector<Point_3> dummy;
+		Fuzzy_sphere dummyp(Point_3(1e3, 1e3, 1e3, 0), 0, 0);
+		tree.search(std::back_inserter(dummy), dummyp);
+
+		// prepare for the iterations
 		XMFLOAT3* allocMem = new XMFLOAT3[hair->nParticle];
 		XMFLOAT3 *p0 = hair->position, *p1 = allocMem;
-		for (int i = 0; i < 2; i++)
+		int max_iteration = 2;
+		nHairParticleGroup = 2;//debug
+		for (size_t i = 0; i < max_iteration; i++)
 		{
-			std::vector<Point_3> points;
-			for (size_t j = 0; j < hair->nParticle; j++)
-			{
-				auto &pos = p0[j];
-				points.emplace_back(pos.x, pos.y, pos.z, j);
-			}
-			Tree tree(points.begin(), points.end());
-
-
+			std::memcpy(p1, p0, sizeof(XMFLOAT3) * hair->nParticle);
 			for (int j = 0; j < nHairParticleGroup; j++)
 			{
 				WR::VecX x;
-				auto& arr = groupIds[j];
-				solveSingleGroup(j, &tree, p0, x, hair->particlePerStrand);
+				auto& gIds = groupIds[j];
+				solveSingleGroup(j, &tree, p0, x, hair->particlePerStrand, i == 0);
 
-				for (size_t k = 0; k < arr.size(); k++)
-					p1[arr[k]] = XMFLOAT3(x[3 * k], x[3 * k + 1], x[3 * k + 2]);
+				for (size_t k = 0; k < gIds.size(); k++)
+					p1[groupMatrixMapping[j][k]] = XMFLOAT3(x[3*k], x[3*k+1], x[3*k+2]);
 			}
 
-			TbbPbdItem tbbCls(this, &tree, p0, p1, dr, hair);
-			parallel_for(blocked_range<size_t>(0, nHairParticleGroup, 10), tbbCls);
+			//TbbPbdItem tbbCls(this, &tree, p0, p1, dr, hair);
+			//parallel_for(blocked_range<size_t>(0, nHairParticleGroup, 10), tbbCls);
 
 			std::swap(p0, p1);
 		}
+
 
 		if (hair->position != p1)
 			std::swap(allocMem, hair->position);

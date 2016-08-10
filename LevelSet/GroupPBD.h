@@ -80,25 +80,34 @@ namespace XRwy
 	public:
 		GroupPBD() {}
 		~GroupPBD();
-		bool initialize(HairGeometry* hair, float dr, const int* groupInfo, size_t ngi, int nGroup);
+		bool initialize(HairGeometry* hair, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup);
 		void solve(HairGeometry* hair);
 
 	private:
 		void solveSampled(HairGeometry* hair);
 		void solveFull(HairGeometry* hair);
-		void solveSingleGroup(int gId, Tree* pTree, XMFLOAT3* p0, WR::VecX& x, int pps);
+		void solveSingleGroup(int gId, const Tree* pTree, XMFLOAT3* p0, WR::VecX& x, int pps, bool bAssembleA);
 		bool belongTo(int idp, int idg) { return rawGroupId[idp] == idg; }
-		void assembleMatrix(std::list<IntPair>& l, std::list<IntPair>& l2,
-			XMFLOAT3* pts, int gId, WR::VecX& b, float dr);
+		void assembleMatA(std::list<IntPair>& oldl, std::list<IntPair>& oldl2, int gId);
+		void computeVecb(int gId, XMFLOAT3* pts, float dr, WR::VecX& b);
 
-		int			nWorker;
-		int			nHairParticleGroup;
-		float		dr;
-		std::vector<int>*	groupIds;
+		std::vector<int>*	groupIds;  // n_group vectors. each containing non-follicle id for that group
+		std::vector<int>*	groupMatrixMapping;  // n_group vectors. map from matrix indices (without 3x) to global Id
 		std::vector<int>	rawGroupId;
-		std::vector<int>	matrixSeq;
-		size_t				nHairParticle;
+		std::vector<int>	matrixSeq; // length: n_particle, map from global Id to matrix indices (without 3x)
 
-		std::vector<WR::SparseMat> buffer;
+		float				dr, balance;
+		int					nHairParticleGroup;
+		size_t				nHairParticle;
+		bool				bMatrixInited;
+
+		struct SolveGroupCache
+		{
+			WR::SparseMat A;
+			std::list<IntPair> l, l2;
+		};
+
+		std::vector<SolveGroupCache> solverCacheBuffer;
+		
 	};
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include "wrLogger.h"
 #include <CGAL\Point_3.h>
 #include <CGAL\Triangle_3.h>
 #include <CGAL\Vector_3.h>
@@ -7,6 +6,7 @@
 #include <CGAL\Aff_transformation_3.h>
 #include <fstream>
 #include <CGAL\IO\Polyhedron_iostream.h>
+#include "wrLogger.h"
 
 namespace WRG
 {
