@@ -12,7 +12,7 @@
 
 namespace XRwy
 {
-	typedef CGAL::FloatEpick KernelPBD;
+	typedef CGAL::Floatipick KernelPBD;
 
 	class KDSearchPoint :
 		public KernelPBD::Point_3

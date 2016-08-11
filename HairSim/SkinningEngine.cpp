@@ -111,7 +111,7 @@ namespace XRwy
 		bHairBody = flag;
 		hairRendererVersion = std::stoi(g_paramDict["hairrendversion"]);
 		if (bHairBody)
-			pCollision = WR::loadCollisionObject(ADF_FILE);
+			pCollision = WR::CreateGridCollisionObject(g_paramDict["collisionFile"].c_str());
 	}
 
 	SkinningAndHairBodyCollisionEngineCPU::~SkinningAndHairBodyCollisionEngineCPU()

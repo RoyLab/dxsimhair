@@ -11,8 +11,7 @@
 #include "ADFCollisionObject.h"
 #include "ConfigReader.h"
 #include "linmath.h"
-
-
+#include "GridCollisionObject.h"
 
 using std::cout;
 using std::endl;
@@ -44,6 +43,12 @@ namespace WR
         }
         file.close();
     }
+
+
+	extern "C" WR_API ICollisionObject* CreateGridCollisionObject(const char* fileName)
+	{
+		return new XRwy::GridCollisionObject(fileName);
+	}
 
 
 	extern "C" WR_API ICollisionObject* createCollisionObject(Polyhedron_3_FaceWithId& poly)

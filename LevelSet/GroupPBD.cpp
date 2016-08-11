@@ -199,7 +199,7 @@ namespace XRwy
 		auto& infos = solverCacheBuffer[gId];
 		auto& m = infos.A;
 		m.setZero();
-		std::list<Eigen::Triplet<float>> assemble;
+		std::deque<Eigen::Triplet<float>> assemble;
 		const float balance = this->balance;
 		for (int i = 0; i < m.rows(); i++)
 			assemble.push_back(Eigen::Triplet<float>(i, i, 1.0f));

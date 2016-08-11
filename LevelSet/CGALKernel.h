@@ -20,5 +20,7 @@ namespace CGAL {
 
 	typedef Epickf FloatEpick;
 
+	typedef Simple_cartesian<float> Floatipick;
+
 } //namespace CGAL
 

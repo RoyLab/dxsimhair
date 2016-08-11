@@ -273,7 +273,7 @@ namespace WR
 
     bool ADFCollisionObject::position_correlation_iteration(const Point_3& p, Point_3& newPos, Dt::Cell_handle chnew, Dt::Cell_handle chhint, float thresh) const
     {
-        chnew = pDt->locate(p, chhint);
+       chnew = pDt->locate(p, chhint);
 
         std::vector<float> dist(4);
         std::vector<Point_3> pts(4);
@@ -388,10 +388,10 @@ namespace WR
 
     void ADFCollisionObject::compute_gradient()
     {
-        const float k = 0.1f;
+        const float k = 0.005f;
 
         Vector_3 step[3];
-        float coef = pow(0.5f, m_max_level) * k;
+        float coef = k;
         step[0] = Vector_3(coef * (m_bbox.xmax() - m_bbox.xmin()), 0, 0);
         step[1] = Vector_3(0, coef * (m_bbox.ymax() - m_bbox.ymin()), 0);
         step[2] = Vector_3(0, 0, coef * (m_bbox.zmax() - m_bbox.zmin()));

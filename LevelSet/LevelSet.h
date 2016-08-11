@@ -16,6 +16,8 @@ namespace WR
 	extern "C" WR_API ICollisionObject* createCollisionObject2(const wchar_t* fileName);
 	extern "C" WR_API ICollisionObject* loadCollisionObject(const wchar_t* fileName);
 	extern "C" WR_API void runLevelSetBenchMark(const wchar_t* fileName);
+
+	extern "C" WR_API ICollisionObject* CreateGridCollisionObject(const char* fileName);
 }
 
 namespace XRwy

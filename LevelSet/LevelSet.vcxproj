@@ -94,6 +94,7 @@
     <ClInclude Include="ADFCollisionObject.h" />
     <ClInclude Include="CGALKernel.h" />
     <ClInclude Include="EigenTypes.h" />
+    <ClInclude Include="GridCollisionObject.h" />
     <ClInclude Include="GroupPBD.h" />
     <ClInclude Include="ICollisionObject.h" />
     <ClInclude Include="LevelSet.h" />
@@ -107,6 +108,7 @@
     <ClCompile Include="ADFCollisionObject.cpp" />
     <ClCompile Include="ADFOctree.cpp" />
     <ClCompile Include="ConfigReader.cpp" />
+    <ClCompile Include="GridCollisionObject.cpp" />
     <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="LevelSet.cpp" />
   </ItemGroup>
