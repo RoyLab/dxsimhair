@@ -9,6 +9,7 @@
 #include "UnitTest.h"
 #include "wrGeo.h"
 #include "linmath.h"
+#include "ICollisionObject.h"
 #include "macros.h"
 
 using namespace CGAL;
@@ -41,12 +42,6 @@ void ApplyTransformation(Polyhedron& poly)
 	}
 }
 
-struct Data
-{
-	float value;
-	float grad[3];
-};
-
 #define IDX(i, j, k) ((i) * grids[1]*grids[2] + (j) * grids[2] + (k))
 
 void GenerateGridLevelSet(const char* fileName, float resolution, const char* outputFile)
@@ -66,9 +61,9 @@ void GenerateGridLevelSet(const char* fileName, float resolution, const char* ou
 	WRG::enlarge(bbox, 0.1f);
 
 	auto diag = bbox.max() - bbox.min();
-	int res[] = { static_cast<int>(std::ceil(diag.x() / resolution))
-		, static_cast<int>(std::ceil(diag.y() / resolution))
-		, static_cast<int>(std::ceil(diag.z() / resolution)) };
+	int res[] = { static_cast<int>(std::ceil(diag.x() / resolution))+1
+		, static_cast<int>(std::ceil(diag.y() / resolution))+1
+		, static_cast<int>(std::ceil(diag.z() / resolution))+1 };
 	int grids[] = { res[0] + 2, res[1] + 2, res[2] + 2 };
 	int total = (grids[0]) * (grids[1]) * (grids[2]);
 
@@ -76,9 +71,10 @@ void GenerateGridLevelSet(const char* fileName, float resolution, const char* ou
 	float yPos = bbox.min().y() - resolution;
 	float zPos = bbox.min().z() - resolution;
 
-	Data* data = new Data[total];
-	std::cout << "Allocate Memory: " << sizeof(Data) * total << " bytes\n";
+	WR::LevelSetVData* data = new WR::LevelSetVData[total];
+	std::cout << "Allocate Memory: " << sizeof(WR::LevelSetVData) * total << " bytes\n";
 
+	int count = 0;
 	for (int i = 0; i < grids[0]; i++)
 	{
 		yPos = bbox.min().y() - resolution;
@@ -90,7 +86,9 @@ void GenerateGridLevelSet(const char* fileName, float resolution, const char* ou
 				int idx = IDX(i, j, k);
 				float tmp = tester.query_signed_distance(K::Point_3(xPos, yPos, zPos));
 				assert(!std::isnan(tmp) && tmp > -1e10 && tmp < 1e10);
+
 				data[idx].value = tmp;
+				if (tmp < 0) count++;
 				assert(!std::isnan(data[idx].value));
 				zPos += resolution;
 			}
@@ -98,6 +96,7 @@ void GenerateGridLevelSet(const char* fileName, float resolution, const char* ou
 		}
 		xPos += resolution;
 	}
+	std::cout << count << " / " << total << " points are inside.\n";
 
 	float sum = 0.0f;
 	for (int i = 1; i < res[0]+1; i++)
@@ -120,9 +119,16 @@ void GenerateGridLevelSet(const char* fileName, float resolution, const char* ou
 
 	std::ofstream oFile(outputFile, std::ios::binary);
 
-	Write4Bytes(oFile, res[0]-2);
-	Write4Bytes(oFile, res[1]-2);
-	Write4Bytes(oFile, res[2]-2);
+	Write4Bytes(oFile, res[0]);
+	Write4Bytes(oFile, res[1]);
+	Write4Bytes(oFile, res[2]);
+	Write4Bytes(oFile, resolution);
+
+	float wBBox[6] = { bbox.xmin(), bbox.ymin(), bbox.zmin(), };
+	for (int i = 0; i < 3; i++)
+		wBBox[3 + i] = wBBox[i] + resolution * (res[i]-1);
+	WriteNBytes(oFile, wBBox, sizeof(float) * 6);
+
 	for (int i = 1; i < res[0] + 1; i++)
 	{
 		for (int j = 1; j < res[1] + 1; j++)
@@ -130,7 +136,7 @@ void GenerateGridLevelSet(const char* fileName, float resolution, const char* ou
 			for (int k = 1; k < res[2] + 1; k++)
 			{
 				int idx = IDX(i, j, k);
-				WriteNBytes(oFile, data + idx, sizeof(Data));
+				WriteNBytes(oFile, data + idx, sizeof(WR::LevelSetVData));
 			}
 		}
 	}

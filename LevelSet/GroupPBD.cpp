@@ -425,7 +425,7 @@ namespace XRwy
 		// prepare for the iterations
 		XMFLOAT3* allocMem = new XMFLOAT3[hair->nParticle];
 		XMFLOAT3 *p0 = hair->position, *p1 = allocMem;
-		int max_iteration = 2;
+		int max_iteration = std::stoi(g_PBDParas["maxpbditer"]);
 
 		int chunksize = std::stoi(g_PBDParas["chunksize"]);
 		for (size_t i = 0; i < max_iteration; i++)

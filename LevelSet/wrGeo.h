@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <CGAL\Point_3.h>
 #include <CGAL\Triangle_3.h>
 #include <CGAL\Vector_3.h>
@@ -10,7 +10,53 @@
 
 namespace WRG
 {
+	//   4---------6
+	//  /|        /|
+	// 5---------7 |
+	// | |       | |
+	// | |       | |
+	// | 0-------|-2
+	// |/        |/
+	// 1---------3
+	//   
+	//   z
+	//   |
+	//   â€¢----y
+	//  /
+	// x
 
+	template <class T, int SZ>
+	void trilinear_intp_batch(T** value, const float p[3], T* output)
+	{
+		float pc[3] = { 1 - p[0], 1 - p[1], 1 - p[2] };
+
+		float w2[4] = { pc[0] * pc[1], p[0] * pc[1], pc[0] * p[1] , p[0] * p[1] };
+		float w3[8] = { w2[0] * pc[2], w2[1] * pc[2], w2[2] * pc[2], w2[3] * pc[2],
+						w2[0] * p[2], w2[1] * p[2], w2[2] * p[2], w2[3] * p[2], };
+
+		for (int i = 0; i < SZ; i++)
+		{
+			T tmp = 0.0;
+			for (int j = 0; j < 8; j++)
+				tmp += value[j][i] * w3[j];
+			output[i] = tmp;
+		}
+	}
+
+	template <class T>
+	void trilinear_intp(T* value, const float p[3], T* output)
+	{
+		float pc[3] = { 1 - p[0], 1 - p[1], 1 - p[2] };
+
+		float w2[4] = { pc[0] * pc[1], p[0] * pc[1], pc[0] * p[1] , p[0] * p[1] };
+		float w3[8] = { w2[0] * pc[2], w2[1] * pc[2], w2[2] * pc[2], w2[3] * pc[2],
+			w2[0] * p[2], w2[1] * p[2], w2[2] * p[2], w2[3] * p[2], };
+
+		T tmp = 0.0;
+		for (int i = 0; i < 8; i++)
+			tmp += value[i] * w3[i];
+		*output = tmp;
+	}
 
     template <class Polyhedron_3>
     Polyhedron_3* readFile(const char* fileName)
@@ -142,8 +188,8 @@ namespace WRG
     }
 
 
-    // ÕâÀïµÄ·µ»Ø½á¹û²»ÍêÈ«ÊÇÍ¼ÖĞ±êÊ¾µÄÒâË¼
-    // 0±íÊ¾ÔÚÄÚ²¿£¬135±íÊ¾ÔÚ±ßÉÏ£¬246±íÊ¾ÔÚ¶¥µã
+    // è¿™é‡Œçš„è¿”å›ç»“æœä¸å®Œå…¨æ˜¯å›¾ä¸­æ ‡ç¤ºçš„æ„æ€
+    // 0è¡¨ç¤ºåœ¨å†…éƒ¨ï¼Œ135è¡¨ç¤ºåœ¨è¾¹ä¸Šï¼Œ246è¡¨ç¤ºåœ¨é¡¶ç‚¹
     template <class K, class T>
     static inline void squaredDistance(const CGAL::Point_3<K> & plane,
         const CGAL::Triangle_3<K> & seg, const PointTriangleDistInfo<T>& infos,

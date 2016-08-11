@@ -120,9 +120,10 @@ namespace WR
 
         auto* tester = CGAL::Ext::createDistanceTester<Polyhedron_3_FaceWithId, K>(*pModel);
 
-        ADFCollisionObject* pCO = nullptr;
+        ICollisionObject* pCO = nullptr;
         if (regen)
         {
+			/* generate octree level set obj */
             ADFOctree* pTree = new ADFOctree;
             pTree->construct(*pModel, level);
             pCO = pTree->releaseAndCreateCollisionObject();
@@ -130,7 +131,10 @@ namespace WR
         }
         else
         {
-            pCO = new ADFCollisionObject(L"hair");
+            //pCO = new ADFCollisionObject(L"hair");
+
+			/* generate grid level set obj */
+			pCO = CreateGridCollisionObject("D:/hair project/models/head.grid");
         }
 
         double size = max_coordinate(*pModel);
@@ -154,15 +158,19 @@ namespace WR
             double dist = pCO->query_distance(p);
             double std_dist = tester->query_signed_distance(p);
             cout << "Point: " << p << endl;
-            cout << " Dist1: " << dist << " Dist2: " << std_dist <<
-                "\t\t diff: " << dist - std_dist << endl << endl;
+			if (dist < 1000)
+				cout << " Dist1: " << dist << " Dist2: " << std_dist <<
+                "\t\t diff: " << dist - std_dist << endl;
 
             Point crt;
-            pCO->position_correlation(p, &crt);
+            if (pCO->position_correlation(p, &crt))
+				cout << "                                  corrected distance: " << pCO->query_distance(crt) << endl;
+
+			cout << endl;
         }
 
-        if (regen)
-            pCO->save_model(L"hair");
+        //if (regen)
+        //    pCO->save_model(L"hair");
 
         delete pCO;
 

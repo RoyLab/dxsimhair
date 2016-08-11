@@ -20,6 +20,12 @@ namespace CGAL
 
 namespace WR
 {
+	struct LevelSetVData
+	{
+		float value;
+		float grad[3];
+	};
+
     typedef CGAL::FloatKernel     K;
 
     // since most are geometry computation, using CGAL Point_3
