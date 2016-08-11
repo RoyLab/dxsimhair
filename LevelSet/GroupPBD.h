@@ -1,7 +1,9 @@
 #pragma once
 
 #include <vector>
-
+#include <deque>
+#include <Eigen/Sparse>
+#include <Eigen/SparseCholesky>
 #include <CGAL/Kd_tree.h>
 #include <CGAL/Search_traits_3.h>
 #include "HairStructs.h"
@@ -69,7 +71,7 @@ namespace XRwy
 	{
 	public:
 		virtual void solve(HairGeometry* hair) = 0;
-		virtual bool initialize(HairGeometry* hair, float dr, const int* groupInfo, size_t ngi, int nGroup) = 0;
+		virtual bool initialize(HairGeometry* hair, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup) = 0;
 		virtual ~IHairCorrection() {}
 	};
 
@@ -91,10 +93,10 @@ namespace XRwy
 		void assembleMatA(std::list<IntPair>& oldl, std::list<IntPair>& oldl2, int gId);
 		void computeVecb(int gId, XMFLOAT3* pts, float dr, WR::VecX& b);
 
-		std::vector<int>*	groupIds;  // n_group vectors. each containing non-follicle id for that group
-		std::vector<int>*	groupMatrixMapping;  // n_group vectors. map from matrix indices (without 3x) to global Id
-		std::vector<int>	rawGroupId;
-		std::vector<int>	matrixSeq; // length: n_particle, map from global Id to matrix indices (without 3x)
+		std::deque<int>*	groupIds;  // n_group vectors. each containing non-follicle id for that group
+		std::deque<int>*	groupMatrixMapping;  // n_group vectors. map from matrix indices (without 3x) to global Id
+		std::deque<int>		rawGroupId;
+		std::deque<int>		matrixSeq; // length: n_particle, map from global Id to matrix indices (without 3x)
 
 		float				dr, balance;
 		int					nHairParticleGroup;
@@ -103,11 +105,11 @@ namespace XRwy
 
 		struct SolveGroupCache
 		{
-			WR::SparseMat A;
 			std::list<IntPair> l, l2;
+			WR::SparseMat A;
+			Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper> solver;
 		};
 
-		std::vector<SolveGroupCache> solverCacheBuffer;
-		
+		std::deque<SolveGroupCache> solverCacheBuffer;
 	};
 }

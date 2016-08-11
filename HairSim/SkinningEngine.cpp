@@ -46,7 +46,8 @@ namespace XRwy
 
 		int *gid = new int[ngi];
 		ReadNBytes(file, gid, ngi * sizeof(4));
-		V_RETURN(pPDB->initialize(hairGeom, std::stof(g_paramDict["dr"]), gid, ngi, std::stoi(g_paramDict["npbdgroup"])));
+		V_RETURN(pPDB->initialize(hairGeom, std::stof(g_paramDict["dr"]),
+			std::stof(g_paramDict["balance"]), gid, ngi, std::stoi(g_paramDict["npbdgroup"])));
 		delete[]gid;
 
 		set_nFrame(skinning->get_nFrame());

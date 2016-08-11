@@ -106,6 +106,7 @@
     <ClCompile Include="..\HairSim\ConfigReader.cpp" />
     <ClCompile Include="ADFCollisionObject.cpp" />
     <ClCompile Include="ADFOctree.cpp" />
+    <ClCompile Include="ConfigReader.cpp" />
     <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="LevelSet.cpp" />
   </ItemGroup>

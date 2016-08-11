@@ -28,17 +28,18 @@ typedef CGAL::Fuzzy_sphere<Traits> Fuzzy_sphere;
 typedef CGAL::Fuzzy_iso_box<Traits> Fuzzy_iso_box;
 int mainCGAL() {
 
-	const int N = 30000;
+	const int N = 3000;
 	// generator for random data points in the square ( (-1000,-1000), (1000,1000) )
-	Random_points_iterator rpit(4, 5000.0);
+	Random_points_iterator rpit(4, 8800.0);
 	// Insert N points in the tree
 
+	std::vector<Point_d> points; points.reserve(N);
+	CGAL::cpp11::copy_n(rpit, N, std::back_inserter(points));
 	Tree *tree;
 	{
 		boost::timer::auto_cpu_timer t;
 
-		tree = new Tree(N_Random_points_iterator(rpit, 0),
-			N_Random_points_iterator(rpit, N));
+		tree = new Tree(points.begin(), points.end());
 	}
 
 	// define range query objects
@@ -58,6 +59,7 @@ int mainCGAL() {
 	{
 		boost::timer::auto_cpu_timer t;
 		tree->search(std::back_inserter(output), fib);
+		tree->search(std::back_inserter(output), fs);
 	}
 
 	std::cout << output.size() << std::endl;
@@ -69,13 +71,16 @@ int mainCGAL() {
 		for (int k = 0; k < 10; k++)
 		{
 			boost::timer::auto_cpu_timer t;
-			for (int i = 0; i < 1000000; i++)
+			int sum = 0;
+			for (int i = 0; i < 10; i++)
 			{
-				fs = Fuzzy_sphere(*rpit, 700.0, 200.0);
+				fs = Fuzzy_sphere(points[i % N], 700.0, 200.0);
 
 				tree->search(std::back_inserter(output), fs);
+				sum += output.size();
 				output.clear();
 			}
+			std::cout << "average: " << sum / 100000.0 << std::endl;
 		}
 	}
 
@@ -129,7 +134,10 @@ int mainTBB()
 	return 0;
 }
 
+class A { public:void f() const {} void f2() {} };
+class B { public:void f2() const { a->f(); a->f2(); } A* a; };
+
 int main()
 {
-	return mainTBB();
+	return mainCGAL();
 }
