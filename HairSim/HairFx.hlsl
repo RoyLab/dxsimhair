@@ -301,7 +301,7 @@ float4 PS(PixelInputType input) : SV_TARGET
     if (dot(-viewVec, vecW) < 0) phi_r = -phi_r;
 
     float3 diffuse = scattering(phi_i, phi_r, theta_i, theta_r, input.color.rgb);
-	diffuse = input.color.rgb;
+	//diffuse = input.color.rgb;
 	//return float4(input.color.rgb*0.8f, 1.0);
 
     // Set the bias value for fixing the floating point precision issues.
@@ -371,7 +371,7 @@ void GS(line GeometryInputType points[2], inout TriangleStream<PixelInputType> o
     float3 viewDir = normalize(g_viewPoint - center);
 
     float3 normal = normalize(cross(dir, viewDir));
-    float width = 0.005f;
+    float width = 0.003f;
 
     PixelInputType v[4];
 

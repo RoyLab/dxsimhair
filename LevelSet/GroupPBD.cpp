@@ -330,10 +330,9 @@ namespace XRwy
 
 			//solver.analyzePattern(A);
 			//solver.factorize(A);
+			solverCache.solver.compute(solverCache.A);//????????? TODO
 		}
-
 		pSolver = &solverCache.solver;
-		pSolver->compute(solverCache.A);
 
 		WR::VecX b;
 		b.resize(dim);
@@ -408,8 +407,19 @@ namespace XRwy
 
 	void GroupPBD::solveFull(HairGeometry* hair)
 	{
+		// dump code begin
+		//std::ofstream f("D:/Data/50k.vertex", std::ios::binary);
+		//f.write((char*)&hair->nParticle, sizeof(size_t));
+		//f.write((char*)hair->position, sizeof(XMFLOAT3)*hair->nParticle);
+		//f.close();
+		//exit(0);
+		// dump code end
+
 		// construct tree and use dummy search to init precomputation.
 		// if not doing dummy search, the thread safety is not guranteed.
+		LARGE_INTEGER freq, t1, t2;
+		QueryPerformanceFrequency(&freq);
+
 		std::vector<Point_3> points;
 		for (size_t i = 0; i < hair->nParticle; i++)
 		{
@@ -417,10 +427,29 @@ namespace XRwy
 			points.emplace_back(pos.x, pos.y, pos.z, i);
 		}
 
-		Tree tree(points.begin(), points.end());
-		std::vector<Point_3> dummy;
-		Fuzzy_sphere dummyp(Point_3(1e3, 1e3, 1e3, 0), 0, 0);
-		tree.search(std::back_inserter(dummy), dummyp);
+		Tree tree;
+		for (int i = 0; i < 100; i++)
+		{
+			tree.clear();
+			QueryPerformanceCounter(&t1);
+			//for (int i = 0; i < nHairParticleGroup; i++)
+			//{
+				//std::vector<Point_3> dummy;
+				//Fuzzy_sphere dummyp(Point_3(1e3, 1e3, 1e3, 0), 0, 0);
+				//tree.search(std::back_inserter(dummy), dummyp);
+
+				//tree.clear();
+				//tree.insert(points.begin() + i * 5000, points.begin() + i * 5000 + 25 * 200);
+			//}
+
+			tree.insert(points.begin(), points.end());
+			tree.build();
+
+			QueryPerformanceCounter(&t2);
+			WR_LOG_TRACE << "Tree initialization: " << (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
+			WR_LOG_TRACE << "Vertex Count: " << points.size();
+		}
+
 
 		// prepare for the iterations
 		XMFLOAT3* allocMem = new XMFLOAT3[hair->nParticle];
@@ -428,26 +457,35 @@ namespace XRwy
 		int max_iteration = std::stoi(g_PBDParas["maxpbditer"]);
 
 		int chunksize = std::stoi(g_PBDParas["chunksize"]);
+
+
 		for (size_t i = 0; i < max_iteration; i++)
 		{
+			float t = 0.0f;
 			std::memcpy(p1, p0, sizeof(XMFLOAT3) * hair->nParticle);
-			//for (int j = 0; j < nHairParticleGroup; j++)
-			//{
-			//	WR::VecX x;
-			//	auto& gIds = groupIds[j];
-			//	solveSingleGroup(j, &tree, p0, x, hair->particlePerStrand, i == 0);
+			for (int j = 0; j < nHairParticleGroup; j++)
+			{
+				WR::VecX x;
+				auto& gIds = groupIds[j];
 
-			//	for (size_t k = 0; k < gIds.size(); k++)
-			//		p1[gIds[k]] = XMFLOAT3(x[3*k], x[3*k+1], x[3*k+2]);
-			//}
+				QueryPerformanceCounter(&t1);
+				solveSingleGroup(j, &tree, p0, x, hair->particlePerStrand, i == 0);
+				QueryPerformanceCounter(&t2);
+				t += (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
+				for (size_t k = 0; k < gIds.size(); k++)
+					p1[gIds[k]] = XMFLOAT3(x[3*k], x[3*k+1], x[3*k+2]);
+			}
 
-			TbbPbdItem tbbCls(this, &tree, p0, p1, dr, hair, i);
-			parallel_for(blocked_range<size_t>(0, nHairParticleGroup, chunksize), tbbCls);
+			//TbbPbdItem tbbCls(this, &tree, p0, p1, dr, hair, i);
+			//parallel_for(blocked_range<size_t>(0, nHairParticleGroup, chunksize), tbbCls);
+
+			WR_LOG_TRACE << "Iteration: " << i << ", Timer: " << t / nHairParticleGroup;
 
 			std::swap(p0, p1);
 			if (!bMatrixInited)
 				bMatrixInited = true;
 		}
+
 		std::list<IntPair> l, l2;
 		WR::SparseMat A;
 		Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper> solver;
