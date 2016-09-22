@@ -32,7 +32,9 @@
 namespace
 {
 class OctreeTest;
+const int MAX_OCTREE_DEPTH = 7;
 }
+
 
 namespace unibn
 {
@@ -233,7 +235,7 @@ class Octree
     ~Octree();
 
     /** \brief initialize octree with all points **/
-    void initialize(const ContainerT& pts, const OctreeParams& params = OctreeParams());
+	void initialize(const ContainerT& pts, const OctreeParams& params = OctreeParams());
 
     /** \brief initialize octree only from pts that are inside indexes. **/
     void initialize(const ContainerT& pts, const std::vector<uint32_t>& indexes, const OctreeParams& params =
@@ -522,7 +524,7 @@ typename Octree<PointT, ContainerT>::Octant* Octree<PointT, ContainerT>::createO
   static const float factor[] = { -0.5f, 0.5f };
 
   // subdivide subset of points and re-link points according to Morton codes
-  if (size > params_.bucketSize && level < 7)
+  if (size > params_.bucketSize && level < MAX_OCTREE_DEPTH)
   {
     octant->isLeaf = false;
 

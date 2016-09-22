@@ -428,8 +428,8 @@ namespace XRwy
 		}
 
 		Tree tree;
-		for (int i = 0; i < 100; i++)
-		{
+		//for (int i = 0; i < 100; i++)
+		//{
 			tree.clear();
 			QueryPerformanceCounter(&t1);
 			//for (int i = 0; i < nHairParticleGroup; i++)
@@ -448,7 +448,7 @@ namespace XRwy
 			QueryPerformanceCounter(&t2);
 			WR_LOG_TRACE << "Tree initialization: " << (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
 			WR_LOG_TRACE << "Vertex Count: " << points.size();
-		}
+		//}
 
 
 		// prepare for the iterations
@@ -479,7 +479,7 @@ namespace XRwy
 			//TbbPbdItem tbbCls(this, &tree, p0, p1, dr, hair, i);
 			//parallel_for(blocked_range<size_t>(0, nHairParticleGroup, chunksize), tbbCls);
 
-			WR_LOG_TRACE << "Iteration: " << i << ", Timer: " << t / nHairParticleGroup;
+			WR_LOG_TRACE << "Iteration: " << i << ", Timer: " << t << "/" << t / nHairParticleGroup;
 
 			std::swap(p0, p1);
 			if (!bMatrixInited)
