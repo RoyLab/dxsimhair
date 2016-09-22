@@ -133,7 +133,7 @@ namespace XRwy
 			memset(size_, 0, sizeof(count_t)*n*n*n);
 
 			start_ = new uint32_t[n*n*n];
-			//memset(start_, 0, sizeof(uint32_t)*n*n*n);
+			memset(start_, 0xff, sizeof(uint32_t)*n*n*n);
 
 			end_ = new uint32_t[n*n*n];
 			//memset(end_, 0, sizeof(uint32_t)*n*n*n);
@@ -165,7 +165,8 @@ namespace XRwy
 
 		void reset()
 		{
-			memset(size_, 0, sizeof(count_t)*n*n*n);
+			//memset(size_, 0, sizeof(count_t)*n*n*n);
+			memset(start_, 0xff, sizeof(uint32_t)*n*n*n);
 
 			//for (int i = 0; i < n; i++)
 			//{
@@ -244,12 +245,12 @@ namespace XRwy
 
 				// set child starts and update successors...
 				auto tmpId = id(code[0],code[1], code[2]);
-				if (size_[tmpId] == 0)
+				if (start_[tmpId] == 0xffffffff)
 					start_[tmpId] = i;
 				else
 					successors_[end_[tmpId]] = i;
 
-				size_[tmpId] ++;
+				//size_[tmpId] ++;
 				end_[tmpId] = i;
 			}
 		}
