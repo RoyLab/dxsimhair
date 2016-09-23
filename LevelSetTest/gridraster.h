@@ -78,24 +78,21 @@ namespace XRwy
 				ptr = &cube;
 				succ_ = &succ;
 				cur = cube.start;
+				//end = succ_->size()-1;
 			}
 
 			bool isValid() const { return ptr->start != INVALID_U32; }
+			//bool validate(uint32_t id) const { return id != end; }
 
 			uint32_t next()
 			{
-				if (cur == INVALID_U32) return INVALID_U32;
-
 				uint32_t res = cur;
-				if (cur == ptr->end)
-					cur = INVALID_U32;
-				else
-					cur = succ_->at(cur);
+				cur = succ_->at(cur);
 				return res;
 			}
 
 		private:
-			uint32_t cur = INVALID_U32;
+			uint32_t cur;// = INVALID_U32, end;
 			const Cube* ptr;
 			const std::vector<uint32_t>* succ_;
 		};
@@ -103,12 +100,13 @@ namespace XRwy
 		typedef uint8_t count_t;
 
 	public:
-		GridRaster(const ContainerT& pts, T dr)
+		GridRaster(const ContainerT& pts, T dr, double factor=1.05)
 		{
 			data_ = &pts;
 
 			const uint32_t N = pts.size();
-			successors_ = std::vector<uint32_t>(N);
+			this->N = N;
+			successors_ = std::vector<uint32_t>(N+1);
 			pointMap_ = std::vector<uint32_t[3]>(N);
 
 			// determine axis-aligned bounding box.
@@ -133,6 +131,7 @@ namespace XRwy
 				if (get<1>(p) > max[1]) max[1] = get<1>(p);
 				if (get<2>(p) > max[2]) max[2] = get<2>(p);
 			}
+			successors_[N] = N;
 
 			//float ctr[3] = { 0 };
 			for (int i = 0; i < 3; i++)
@@ -145,12 +144,12 @@ namespace XRwy
 				if (extent > maxextent) maxextent = extent;
 			}
 
-			offset = 1.05 * dr;
+			offset = factor * dr;
 			r0 = dr;
 			n = int(maxextent * 2 / offset) + 1;
 			n2 = n*n;
 			maxextent = n * offset / 2;
-			
+
 			grid_ = new Cube[n*n*n];
 			memset(grid_, 0xff, sizeof(Cube)*n*n*n);
 
@@ -163,6 +162,8 @@ namespace XRwy
 			//end_ = new uint32_t[n*n*n];
 			//memset(end_, 0, sizeof(uint32_t)*n*n*n);
 		}
+
+		~GridRaster() { free(); }
 
 		void free()
 		{
@@ -187,11 +188,11 @@ namespace XRwy
 		template<class ResContainerT>
 		void query(ResContainerT& res0, ResContainerT& res1)
 		{
-			uint32_t N = pointMap_.size();
+			const uint32_t N = this->N;
 			std::vector<bool> flag(N, false);
 
 			T dr2 = r0 * r0;
-			std::vector<uint32_t> locals, extras;
+			std::vector<uint32_t> locals;
 			for (uint32_t i = 0; i < N; i++)
 			{
 				if (flag[i]) continue;
@@ -199,19 +200,30 @@ namespace XRwy
 				auto c0 = pointMap_[i];
 				auto &cell = grid_[id(c0)];
 				assert(cell.start != INVALID_U32);
-				
+
 				locals.clear();
-				extras.clear();
-				
+
 				CubeIterator itr(cell, successors_);
 				uint32_t id2;
 				do
 				{
 					id2 = itr.next();
-					if (id2 == INVALID_U32) break;
+					if (id2 == N) break;
 					locals.push_back(id2);
 					flag[id2] = true;
 				} while (1);
+
+				for (auto i0 = locals.begin(); i0 != locals.end() - 1; i0++)
+				{
+					for (auto i1 = i0 + 1; i1 != locals.end(); i1++)
+					{
+						if (closeEnough(*i0, *i1, dr2))
+						{
+							res0.push_back(*i0);
+							res1.push_back(*i1);
+						}
+					}
+				}
 
 				// 26 neighbor
 				for (int j = 0; j < 26; j++)
@@ -226,36 +238,21 @@ namespace XRwy
 						do
 						{
 							id2 = itr.next();
-							if (id2 == INVALID_U32) break;
-							extras.push_back(id2);
+							if (id2 == N) break;
+							for (auto i0 = locals.begin(); i0 != locals.end(); i0++)
+							{
+								if (validPair(*i0, id2))
+								{
+									if (closeEnough(*i0, id2, dr2))
+									{
+										res0.push_back(*i0);
+										res1.push_back(id2);
+									}
+								}
+							}
 						} while (1);
 					}
 				}
-
-				for (auto i0 = locals.begin(); i0 != locals.end()-1; i0++)
-				{
-					for (auto i1 = i0+1; i1 != locals.end(); i1++)
-					{
-						if (closeEnough(*i0, *i1, dr2))
-						{
-							res0.push_back(*i0);
-							res1.push_back(*i1);
-						}
-					}
-				}
-
-				for (auto i0 = locals.begin(); i0 != locals.end(); i0++)
-				{
-					for (auto i1 = extras.begin(); i1 != extras.end(); i1++)
-					{
-						if (validPair(*i0, *i1) && closeEnough(*i0, *i1, dr2))
-						{
-							res0.push_back(*i0);
-							res1.push_back(*i1);
-						}
-					}
-				}
-
 			}
 		}
 
@@ -290,7 +287,7 @@ namespace XRwy
 			CubeIterator itr(grid_[id(x,y,z)], successors_);
 			count_t count = 0;
 			if (itr.isValid())
-				while (itr.next() != INVALID_U32) count++;
+				while (itr.next() != N) count++;
 			return count;
 		}
 
@@ -391,6 +388,7 @@ namespace XRwy
 
 				//size_[tmpId] ++;
 				node.end = i;
+				successors_[node.end] = size;
 			}
 		}
 
@@ -402,7 +400,7 @@ namespace XRwy
 		Cube * grid_ = nullptr;
 
 		T offset,ctr[3], r0;
-		uint32_t n, n2;
+		uint32_t n, n2, N;
 
 		//count_t *size_ = nullptr;
 		//uint32_t *start_ = nullptr, *end_ = nullptr;
