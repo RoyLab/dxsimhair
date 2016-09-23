@@ -5,9 +5,10 @@
 
 namespace XRwy
 {
+	static uint32_t stat1, stat2;
+	const uint32_t INVALID_U32 = 0xffffffff;
 	namespace traits
 	{
-
 		template<typename PointT, int D>
 		struct access
 		{
@@ -53,26 +54,65 @@ namespace XRwy
 	template <class PointT, class ContainerT=std::vector<PointT>>
 	class GridRaster
 	{
-		//struct Cube
-		//{
-		//	//uint32_t id[3];
+		const int MASK26[26][3] = { {1,1,1},{ -1,1,1 },{ 1,-1,1 },{ -1,-1,1 },
+		{ 1,0,1 },{ -1,0,1 },{ 0,-1,1 },{ 0,1,1 },{ 0,0,1 },
+		{ 1,1,0 },{ -1,1,0 },{ 1,-1,0 },{ -1,-1,0 },
+		{ 1,0,0 },{ -1,0,0 },{ 0,-1,0 },{ 0,1,0 },
+		{ 1,1,-1 },{ -1,1,-1 },{ 1,-1,-1 },{ -1,-1,-1 },
+		{ 1,0,-1 },{ -1,0,-1 },{ 0,-1,-1 },{ 0,1,-1 },{ 0,0,-1 } };
 
-		//	uint32_t start, end;    // start and end in succ_
-		//	//uint32_t size = 0;    // number of points
-		//};
+		typedef decltype(get<1>(PointT(0, 0, 0))) T;
+		struct Cube
+		{
+			uint32_t start, end;    // start and end in succ_
+
+			//uint32_t id[3];
+			//uint32_t size = 0;    // number of points
+		};
+
+		class CubeIterator
+		{
+		public:
+			CubeIterator(Cube& cube, const std::vector<uint32_t>& succ)
+			{
+				ptr = &cube;
+				succ_ = &succ;
+				cur = cube.start;
+			}
+
+			bool isValid() const { return ptr->start != INVALID_U32; }
+
+			uint32_t next()
+			{
+				if (cur == INVALID_U32) return INVALID_U32;
+
+				uint32_t res = cur;
+				if (cur == ptr->end)
+					cur = INVALID_U32;
+				else
+					cur = succ_->at(cur);
+				return res;
+			}
+
+		private:
+			uint32_t cur = INVALID_U32;
+			const Cube* ptr;
+			const std::vector<uint32_t>* succ_;
+		};
 
 		typedef uint8_t count_t;
 
 	public:
-		GridRaster(const ContainerT& pts, float dr)
+		GridRaster(const ContainerT& pts, T dr)
 		{
 			data_ = &pts;
 
 			const uint32_t N = pts.size();
 			successors_ = std::vector<uint32_t>(N);
+			pointMap_ = std::vector<uint32_t[3]>(N);
 
 			// determine axis-aligned bounding box.
-			float min[3], max[3];
+			T min[3], max[3];
 			min[0] = get<0>(pts[0]);
 			min[1] = get<1>(pts[0]);
 			min[2] = get<2>(pts[0]);
@@ -84,7 +124,6 @@ namespace XRwy
 			{
 				// initially each element links simply to the following element.
 				successors_[i] = i + 1;
-
 				const PointT& p = pts[i];
 
 				if (get<0>(p) < min[0]) min[0] = get<0>(p);
@@ -99,87 +138,106 @@ namespace XRwy
 			for (int i = 0; i < 3; i++)
 				ctr[i] = (min[i] + max[i]) / 2;
 
-			float maxextent = 0.5f * (max[0] - min[0]);
+			T maxextent = 0.5f * (max[0] - min[0]);
 			for (uint32_t i = 1; i < 3; ++i)
 			{
-				float extent = 0.5f * (max[i] - min[i]);
+				T extent = 0.5f * (max[i] - min[i]);
 				if (extent > maxextent) maxextent = extent;
 			}
 
 			offset = 1.05 * dr;
+			r0 = dr;
 			n = int(maxextent * 2 / offset) + 1;
 			n2 = n*n;
 			maxextent = n * offset / 2;
+			
+			grid_ = new Cube[n*n*n];
+			memset(grid_, 0xff, sizeof(Cube)*n*n*n);
 
-			//grid_ = new Cube**[n];
-			//for (int i = 0; i < n; i++)
-			//{
-			//	grid_[i] = new Cube*[n];
-			//	for (int j = 0; j < n; j++)
-			//	{
-			//		grid_[i][j] = new Cube[n];
-			//		//for (int k = 0; k < n; k++)
-			//		//{
-			//		//	auto cptr = &grid_[i][j][k];
-			//		//	cptr->id[0] = i;
-			//		//	cptr->id[1] = j;
-			//		//	cptr->id[2] = k;
-			//		//	cptr->size = 0;
-			//		//}
-			//	}
-			//}
+			//size_ = new count_t[n*n*n];
+			//memset(size_, 0, sizeof(count_t)*n*n*n);
 
-			size_ = new count_t[n*n*n];
-			memset(size_, 0, sizeof(count_t)*n*n*n);
+			//start_ = new uint32_t[n*n*n];
+			//memset(start_, 0xff, sizeof(uint32_t)*n*n*n);
 
-			start_ = new uint32_t[n*n*n];
-			memset(start_, 0xff, sizeof(uint32_t)*n*n*n);
-
-			end_ = new uint32_t[n*n*n];
+			//end_ = new uint32_t[n*n*n];
 			//memset(end_, 0, sizeof(uint32_t)*n*n*n);
-
-			//createGrid(ctr[0], ctr[1], ctr[2], maxextent);
-			//root_ = createOctant(ctr[0], ctr[1], ctr[2], maxextent, 0, N - 1, N);
 		}
 
 		void free()
 		{
-			//if (grid_)
-			//{
-			//	for (int i = 0; i < n; i++)
-			//	{
-			//		for (int j = 0; j < n; j++)
-			//			SAFE_DELETE_ARRAY(grid_[i][j]);
-			//		SAFE_DELETE_ARRAY(grid_[i]);
-			//	}
-			//	SAFE_DELETE_ARRAY(grid_);
-			//}
-
 			if (data_) data_ = nullptr;
-			if (size_) SAFE_DELETE_ARRAY(size_);
-			if (start_) SAFE_DELETE_ARRAY(start_);
-			if (end_) SAFE_DELETE_ARRAY(end_);
 
+			//if (size_) SAFE_DELETE_ARRAY(size_);
+			//if (start_) SAFE_DELETE_ARRAY(start_);
+			//if (end_) SAFE_DELETE_ARRAY(end_);
+
+			if (grid_) SAFE_DELETE_ARRAY(grid_);
 			successors_.clear();
+			pointMap_.clear();
 		}
 
 		void reset()
 		{
 			//memset(size_, 0, sizeof(count_t)*n*n*n);
-			memset(start_, 0xff, sizeof(uint32_t)*n*n*n);
-
-			//for (int i = 0; i < n; i++)
-			//{
-			//	for (int j = 0; j < n; j++)
-			//	{
-			//		for (int k = 0; k < n; k++)
-			//			grid_[i][j][k].size = 0;
-			//	}
-			//}
+			//memset(start_, 0xff, sizeof(uint32_t)*n*n*n);
+			memset(grid_, 0xff, sizeof(Cube)*n*n*n);
 		}
 
-		void query(std::vector<uint32_t>& res0, std::vector<uint32_t>& res1)
+		template<class ResContainerT>
+		void query(ResContainerT& res0, ResContainerT& res1)
 		{
+			uint32_t N = pointMap_.size();
+			std::vector<uint32_t> extra;
+			std::vector<bool> flag(N, false);
+
+			T dr2 = r0 * r0;
+			for (uint32_t i = 0; i < N; i++)
+			{
+				if (flag[i]) continue;
+
+				flag[i] = true;
+				auto c0 = pointMap_[i];
+				auto &cell = grid_[id(c0)];
+				assert(cell.start != INVALID_U32);
+				CubeIterator itr(cell, successors_);
+				uint32_t id2;
+
+				std::vector<uint32_t>
+				do
+				{
+					id2 = itr.next();
+					if (id2 == INVALID_U32) break;
+					if (validPair(i, id2) && closeEnough(i, id2, dr2))
+					{
+						res0.push_back(i);
+						res1.push_back(id2);
+					}
+				} while (1);
+
+				// 26 neighbor
+				for (int j = 0; j < 26; j++)
+				{
+					uint32_t shift[3] = { c0[0] + MASK26[j][0],
+						c0[1] + MASK26[j][1], c0[2] + MASK26[j][2] };
+					if (!validId(shift)) continue;
+					auto& cell2 = grid_[id(shift)];
+					if (cell2.start != INVALID_U32)
+					{
+						CubeIterator itr(cell2, successors_);
+						do
+						{
+							id2 = itr.next();
+							if (id2 == INVALID_U32) break;
+							if (validPair(i, id2) && closeEnough(i, id2, dr2))
+							{
+								res0.push_back(i);
+								res1.push_back(id2);
+							}
+						} while (1);
+					}
+				}
+			}
 		}
 
 		void createGrid()
@@ -210,7 +268,16 @@ namespace XRwy
 
 		count_t getSize(uint32_t x, uint32_t y, uint32_t z) const
 		{
-			return size_[id(x,y,z)];
+			CubeIterator itr(grid_[id(x,y,z)], successors_);
+			count_t count = 0;
+			if (itr.isValid())
+				while (itr.next() != INVALID_U32) count++;
+			return count;
+		}
+
+		uint32_t id(uint32_t* c) const
+		{
+			return id(c[0], c[1], c[2]);
 		}
 
 		uint32_t id(uint32_t x, uint32_t y, uint32_t z) const
@@ -218,7 +285,59 @@ namespace XRwy
 			return n2*x + n*y + z;
 		}
 
+		template<class ResContainerT>
+		uint32_t checkPairs(ResContainerT& res0, ResContainerT& res1)
+		{
+			T dr2 = r0*r0;
+			uint32_t res = 0u;
+			for (uint32_t i = 0; i < res0.size(); i++)
+			{
+				if (!closeEnough(res0[i], res1[i], dr2))
+				{
+					//std::cout << get<0>(data_->at(res0[i])) << ", " << get<1>(data_->at(res0[i])) << ", " << get<2>(data_->at(res0[i])) << '\t';
+					//std::cout << get<0>(data_->at(res1[i])) << ", " << get<1>(data_->at(res1[i])) << ", " << get<2>(data_->at(res1[i])) << "\tDist: ";
+					//std::cout << std::sqrt(squaredDist(data_->at(res0[i]), data_->at(res1[i]))) << std::endl;
+					//return false;
+					res++;
+				}
+			}
+			return res;
+		}
+		
 	private:
+
+		T squaredDist(const PointT& pa, const PointT& pb) const
+		{
+			T tmp[3];
+			tmp[0] = get<0>(pa) - get<0>(pb);
+			tmp[1] = get<1>(pa) - get<1>(pb);
+			tmp[2] = get<2>(pa) - get<2>(pb);
+			return tmp[0] * tmp[0] + tmp[1] * tmp[1] + tmp[2] * tmp[2];
+		}
+
+		bool closeEnough(uint32_t a, uint32_t b, float dr2) const
+		{
+			return true;
+			const PointT& pa = data_->at(a);
+			const PointT& pb = data_->at(b);
+			bool res = squaredDist(pa, pb) <= dr2;
+			//if (res) stat1++;
+			//else stat2++;
+			return res;
+		}
+
+		bool validPair(uint32_t a, uint32_t b) const
+		{
+			return a > b;
+		}
+
+		bool validId(uint32_t* a) const { return validId(a[0], a[1], a[2]); }
+
+		bool validId(uint32_t x, uint32_t y, uint32_t z) const
+		{
+			return x < n && y < n && z < n;
+		}
+
 		void createGrid(float x, float y, float z, float extent)
 		{
 			// @ extend is half length, radius
@@ -241,32 +360,35 @@ namespace XRwy
 				code[1] = int((get<1>(p) - min_[1]) / offset);
 				code[2] = int((get<2>(p) - min_[2]) / offset);
 
-				//Cube& cell = grid_[code[0]][code[1]][code[2]];
-
 				// set child starts and update successors...
-				auto tmpId = id(code[0],code[1], code[2]);
-				if (start_[tmpId] == 0xffffffff)
-					start_[tmpId] = i;
+				auto tmp = id(code);
+				for (int i1 = 0; i1 < 3; i1++)
+					pointMap_[i][i1] = code[i1];
+
+				auto& node = grid_[tmp];
+				if (node.start > 99999999)
+					node.start = i;
 				else
-					successors_[end_[tmpId]] = i;
+					successors_[node.end] = i;
 
 				//size_[tmpId] ++;
-				end_[tmpId] = i;
+				node.end = i;
 			}
 		}
 
 	private:
-
 		std::vector<uint32_t> successors_;    // single connected list of next point indices...
-		const ContainerT* data_ = nullptr;
-		//Cube *** grid_ = nullptr;
+		std::vector<uint32_t[3]> pointMap_;
 
-		float offset,ctr[3];
+		const ContainerT* data_ = nullptr;
+		Cube * grid_ = nullptr;
+
+		T offset,ctr[3], r0;
 		uint32_t n, n2;
 
-		count_t *size_ = nullptr;
-		uint32_t *start_ = nullptr, *end_ = nullptr;
+		//count_t *size_ = nullptr;
+		//uint32_t *start_ = nullptr, *end_ = nullptr;
 
-		float min_[3], sl_;
+		T min_[3], sl_;
 	};
 }

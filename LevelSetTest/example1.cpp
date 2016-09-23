@@ -1,7 +1,9 @@
 #include <iostream>
 #include <cstdlib>
 #include <time.h>
+#include <deque>
 
+#include <windows.h>
 #include "Octree.hpp"
 #include "utils.h"
 #include "gridraster.h"
@@ -58,56 +60,98 @@ int main(int argc, char** argv)
     return -1;
   }
 
-  int64_t begin, end;
+  float r = 0.03f;
 
-  XRwy::GridRaster<Point3f> octree(points, 0.03f);
-  for (int i0 = 0; i0 < 20; i0++)
+  LARGE_INTEGER freq, t1, t2;
+  QueryPerformanceFrequency(&freq);
+
+#ifndef _DEBUG
+  unibn::Octree<Point3f> octree;
+  unibn::OctreeParams params(powf(2, 6));
+  octree.initialize(points, params);
+  QueryPerformanceCounter(&t1);
+  std::vector<uint32_t> results;
+  int count = 0;
+  for (uint32_t i = 0; i < points.size(); ++i)
   {
-	  // initializing the Octree with points from point cloud.
-	  octree.reset();
-	  begin = clock();
-	  octree.createGrid();
-
-	  //unibn::Octree<Point3f> octree;
-	  //unibn::OctreeParams params(powf(2, i0+3));
-	  //octree.initialize(points, params);
-	  end = clock();
-	  double search_time = ((double)(end - begin) / CLOCKS_PER_SEC);
-	  std::cout << "Construction in " << search_time << " seconds. " << std::endl;
-	  //octree.stat();
-
-	  //// radiusNeighbors returns indexes to neighboring points.
-	  //std::vector<uint32_t> results;
-	  ////const Point3f& q = points[0];
-	  ////octree.radiusNeighbors<unibn::L2Distance<Point3f> >(q, 0.2f, results);
-	  ////std::cout << results.size() << " radius neighbors (r = 0.2m) found for (" << q.x << ", " << q.y << "," << q.z << ")"
-		 //// << std::endl;
-	  ////for (uint32_t i = 0; i < results.size(); ++i)
-	  ////{
-		 //// const Point3f& p = points[results[i]];
-		 //// std::cout << "  " << results[i] << ": (" << p.x << ", " << p.y << ", " << p.z << ") => "
-			////  << std::sqrt(unibn::L2Distance<Point3f>::compute(p, q)) << std::endl;
-	  ////}
-
-	  //// performing queries for each point in point cloud
-	  //for (int k = 0; k < 3; k++)
-	  //{
-		 // begin = clock();
-		 // float r = 0.01f*(k + 1);
-		 // int count = 0;
-		 // for (uint32_t i = 0; i < points.size(); ++i)
-		 // {
-			//  octree.radiusNeighbors<unibn::L2Distance<Point3f> >(points[i], r, results);
-			//  count += results.size();
-		 // }
-		 // end = clock();
-		 // search_time = ((double)(end - begin) / CLOCKS_PER_SEC);
-		 // std::cout << "Searching for all radius neighbors (r =" << r << "m) took " << search_time << " seconds." << std::endl;
-		 // std::cout << "Size: " << count/(float)nParticle << std::endl;
-		 // results.clear();
-	  //}
-	  //octree.clear();
+	  octree.radiusNeighbors<unibn::L2Distance<Point3f> >(points[i], r, results);
+	  count += results.size();
   }
+  QueryPerformanceCounter(&t2);
+  auto tmp = (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
+  std::cout << "Octree query in " << tmp << std::endl;
+  std::cout << "Result size: " << count << std::endl;
+  octree.clear();
+#endif
+
+  XRwy::GridRaster<Point3f> grid(points, r);
+  grid.reset();
+  grid.createGrid();
+  grid.stat();
+   
+  // 382548 ≤ª»•÷ÿ
+  //std::cout << "???? "<< 1u - 3 << std::endl;
+  double accum = 0.0;
+  std::vector<uint32_t> id0, id1;
+  for (int i0 = 0; i0 < 10; i0++)
+  {
+	  QueryPerformanceCounter(&t1);
+
+	  id0.clear(); id1.clear();
+	  grid.query(id0, id1);
+	  
+	  QueryPerformanceCounter(&t2);
+	  auto tmp = (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
+	  accum += tmp;
+	  std::cout << "Grid query in " << tmp;
+	  std::cout << ". Total Pair: " << id0.size() << std::endl;
+
+	  // dump
+	  //std::ofstream f("D:/gridpair.dump");
+	  //for (int i = 0; i < id0.size(); i++)
+	  //{
+		 // //f.write((char*)&id0[i], sizeof(uint32_t));
+		 // //f.write((char*)&id1[i], sizeof(uint32_t));
+		 // f << id0[i] << '\t' << id1[i] << std::endl;
+	  //}
+	  //f.close();
+	  //exit(0);
+
+	  // load
+	  //std::ifstream f2("D:/gridpair.dump", std::ios::binary);
+	  //id0.clear(); id1.clear();
+	  //uint32_t i0, i1;
+	  //for (int i = 0; i < id0.size(); i++)
+	  //{
+		 // f2.read((char*)&i0, sizeof(uint32_t));
+		 // f2.read((char*)&i1, sizeof(uint32_t));
+		 // id0.push_back(i0);
+		 // id1.push_back(i1);
+	  //}
+	  //f2.close();
+
+	  //std::cout << "Problem: " << grid.checkPairs(id0, id1) << std::endl;
+
+	  //// initializing the Octree with points from point cloud.
+
+
+	  // radiusNeighbors returns indexes to neighboring points.
+	  //const Point3f& q = points[0];
+	  //octree.radiusNeighbors<unibn::L2Distance<Point3f> >(q, 0.2f, results);
+	  //std::cout << results.size() << " radius neighbors (r = 0.2m) found for (" << q.x << ", " << q.y << "," << q.z << ")"
+		 // << std::endl;
+	  //for (uint32_t i = 0; i < results.size(); ++i)
+	  //{
+		 // const Point3f& p = points[results[i]];
+		 // std::cout << "  " << results[i] << ": (" << p.x << ", " << p.y << ", " << p.z << ") => "
+			//  << std::sqrt(unibn::L2Distance<Point3f>::compute(p, q)) << std::endl;
+	  //}
+
+	  // performing queries for each point in point cloud
+  }
+  std::cout << "All time " << accum << std::endl;
+  //std::cout << XRwy::stat1 << " ??? " << XRwy::stat2 << std::endl;;
+
   system("pause");
   return 0;
 }
