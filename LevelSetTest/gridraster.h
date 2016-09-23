@@ -188,31 +188,29 @@ namespace XRwy
 		void query(ResContainerT& res0, ResContainerT& res1)
 		{
 			uint32_t N = pointMap_.size();
-			std::vector<uint32_t> extra;
 			std::vector<bool> flag(N, false);
 
 			T dr2 = r0 * r0;
+			std::vector<uint32_t> locals, extras;
 			for (uint32_t i = 0; i < N; i++)
 			{
 				if (flag[i]) continue;
 
-				flag[i] = true;
 				auto c0 = pointMap_[i];
 				auto &cell = grid_[id(c0)];
 				assert(cell.start != INVALID_U32);
+				
+				locals.clear();
+				extras.clear();
+				
 				CubeIterator itr(cell, successors_);
 				uint32_t id2;
-
-				std::vector<uint32_t>
 				do
 				{
 					id2 = itr.next();
 					if (id2 == INVALID_U32) break;
-					if (validPair(i, id2) && closeEnough(i, id2, dr2))
-					{
-						res0.push_back(i);
-						res1.push_back(id2);
-					}
+					locals.push_back(id2);
+					flag[id2] = true;
 				} while (1);
 
 				// 26 neighbor
@@ -229,14 +227,35 @@ namespace XRwy
 						{
 							id2 = itr.next();
 							if (id2 == INVALID_U32) break;
-							if (validPair(i, id2) && closeEnough(i, id2, dr2))
-							{
-								res0.push_back(i);
-								res1.push_back(id2);
-							}
+							extras.push_back(id2);
 						} while (1);
 					}
 				}
+
+				for (auto i0 = locals.begin(); i0 != locals.end()-1; i0++)
+				{
+					for (auto i1 = i0+1; i1 != locals.end(); i1++)
+					{
+						if (closeEnough(*i0, *i1, dr2))
+						{
+							res0.push_back(*i0);
+							res1.push_back(*i1);
+						}
+					}
+				}
+
+				for (auto i0 = locals.begin(); i0 != locals.end(); i0++)
+				{
+					for (auto i1 = extras.begin(); i1 != extras.end(); i1++)
+					{
+						if (validPair(*i0, *i1) && closeEnough(*i0, *i1, dr2))
+						{
+							res0.push_back(*i0);
+							res1.push_back(*i1);
+						}
+					}
+				}
+
 			}
 		}
 
@@ -317,7 +336,6 @@ namespace XRwy
 
 		bool closeEnough(uint32_t a, uint32_t b, float dr2) const
 		{
-			return true;
 			const PointT& pa = data_->at(a);
 			const PointT& pb = data_->at(b);
 			bool res = squaredDist(pa, pb) <= dr2;

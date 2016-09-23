@@ -85,10 +85,14 @@ int main(int argc, char** argv)
 #endif
 
   XRwy::GridRaster<Point3f> grid(points, r);
+  QueryPerformanceCounter(&t1);
   grid.reset();
   grid.createGrid();
+  QueryPerformanceCounter(&t2);
+  tmp = (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
+  std::cout << "Grid construction in " << tmp << std::endl;
   grid.stat();
-   
+
   // 382548 ²»È¥ÖØ
   //std::cout << "???? "<< 1u - 3 << std::endl;
   double accum = 0.0;
