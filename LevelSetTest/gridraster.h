@@ -195,7 +195,7 @@ namespace XRwy
 			std::vector<uint32_t> locals;
 			for (uint32_t i = 0; i < N; i++)
 			{
-				if (flag[i]) continue;
+				//if (flag[i]) continue;
 
 				auto c0 = pointMap_[i];
 				auto &cell = grid_[id(c0)];
@@ -210,18 +210,16 @@ namespace XRwy
 					id2 = itr.next();
 					if (id2 == N) break;
 					locals.push_back(id2);
-					flag[id2] = true;
+					//flag[id2] = true;
 				} while (1);
 
-				for (auto i0 = locals.begin(); i0 != locals.end() - 1; i0++)
+
+				for (auto i1 = locals.begin(); i1 != locals.end(); i1++)
 				{
-					for (auto i1 = i0 + 1; i1 != locals.end(); i1++)
+					if (validPair(i, *i1) && closeEnough(i, *i1, dr2))
 					{
-						if (closeEnough(*i0, *i1, dr2))
-						{
-							res0.push_back(*i0);
-							res1.push_back(*i1);
-						}
+						res0.push_back(i);
+						res1.push_back(*i1);
 					}
 				}
 
@@ -239,16 +237,10 @@ namespace XRwy
 						{
 							id2 = itr.next();
 							if (id2 == N) break;
-							for (auto i0 = locals.begin(); i0 != locals.end(); i0++)
+							if (validPair(i, id2) && closeEnough(i, id2, dr2))
 							{
-								if (validPair(*i0, id2))
-								{
-									if (closeEnough(*i0, id2, dr2))
-									{
-										res0.push_back(*i0);
-										res1.push_back(id2);
-									}
-								}
+								res0.push_back(i);
+								res1.push_back(id2);
 							}
 						} while (1);
 					}
@@ -343,7 +335,7 @@ namespace XRwy
 
 		bool validPair(uint32_t a, uint32_t b) const
 		{
-			return a > b;
+			return a < b;
 		}
 
 		bool validId(uint32_t* a) const { return validId(a[0], a[1], a[2]); }
