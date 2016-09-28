@@ -1,5 +1,6 @@
 #pragma once
 #include <Eigen\Sparse>
+#include <linmath.h>
 #include "HairStructs.h"
 #include "EigenTypes.h"
 
@@ -25,14 +26,14 @@ namespace Hair
 			///Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper> solver;
 		};
 	public:
-		MatrixFactory(const char*, double k=1, int skipFactor=0);
+		MatrixFactory(const char*, double k, int skipFactor);
 		~MatrixFactory();
 
 		void update(Container & id0, Container & id1, float* &pos, uint32_t npos, double dr, double h);
 
 	private:
 		void initCache(double h);
-		void compute_b(int pass, int gId, float* pts, float dr);
+		void compute_b(int pass, float* pts, float dr);
 		void updateL(Container & id0, Container & id1);
 		bool isInit() const { return bInit; }
 		void loadPosition(float*& pts);
@@ -40,12 +41,13 @@ namespace Hair
 
 		bool bInit = false;
 		double k_;
+		float balance;
 		Container id0_, id1_;
 		uint32_t nGroup;
 		std::vector<gid_t> groupId; // group id of each particle
 		std::vector<uint32_t>* groups = nullptr; // particles in each group
 		std::vector<GroupCache> cache; // A, L, b, buffer
-		std::vector<uint32_t> pid2matrixSeq; // from particle id to matrix position
+		std::vector<int> pid2matrixSeq; // from particle id to matrix position
 	};
 
 	template<class Container>
@@ -126,11 +128,11 @@ namespace Hair
 		const int maxiter = 4;
 		for (int i = 0; i < maxiter; i++)
 		{
+			compute_b(i, pos, dr);
 			for (int j = 0; j < nGroup; j++)
 			{
 				if (groups[j].empty()) continue;
 
-				compute_b(i, j, pos, dr);
 				//choleskySolve(j);
 			}
 		}
@@ -140,13 +142,23 @@ namespace Hair
 	template<class Container>
 	void MatrixFactory<Container>::loadPosition(float*& pts)
 	{
-
+		for (uint32_t i = 0; i < nGroup; i++)
+		{
+			auto &pool = groups[i];
+			for (uint32_t j = 0; j < pool.size(); j++)
+				memcpy(cache[i].buffer + 3 * j, pts + 3 * pool[j], sizeof(float)*3);
+		}
 	}
 
 	template<class Container>
 	void MatrixFactory<Container>::dispatchPosition(float*& pts)
 	{
-
+		for (uint32_t i = 0; i < nGroup; i++)
+		{
+			auto &pool = groups[i];
+			for (uint32_t j = 0; j < pool.size(); j++)
+				memcpy(pts + 3 * pool[j], cache[i].buffer + 3 * j, sizeof(float) * 3);
+		}
 	}
 
 	template<class Container>
@@ -154,14 +166,14 @@ namespace Hair
 	{
 		std::deque<Eigen::Triplet<float>> *assemble = new std::deque<Eigen::Triplet<float>>[nGroup];
 		const uint32_t npair = id0_.size();
-		const float balance = h*h*k_;
+		balance = h*h*k_;
 
 		for (uint32_t i = 0; i < npair; i++)
 		{
 			uint32_t id[2] = { id0_[i], id1_[i] };
 			assert(id[0] < id[1]);
 			uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
-			uint32_t mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
+			int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
 
 			// assemble A
 			for (int j = 0; j < 2; j++)
@@ -171,7 +183,7 @@ namespace Hair
 					assemble[g[j]].push_back(Eigen::Triplet<float>(mseq[j] +k, mseq[j] +k, 1));
 			}
 
-			if (g[0] == g[1])
+			if (mseq[0] > -1 && g[0] == g[1])
 			{
 				// upper triangle, row < column
 				for (int k = 0; k < 3; k++)
@@ -190,72 +202,68 @@ namespace Hair
 			cache[i].A += tmpSM * balance;
 
 			solver.compute(cache[i].A);
+			assert(solver.info() == Eigen::Success);
 			cache[i].L = solver.matrixL();
 			cache[i].b.resize(dim);
 			cache[i].b0.resize(dim);
 
 			if (groups[i].size())
 			{
-				cache[i].buffer = new float[3 * groups[i].size()];
-				cache[i].buffersize = 3 * groups[i].size() * sizeof(float);
+				cache[i].buffer = new float[dim];
+				cache[i].buffersize = dim * sizeof(float);
 			}
 		}
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::compute_b(int pass, int gId, float* pts, float dr)
+	void MatrixFactory<Container>::compute_b(int pass, float* pts, float dr)
 	{
-		auto& particleList = groups[gId];
-		auto& infos = cache[gId];
-		//auto n = particleList.size();
-		//const float balance = this->balance;
+		const float coef = balance * dr;
+		const uint32_t npair = id0_.size();
 
-		memcpy(infos.b0.data(), infos.buffer, infos.buffersize);
+		// clear b, b0
+		for (uint32_t i = 0; i < nGroup; i++)
+		{
+			auto &infos = cache[i];
+			memcpy(infos.b0.data(), infos.buffer, infos.buffersize);
+			infos.b.setZero();
+		}
 
-		//for (size_t i = 0; i < n; i++)
-		//{
-		//	auto& point = pts[particleList[i]];
-		//	b[3 * i] = point.x;
-		//	b[3 * i + 1] = point.y;
-		//	b[3 * i + 2] = point.z;
-		//}
+		for (uint32_t i = 0; i < npair; i++)
+		{
+			uint32_t id[2] = { id0_[i], id1_[i] };
+			assert(id[0] < id[1]);
+			uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
+			int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
 
-		//for (auto& item : infos.l)
-		//{
-		//	auto &pi = pts[item.i], &pj = pts[item.number];
+			if (mseq[0] < 0 && mseq[1] < 0) continue;
 
-		//	KernelPBD::Point_3 p0(pi.x, pi.y, pi.z);
-		//	KernelPBD::Point_3 p1(pj.x, pj.y, pj.z);
-		//	int id0 = matrixSeq[item.i];
-		//	int id1 = matrixSeq[item.number];
+			float* p[2] = { pts + 3 * id[0], pts + 3 * id[1] };
+			vec3 v10;
+			vec3_sub(v10, p[0], p[1]);
+			vec3_scale(v10, v10, coef / vec3_len(v10)); // from p1 to p0
 
-		//	auto diff = (p0 - p1);
-		//	auto v3 = balance * dr * diff / sqrt(diff.squared_length());
+			if (mseq[0] >= 0)
+			{
+				for (int k = 0; k < 3; k++)
+					cache[g[0]].b0[mseq[0] + k] += v10[k];
+			}
 
-		//	b[3 * id0] += v3.x();
-		//	b[3 * id0 + 1] += v3.y();
-		//	b[3 * id0 + 2] += v3.z();
+			if (mseq[1] >= 0)
+			{
+				for (int k = 0; k < 3; k++)
+					cache[g[1]].b0[mseq[1] + k] -= v10[k];
+			}
 
-		//	b[3 * id1] -= v3.x();
-		//	b[3 * id1 + 1] -= v3.y();
-		//	b[3 * id1 + 2] -= v3.z();
-		//}
-
-		//for (auto& item : infos.l2)
-		//{
-		//	auto &pi = pts[item.i], &pj = pts[item.number];
-
-		//	KernelPBD::Point_3 p0(pi.x, pi.y, pi.z);
-		//	KernelPBD::Point_3 p1(pj.x, pj.y, pj.z);
-		//	int id1 = matrixSeq[item.number];
-
-		//	auto diff = (p0 - p1);
-		//	auto v3 = balance * dr * diff / sqrt(diff.squared_length());
-
-		//	b[3 * id1] -= (v3.x() - balance * pi.x);
-		//	b[3 * id1 + 1] -= (v3.y() - balance * pi.y);
-		//	b[3 * id1 + 2] -= (v3.z() - balance * pi.z);
-		//}
+			if (g[0] == g[1])
+			{
+				for (int k = 0; k < 3; k++)
+				{
+					cache[g[1]].b0[mseq[1] + k] += balance * p[0][k];
+					cache[g[0]].b0[mseq[0] + k] += balance * p[1][k];
+				}
+			}
+		}
 	}
 
 	template<class Container>

@@ -71,7 +71,7 @@ bool check_matrix_update()
 	const char fgroup[] = "E:/c0514/indexcomp1/cg-100.group";
 
 	typedef std::vector<uint32_t> IdContainer;
-	XRwy::Hair::MatrixFactory<IdContainer> mf(fgroup, 25);
+	XRwy::Hair::MatrixFactory<IdContainer> mf(fgroup, 1, 25);
 
 	std::ifstream f;
 	size_t nParticle;
