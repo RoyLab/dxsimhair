@@ -188,7 +188,7 @@ namespace XRwy
 		}
 
 		template<class ResContainerT>
-		void query(ResContainerT& res0, ResContainerT& res1, bool filter = false)
+		void query(ResContainerT& res0, ResContainerT& res1, bool filter=true)
 		{
 			const uint32_t N = this->N;
 			std::vector<bool> flag(N, false);

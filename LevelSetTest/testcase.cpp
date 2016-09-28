@@ -71,8 +71,35 @@ bool check_matrix_update()
 	const char fgroup[] = "E:/c0514/indexcomp1/cg-100.group";
 
 	typedef std::vector<uint32_t> IdContainer;
-	XRwy::Hair::MatrixFactory<IdContainer> mf(fgroup);
+	XRwy::Hair::MatrixFactory<IdContainer> mf(fgroup, 25);
 
+	std::ifstream f;
+	size_t nParticle;
+	float* p;
+	float r = 0.02f;
+	unsigned ncase = sizeof(fver) / sizeof(fver[0]);
+	for (int j = 0; j < ncase; j++)
+	{
+		f.open(fver[j], std::ios::binary);
+		f.read((char*)&nParticle, sizeof(size_t));
+		p = new float[3 * nParticle];
+		f.read((char*)p, sizeof(float) * 3 * nParticle);
+		f.close();
+
+		std::vector<Point3f> points;
+		for (size_t ii = 0; ii < nParticle; ii++)
+		{
+			auto pos = p + 3 * ii;
+			points.emplace_back(pos[0], pos[1], pos[2]);
+		}
+
+		std::vector<uint32_t> id0, id1;
+		XRwy::GridRaster<Point3f> pgrid(points, r, 1.01);
+		pgrid.createGrid();
+		pgrid.query(id0, id1);
+
+		mf.update(id0, id1, p, nParticle, r, 0.04);
+	}
 
 	return true;
 }
