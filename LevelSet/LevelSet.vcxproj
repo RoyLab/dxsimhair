@@ -93,6 +93,8 @@
   <ItemGroup>
     <ClInclude Include="ADFCollisionObject.h" />
     <ClInclude Include="CGALKernel.h" />
+    <ClInclude Include="CholeskySparseUpdate.hpp" />
+    <ClInclude Include="CholeskyUpdate.hpp" />
     <ClInclude Include="EigenTypes.h" />
     <ClInclude Include="GridCollisionObject.h" />
     <ClInclude Include="GroupPBD.h" />

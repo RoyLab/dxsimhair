@@ -1,3 +1,4 @@
+#include <boost/log/trivial.hpp>
 #include <iostream>
 #include <cstdlib>
 #include <time.h>
@@ -36,7 +37,78 @@ int mai2n()
 	return 0;
 }
 
+int test1();
+bool check_find_all_pairs(double *r, unsigned n);
+
 int main(int argc, char** argv)
+{
+	bool res = true;
+
+	double r[] = { 0.01, 0.02, 0.03 };
+	res &= check_find_all_pairs(r, 3);
+
+	if (res) cout << "All test case is pased" << endl;
+
+	system("pause");
+	return 0;
+}
+
+bool check_find_all_pairs(double *r, unsigned n)
+{
+	char fileName[][128] = { "D:/Data/vpos/50k.vertex" , "D:/Data/vpos/50kf10.vertex" , "D:/Data/vpos/50kf20.vertex" };
+	unsigned ncase = sizeof(fileName) / sizeof(fileName[0]);
+	bool res = true;
+	for (int i = 0; i < n; i++)
+	{
+		size_t nParticle;
+		float* p;
+		std::ifstream f;
+		for (int j = 0; j < ncase; j++)
+		{
+			f.open(fileName[j], std::ios::binary);
+			f.read((char*)&nParticle, sizeof(size_t));
+			p = new float[3 * nParticle];
+			f.read((char*)p, sizeof(float) * 3 * nParticle);
+			f.close();
+
+			std::vector<Point3f> points;
+			for (size_t ii = 0; ii < nParticle; ii++)
+			{
+				auto pos = p + 3 * ii;
+				points.emplace_back(pos[0], pos[1], pos[2]);
+			}
+
+			unibn::Octree<Point3f> octree;
+			unibn::OctreeParams params(powf(2, 6));
+			octree.initialize(points, params);
+			std::vector<uint32_t> results;
+			int octcount = 0;
+			for (uint32_t ii = 0; ii < points.size(); ++ii)
+			{
+				octree.radiusNeighbors<unibn::L2Distance<Point3f> >(points[ii], r[i], results);
+				octcount += results.size();
+			}
+			octree.clear();
+
+			std::vector<uint32_t> id0, id1;
+			XRwy::GridRaster<Point3f> pgrid(points, r[i], 1.01);
+			pgrid.createGrid();
+			pgrid.query(id0, id1, false);
+			pgrid.checkPairs(id0, id1);
+
+			if (octcount != id0.size())
+			{
+				char buffer[1024];
+				sprintf(buffer, "check_find_all_pairs:%d/%d, octree(gt)/grid:%d/%d, r:%0.2f", i+1, j+1, octcount, int(id0.size()), r[i]);
+				BOOST_LOG_TRIVIAL(error) << buffer;
+				res =  false;
+			}
+		}
+	}
+	return res;
+}
+
+int test1()
 {
 	//if (argc < 2)
 	//{
@@ -70,7 +142,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	float r = 0.015f;
+	float r = 0.02f;
 
 	LARGE_INTEGER freq, t1, t2;
 	QueryPerformanceFrequency(&freq);
@@ -94,7 +166,6 @@ int main(int argc, char** argv)
 	octree.clear();
 #endif
 
-
 	// 382548 ²»È¥ÖØ
 	//std::cout << "???? "<< 1u - 3 << std::endl;
 	std::vector<uint32_t> id0, id1;
@@ -114,7 +185,7 @@ int main(int argc, char** argv)
 		grid.stat();
 
 		std::cout << "Grid construct in ";
-		for (int i0 = 0; i0 < 20; i0++)
+		for (int i0 = 0; i0 < 10; i0++)
 		{
 			QueryPerformanceCounter(&t1);
 
@@ -130,7 +201,7 @@ int main(int argc, char** argv)
 		std::cout << std::endl;
 
 		std::cout << "Grid query in ";
-		for (int i0 = 0; i0 < 20; i0++)
+		for (int i0 = 0; i0 < 10; i0++)
 		{
 			QueryPerformanceCounter(&t1);
 

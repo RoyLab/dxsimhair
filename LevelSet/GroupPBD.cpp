@@ -408,11 +408,17 @@ namespace XRwy
 	void GroupPBD::solveFull(HairGeometry* hair)
 	{
 		// dump code begin
-		//std::ofstream f("D:/Data/50k.vertex", std::ios::binary);
-		//f.write((char*)&hair->nParticle, sizeof(size_t));
-		//f.write((char*)hair->position, sizeof(XMFLOAT3)*hair->nParticle);
-		//f.close();
-		//exit(0);
+		static int count = 0;
+		count++;
+		if (count == 10)
+		{
+			std::ofstream f("D:/Data/50kf10.vertex", std::ios::binary);
+			f.write((char*)&hair->nParticle, sizeof(size_t));
+			f.write((char*)hair->position, sizeof(XMFLOAT3)*hair->nParticle);
+			f.close();
+			exit(0);
+		}
+		return;
 		// dump code end
 
 		// construct tree and use dummy search to init precomputation.

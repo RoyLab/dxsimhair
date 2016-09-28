@@ -51,6 +51,12 @@
     <ClInclude Include="GridCollisionObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CholeskyUpdate.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CholeskySparseUpdate.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LevelSet.cpp">

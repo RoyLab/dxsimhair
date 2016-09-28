@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/log/trivial.hpp>
 #include <macros.h>
 #include <vector>
 #include <iostream>
@@ -186,7 +187,7 @@ namespace XRwy
 		}
 
 		template<class ResContainerT>
-		void query(ResContainerT& res0, ResContainerT& res1)
+		void query(ResContainerT& res0, ResContainerT& res1, bool filter = false)
 		{
 			const uint32_t N = this->N;
 			std::vector<bool> flag(N, false);
@@ -216,7 +217,7 @@ namespace XRwy
 
 				for (auto i1 = locals.begin(); i1 != locals.end(); i1++)
 				{
-					if (validPair(i, *i1) && closeEnough(i, *i1, dr2))
+					if ((!filter || validPair(i, *i1)) && closeEnough(i, *i1, dr2))
 					{
 						res0.push_back(i);
 						res1.push_back(*i1);
@@ -237,7 +238,7 @@ namespace XRwy
 						{
 							id2 = itr.next();
 							if (id2 == N) break;
-							if (validPair(i, id2) && closeEnough(i, id2, dr2))
+							if ((!filter || validPair(i, id2)) && closeEnough(i, id2, dr2))
 							{
 								res0.push_back(i);
 								res1.push_back(id2);
@@ -302,10 +303,9 @@ namespace XRwy
 			{
 				if (!closeEnough(res0[i], res1[i], dr2))
 				{
-					//std::cout << get<0>(data_->at(res0[i])) << ", " << get<1>(data_->at(res0[i])) << ", " << get<2>(data_->at(res0[i])) << '\t';
-					//std::cout << get<0>(data_->at(res1[i])) << ", " << get<1>(data_->at(res1[i])) << ", " << get<2>(data_->at(res1[i])) << "\tDist: ";
-					//std::cout << std::sqrt(squaredDist(data_->at(res0[i]), data_->at(res1[i]))) << std::endl;
-					//return false;
+					BOOST_LOG_TRIVIAL(debug) << get<0>(data_->at(res0[i])) << ", " << get<1>(data_->at(res0[i])) << ", " << get<2>(data_->at(res0[i])) << '\t||'
+						<< get<0>(data_->at(res1[i])) << ", " << get<1>(data_->at(res1[i])) << ", " << get<2>(data_->at(res1[i])) << "\t|| "
+						<< std::sqrt(squaredDist(data_->at(res0[i]), data_->at(res1[i]))) << std::endl;
 					res++;
 				}
 			}

@@ -21,10 +21,10 @@
 #include <cgal\Sphere_3.h>
 #include <GroupPBD.h>
 #include <list>
+#include <CholeskyUpdate.hpp>
 
 typedef CGAL::Sphere_3<XRwy::KernelPBD> Sphere;
 typedef XRwy::KDSearchPoint Point_3;
-
 
 int main3()
 {
