@@ -9,6 +9,11 @@
 #include "utils.h"
 #include "gridraster.h"
 
+// macros
+#define TRUE_OR_ERROR_LOG(func, ...) {if (!func(__VA_ARGS__)) {BOOST_LOG_TRIVIAL(error) << "Test case not pass: " << #func;}\
+	else {BOOST_LOG_TRIVIAL(info) << "Test case passed: " << #func;}}
+
+
 /** Example 1: Searching radius neighbors with default access by public x,y,z variables.
 *
 * \author behley
@@ -28,7 +33,7 @@ public:
 	float x, y, z;
 };
 
-int mai2n()
+int trivial()
 {
 	std::vector<int> a;
 	a.reserve(5);
@@ -37,7 +42,7 @@ int mai2n()
 	return 0;
 }
 
-int test1();
+int profiler_find_all_pair();
 bool check_find_all_pairs(double *r, unsigned n);
 
 int main(int argc, char** argv)
@@ -45,9 +50,9 @@ int main(int argc, char** argv)
 	bool res = true;
 
 	double r[] = { 0.01, 0.02, 0.03 };
-	res &= check_find_all_pairs(r, 3);
+	TRUE_OR_ERROR_LOG(check_find_all_pairs, r, 3);
 
-	if (res) cout << "All test case is pased" << endl;
+	if (res) cout << "All cases are passed! :-)" << endl;
 
 	system("pause");
 	return 0;
@@ -94,21 +99,20 @@ bool check_find_all_pairs(double *r, unsigned n)
 			XRwy::GridRaster<Point3f> pgrid(points, r[i], 1.01);
 			pgrid.createGrid();
 			pgrid.query(id0, id1, false);
-			pgrid.checkPairs(id0, id1);
 
 			if (octcount != id0.size())
 			{
 				char buffer[1024];
 				sprintf(buffer, "check_find_all_pairs:%d/%d, octree(gt)/grid:%d/%d, r:%0.2f", i+1, j+1, octcount, int(id0.size()), r[i]);
-				BOOST_LOG_TRIVIAL(error) << buffer;
-				res =  false;
+				BOOST_LOG_TRIVIAL(warning) << buffer;
+				if (pgrid.checkPairs(id0, id1) > 0) res =  false;
 			}
 		}
 	}
 	return res;
 }
 
-int test1()
+int profiler_find_all_pair()
 {
 	//if (argc < 2)
 	//{

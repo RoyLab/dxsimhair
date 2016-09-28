@@ -125,7 +125,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="example1.cpp" />
+    <ClCompile Include="testcase.cpp" />
     <ClCompile Include="example2.cpp" />
     <ClCompile Include="example3.cpp" />
     <ClCompile Include="GridLevelSet.cpp" />

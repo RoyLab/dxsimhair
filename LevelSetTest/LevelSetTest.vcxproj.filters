@@ -21,13 +21,13 @@
     <ClCompile Include="GridLevelSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="example1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="example2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="example3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="testcase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
