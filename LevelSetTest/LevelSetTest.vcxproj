@@ -132,7 +132,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gridraster.h" />
     <ClInclude Include="Octree.hpp" />
     <ClInclude Include="utils.h" />
   </ItemGroup>

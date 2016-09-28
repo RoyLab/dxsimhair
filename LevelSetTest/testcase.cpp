@@ -8,10 +8,11 @@
 #include "Octree.hpp"
 #include "utils.h"
 #include "gridraster.h"
+#include <MatrixFactory.hpp>
 
 // macros
-#define TRUE_OR_ERROR_LOG(func, ...) {if (!func(__VA_ARGS__)) {BOOST_LOG_TRIVIAL(error) << "Test case not pass: " << #func;}\
-	else {BOOST_LOG_TRIVIAL(info) << "Test case passed: " << #func;}}
+#define TRUE_OR_ERROR_LOG(func, ...) {if (!(res = func(__VA_ARGS__))) {BOOST_LOG_TRIVIAL(error) << "Test case not pass: " << #func;}\
+	else {BOOST_LOG_TRIVIAL(info) << "Test case passed: " << #func;} res0 &= res;}
 
 
 /** Example 1: Searching radius neighbors with default access by public x,y,z variables.
@@ -42,20 +43,38 @@ int trivial()
 	return 0;
 }
 
+bool testall();
+bool check_matrix_update();
 int profiler_find_all_pair();
 bool check_find_all_pairs(double *r, unsigned n);
 
 int main(int argc, char** argv)
 {
-	bool res = true;
-
-	double r[] = { 0.01, 0.02, 0.03 };
-	TRUE_OR_ERROR_LOG(check_find_all_pairs, r, 3);
-
-	if (res) cout << "All cases are passed! :-)" << endl;
+	check_matrix_update();
+	//if (testall()) cout << "All cases are passed! :-)" << endl;
 
 	system("pause");
 	return 0;
+}
+
+bool testall()
+{
+	bool res, res0 = true;;
+	double r[] = { 0.01, 0.02, 0.03 };
+	TRUE_OR_ERROR_LOG(check_find_all_pairs, r, 3);
+	return res0;
+}
+
+bool check_matrix_update()
+{
+	const char fver[][128] = { "D:/Data/vpos/50k.vertex" , "D:/Data/vpos/50kf10.vertex" , "D:/Data/vpos/50kf20.vertex"};
+	const char fgroup[] = "E:/c0514/indexcomp1/cg-100.group";
+
+	typedef std::vector<uint32_t> IdContainer;
+	XRwy::Hair::MatrixFactory<IdContainer> mf(fgroup);
+
+
+	return true;
 }
 
 bool check_find_all_pairs(double *r, unsigned n)

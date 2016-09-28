@@ -1,12 +1,33 @@
-#include <fstream>
-
-#include "macros.h"
-#include "MatrixFactory.h"
+#pragma once
+#include "EigenTypes.h"
 
 namespace XRwy
 {
 namespace Hair
 {
+
+	typedef WR::SparseMat SparseMatrix;
+
+	template <class Container>
+	class MatrixFactory
+	{
+		struct GroupCache
+		{
+			SparseMatrix L;
+			//Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper> solver;
+		};
+	public:
+		MatrixFactory(const char*);
+		~MatrixFactory();
+
+		void update(Container& id0, Container& id1);
+
+	private:
+		bool isInit() const { return bInit; }
+
+		bool bInit = false;
+		Container id0_, id1_;
+	};
 
 	template<class Container>
 	MatrixFactory<Container>::MatrixFactory(const char* fgroup)
@@ -34,13 +55,12 @@ namespace Hair
 			id1_.swap(id1);
 			bInit = true;
 
-
-			return 0;
 		}
-		
+
 
 	}
 
 
-}
-}
+
+} /// Hair
+} /// XRwy

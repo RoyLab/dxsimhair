@@ -1,8 +1,9 @@
 #pragma once
 #include <boost/log/trivial.hpp>
-#include <macros.h>
 #include <vector>
 #include <iostream>
+
+#include "macros.h"
 
 namespace XRwy
 {

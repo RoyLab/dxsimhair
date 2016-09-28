@@ -57,6 +57,12 @@
     <ClInclude Include="CholeskySparseUpdate.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GridRaster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixFactory.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LevelSet.cpp">
