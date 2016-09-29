@@ -1,6 +1,7 @@
 #pragma once
 #include <Eigen\Sparse>
 #include <linmath.h>
+#include <deque>
 #include "HairStructs.h"
 #include "EigenTypes.h"
 
@@ -8,18 +9,22 @@ namespace XRwy
 {
 namespace Hair
 {
-
-
 	template <class Container>
 	class MatrixFactory
 	{
 		typedef WR::SparseMat SparseMatrix;
 		typedef WR::VecX Vector;
 		typedef uint8_t gid_t;
+		typedef Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper> LLTSolver;
 
 		struct GroupCache
 		{
-			SparseMatrix L, A;
+			GroupCache() : LBase(20, 20), L(LBase.triangularView<Eigen::Lower>()) {}
+
+			SparseMatrix A, LBase;
+			Eigen::SparseTriangularView<SparseMatrix, Eigen::Lower> L;
+			/// Eigen::SparseTriangularView<SparseMatrix, Eigen::Upper> LT; // no use???????
+
 			Vector b, b0;
 			float *buffer = 0;
 			int buffersize = 0;
@@ -29,33 +34,50 @@ namespace Hair
 		MatrixFactory(const char*, double k, int skipFactor);
 		~MatrixFactory();
 
-		void update(Container & id0, Container & id1, float* &pos, uint32_t npos, double dr, double h);
+		void update(Container & id0, Container & id1, float* &pos, uint32_t npos, double dr);
 
 	private:
 		void initCache(double h);
-		void compute_b(int pass, float* pts, float dr);
+		void computeb(int pass, float* pts, float dr);
 		void updateL(Container & id0, Container & id1);
 		bool isInit() const { return bInit; }
 		void loadPosition(float*& pts);
 		void dispatchPosition(float*& pts);
+		void cachePosition();
+
+		/** update b to x prime */
+		void choleskySolve(int gid);
+
+		/** check coherence of cache and pts */
 
 		bool bInit = false;
 		double k_;
 		float balance;
 		Container id0_, id1_;
 		uint32_t nGroup;
-		std::vector<gid_t> groupId; // group id of each particle
-		std::vector<uint32_t>* groups = nullptr; // particles in each group
-		std::vector<GroupCache> cache; // A, L, b, buffer
-		std::vector<int> pid2matrixSeq; // from particle id to matrix position
+		std::vector<gid_t> groupId; /** group id of each particle */
+		std::vector<uint32_t>* groups = nullptr; /** particles in each group */
+		std::vector<GroupCache> cache; /** A, L, b, buffer */
+		std::vector<int> pid2matrixSeq; /** map from particle id to matrix position */
 	};
+
+
+	template<class Container>
+	void MatrixFactory<Container>::choleskySolve(int gid)
+	{
+		GroupCache &infos = cache[gid];
+		infos.L.solveInPlace(infos.b);
+		infos.LBase.transpose().triangularView<Eigen::Upper>().solveInPlace(infos.b);
+	}
 
 	template<class Container>
 	MatrixFactory<Container>::MatrixFactory(const char* fgroup, double k, int skipFactor)
 	{
 		k_ = k;
 
+		/** read *.group file */
 		std::ifstream file(fgroup, std::ios::binary);
+		assert(file.is_open());
 		int ngi;
 		Read4Bytes(file, ngi);
 
@@ -69,8 +91,10 @@ namespace Hair
 
 		auto minmaxpair = std::minmax_element(groupId.begin(), groupId.end());
 		nGroup = *minmaxpair.second - *minmaxpair.first + 1;
+		assert(nGroup > 1);
 
-		//groupMatrixMapping = new std::deque<int>[nGroup];
+		/** initialize id, matrix map */
+		// groupMatrixMapping = new std::deque<int>[nGroup];
 		groups = new std::remove_reference<decltype(groups[0])>::type[nGroup];
 		pid2matrixSeq.resize(ngi);
 		int *counter = new int[nGroup];
@@ -88,11 +112,27 @@ namespace Hair
 			else pid2matrixSeq[i] = -1;
 		}
 
+		assert( [](int* arr, int n)->int{
+			int count = 0;
+			for (int i = 0; i < n; i++)
+				count += arr[i];
+			return count;
+		}(counter, nGroup) * (skipFactor < 1 ? 1 : skipFactor) /
+			(skipFactor < 1 ? 1 : skipFactor-1) == ngi);
+
+		/** alloc memory for cache */
 		cache.resize(nGroup);
 		for (uint32_t i = 0; i < nGroup; i++)
 		{
+			if (!counter[i]) continue;
+
 			auto dim = counter[i] * 3;
 			cache[i].A.resize(dim, dim);
+			cache[i].b.resize(dim);
+			cache[i].b0.resize(dim);
+
+			cache[i].buffer = new float[dim];
+			cache[i].buffersize = dim * sizeof(float);
 		}
 
 		delete[]counter;
@@ -105,16 +145,20 @@ namespace Hair
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::update(Container & id0, Container & id1, float* &pos, uint32_t npos, double dr, double h)
+	void MatrixFactory<Container>::update(Container & id0, Container & id1, float* &pos, uint32_t npos, double dr)
 	{
 		assert(npos == groupId.size());
+		assert(id0.size() == id1.size());
+
 		if (!isInit())
 		{
 			bInit = true;
 
 			id0_.swap(id0);
 			id1_.swap(id1);
-			initCache(h);
+
+			/** h is given here explicitly, because prefactorization do not allow change on h */
+			initCache(1);
 		}
 		else
 		{
@@ -128,13 +172,13 @@ namespace Hair
 		const int maxiter = 4;
 		for (int i = 0; i < maxiter; i++)
 		{
-			compute_b(i, pos, dr);
+			computeb(i, pos, dr);
 			for (int j = 0; j < nGroup; j++)
 			{
 				if (groups[j].empty()) continue;
-
-				//choleskySolve(j);
+				choleskySolve(j);
 			}
+			cachePosition();
 		}
 		dispatchPosition(pos);
 	}
@@ -162,6 +206,17 @@ namespace Hair
 	}
 
 	template<class Container>
+	void MatrixFactory<Container>::cachePosition()
+	{
+		for (uint32_t i = 0; i < nGroup; i++)
+		{
+			auto &infos = cache[i];
+			memcpy(infos.buffer, infos.b.data(), infos.buffersize);
+		}
+	}
+
+
+	template<class Container>
 	void MatrixFactory<Container>::initCache(double h)
 	{
 		std::deque<Eigen::Triplet<float>> *assemble = new std::deque<Eigen::Triplet<float>>[nGroup];
@@ -172,10 +227,11 @@ namespace Hair
 		{
 			uint32_t id[2] = { id0_[i], id1_[i] };
 			assert(id[0] < id[1]);
-			uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
-			int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
 
-			// assemble A
+			int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
+			if (mseq[0] < 0 && mseq[1] < 0) continue;
+
+			uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
 			for (int j = 0; j < 2; j++)
 			{
 				if (mseq[j] < 0) continue;
@@ -183,86 +239,150 @@ namespace Hair
 					assemble[g[j]].push_back(Eigen::Triplet<float>(mseq[j] +k, mseq[j] +k, 1));
 			}
 
-			if (mseq[0] > -1 && g[0] == g[1])
+			if (g[0] == g[1])
 			{
-				// upper triangle, row < column
+				/** upper triangle, row < column */
 				for (int k = 0; k < 3; k++)
 					assemble[g[0]].push_back(Eigen::Triplet<float>(mseq[0] + k, mseq[1] + k, -1));
 			}
 		}
 
-		Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper> solver;
+		LLTSolver solver;
 		SparseMatrix tmpSM;
 		for (uint32_t i = 0; i < nGroup; i++)
 		{
-			const int dim = cache[i].A.rows();
-			tmpSM.resize(dim, dim);
+			auto &infos = cache[i];
+			tmpSM = infos.A;
 			tmpSM.setFromTriplets(assemble[i].begin(), assemble[i].end());
-			cache[i].A.setIdentity();
-			cache[i].A += tmpSM * balance;
+			infos.A.setIdentity();
+			infos.A += tmpSM * balance;
 
-			solver.compute(cache[i].A);
+			solver.compute(infos.A);
 			assert(solver.info() == Eigen::Success);
-			cache[i].L = solver.matrixL();
-			cache[i].b.resize(dim);
-			cache[i].b0.resize(dim);
 
-			if (groups[i].size())
-			{
-				cache[i].buffer = new float[dim];
-				cache[i].buffersize = dim * sizeof(float);
-			}
+			infos.LBase = solver.matrixL();
 		}
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::compute_b(int pass, float* pts, float dr)
+	void MatrixFactory<Container>::computeb(int pass, float* pts, float dr)
 	{
 		const float coef = balance * dr;
 		const uint32_t npair = id0_.size();
 
-		// clear b, b0
+		/** compute b0 */
+		if (pass == 0)
+		{
+			// clear b, b0, init b0 with buffer
+			for (uint32_t i = 0; i < nGroup; i++)
+			{
+				auto &infos = cache[i];
+				infos.b.setZero();
+				memcpy(infos.b0.data(), infos.buffer, infos.buffersize);
+
+				/** check whether b0 has the same content as pts */
+				assert([](decltype(infos.b0) m, float *pts,
+					std::remove_pointer<decltype(this->groups)>::type group)->bool {
+					for (int i = 0; i < group.size(); i++)
+					{
+						for (int j = 0; j < 3; j++)
+						{
+							if (m[3 * i + j] != pts[3 * group[i] + j])
+								return false;
+						}
+					}
+					return true;
+				}(infos.b0, pts, groups[i]));
+			}
+
+			for (uint32_t i = 0; i < npair; i++)
+			{
+				uint32_t id[2] = { id0_[i], id1_[i] };
+				assert(id[0] < id[1]);
+				uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
+
+				int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
+				if (mseq[0] < 0 && mseq[1] < 0) continue;
+
+				float* p[2] = { pts + 3 * id[0], pts + 3 * id[1] };
+#ifdef _DEBUG
+				float* p2[2] = { cache[g[0]].buffer + mseq[0], cache[g[1]].buffer + mseq[1] };
+				assert(p[0][0] == p2[0][0] && p[0][1] == p2[0][1] && p[0][2] == p2[0][2]
+					&& p[1][0] == p2[1][0] && p[1][1] == p2[1][1] && p[1][2] == p2[1][2]);
+#endif
+
+				vec3 v10;
+				vec3_sub(v10, p[0], p[1]);
+				vec3_scale(v10, v10, coef / vec3_len(v10)); // from p1 to p0
+
+				if (mseq[0] >= 0)
+				{
+					for (int k = 0; k < 3; k++)
+						cache[g[0]].b0[mseq[0] + k] += v10[k];
+				}
+
+				if (mseq[1] >= 0)
+				{
+					for (int k = 0; k < 3; k++)
+						cache[g[1]].b0[mseq[1] + k] -= v10[k];
+				}
+
+				if (g[0] != g[1])
+				{
+					if (mseq[1] >= 0)
+					{
+						for (int k = 0; k < 3; k++)
+							cache[g[1]].b[mseq[1] + k] += balance * p[0][k];
+					}
+
+					if (mseq[0] >= 0)
+					{
+						for (int k = 0; k < 3; k++)
+							cache[g[0]].b[mseq[0] + k] += balance * p[1][k];
+					}
+				}
+			}
+
+		}
+		else
+		{
+			for (uint32_t i = 0; i < nGroup; i++)
+				cache[i].b.setZero();
+
+			/** this is change over iter */
+			for (uint32_t i = 0; i < npair; i++)
+			{
+				uint32_t id[2] = { id0_[i], id1_[i] };
+				assert(id[0] < id[1]);
+
+				int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
+				if (mseq[0] < 0 && mseq[1] < 0) continue;
+
+				uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
+				float* p[2] = { cache[g[0]].buffer + mseq[0], cache[g[1]].buffer + mseq[1] };
+
+				if (g[0] != g[1])
+				{
+					if (mseq[1] >= 0)
+					{
+						for (int k = 0; k < 3; k++)
+							cache[g[1]].b[mseq[1] + k] += balance * p[0][k];
+					}
+
+					if (mseq[0] >= 0)
+					{
+						for (int k = 0; k < 3; k++)
+							cache[g[0]].b[mseq[0] + k] += balance * p[1][k];
+					}
+				}
+			}
+		}
+
+
 		for (uint32_t i = 0; i < nGroup; i++)
 		{
 			auto &infos = cache[i];
-			memcpy(infos.b0.data(), infos.buffer, infos.buffersize);
-			infos.b.setZero();
-		}
-
-		for (uint32_t i = 0; i < npair; i++)
-		{
-			uint32_t id[2] = { id0_[i], id1_[i] };
-			assert(id[0] < id[1]);
-			uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
-			int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
-
-			if (mseq[0] < 0 && mseq[1] < 0) continue;
-
-			float* p[2] = { pts + 3 * id[0], pts + 3 * id[1] };
-			vec3 v10;
-			vec3_sub(v10, p[0], p[1]);
-			vec3_scale(v10, v10, coef / vec3_len(v10)); // from p1 to p0
-
-			if (mseq[0] >= 0)
-			{
-				for (int k = 0; k < 3; k++)
-					cache[g[0]].b0[mseq[0] + k] += v10[k];
-			}
-
-			if (mseq[1] >= 0)
-			{
-				for (int k = 0; k < 3; k++)
-					cache[g[1]].b0[mseq[1] + k] -= v10[k];
-			}
-
-			if (g[0] == g[1])
-			{
-				for (int k = 0; k < 3; k++)
-				{
-					cache[g[1]].b0[mseq[1] + k] += balance * p[0][k];
-					cache[g[0]].b0[mseq[0] + k] += balance * p[1][k];
-				}
-			}
+			infos.b += infos.b0;
 		}
 	}
 
