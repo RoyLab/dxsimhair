@@ -13,6 +13,9 @@
 #include <Eigen/Sparse>
 #include <Eigen/Jacobi>
 
+typedef Eigen::SparseMatrix<float> SparseMatrix;
+typedef Eigen::SparseVector<float> SparseVector;
+
 /* NOTE: This function is a hack; in particular the first two parameters are
 * modified even though
 * they are passed by const reference. See
@@ -24,24 +27,26 @@
 * rotation, i.e. rot = |  cos(x)  sin(x) |
 * 	                    | -sin(x)  cos(x) |
 */
-template <class VectorTypeA, class VectorTypeB, class ScalarType>
-void apply_jacobi_rotation(const Eigen::MatrixBase<VectorTypeA>& a,
-	const Eigen::MatrixBase<VectorTypeB>& b,
-	const Eigen::JacobiRotation<ScalarType>& rot) {
-	Eigen::internal::apply_rotation_in_the_plane(
-		const_cast<Eigen::MatrixBase<VectorTypeA>&>(a),
-		const_cast<Eigen::MatrixBase<VectorTypeB>&>(b), rot);
+void apply_jacobi_rotation(const SparseMatrix& a, const SparseVector& b, const Eigen::JacobiRotation<float>& rot)
+{
+	float c = rot.c();
+	float s = rot.s();
+	
+	//for (auto i = 0; i < )
+
+	//x[i] = c * xi + numext::conj(s) * yi;
+	//y[i] = -s * xi + numext::conj(c) * yi;
 }
 
 /* See M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008 at
 * 	http://lapmal.epfl.ch/papers/cholupdate.pdf
 * for more an explanation of the algorithm used here.
 */
-template <int N>
-void cholesky_update(Eigen::Matrix<double, N, N>& L,
-	Eigen::Matrix<double, N, 1> v) {
+template <class T>
+void cholesky_update(Eigen::SparseMatrix<T>& L,
+	Eigen::SparseVector<T>& v) {
 
-	Eigen::JacobiRotation<double> rot;
+	Eigen::JacobiRotation<T> rot;
 
 	for (int i = 0; i < N; ++i) {
 		rot.makeGivens(L(i, i), -v(i), &L(i, i)), v(i) = 0;

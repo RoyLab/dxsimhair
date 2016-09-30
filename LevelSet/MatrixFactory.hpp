@@ -6,6 +6,7 @@
 #include "HairStructs.h"
 #include "EigenTypes.h"
 #include "XTimer.hpp"
+#include "SparseCholeskyUpdate.hpp"
 
 namespace XRwy
 {
@@ -322,6 +323,8 @@ namespace Hair
 			assert(solver.info() == Eigen::Success);
 
 			infos.LBase = solver.matrixL();
+			BOOST_LOG_TRIVIAL(debug) << "nnz: " << infos.LBase.nonZeros() << " size: " << infos.LBase.rows()
+				<< " sample nnz: " << infos.LBase.row(0).nonZeros();
 		}
 	}
 
@@ -447,12 +450,52 @@ namespace Hair
 		}
 	}
 
+	static bool order(uint32_t a[2], uint32_t b[2])
+	{
+		assert(a[0] < a[1] && b[0] < b[1]);
+		if (a[0] < b[0]) return true;
+		else
+		{
+			if (a[0] == b[0]) return a[1] < b[1];
+			return false;
+		}
+	}
+
+	static bool equal(uint32_t a[2], uint32_t b[2])
+	{
+		assert(a[0] < a[1] && b[0] < b[1]);
+		return (a[0] == b[0]) && (a[1] == b[1]);
+	}
+
 	template<class Container>
 	void MatrixFactory<Container>::updateL(Container & id0, Container & id1)
 	{
 		// find difference
+		const size_t sz = id0.size();
+		size_t i, j, ip[2], jp[2];
+		for (i = 0; i < sz; i++)
+		{
+			//uint32_t id[2] = { id0_[i], id1_[i] };
+			//assert(id[0] < id[1]);
 
-		// update each L
+			//int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
+			//if (mseq[0] < 0 && mseq[1] < 0) continue;
+
+			//uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
+			//for (int j = 0; j < 2; j++)
+			//{
+			//	if (mseq[j] < 0) continue;
+			//	for (int k = 0; k < 3; k++)
+			//		assemble[g[j]].push_back(Eigen::Triplet<float>(mseq[j] + k, mseq[j] + k, 1));
+			//}
+
+			//if (g[0] == g[1])
+			//{
+			//	/** upper triangle, row < column */
+			//	for (int k = 0; k < 3; k++)
+			//		assemble[g[0]].push_back(Eigen::Triplet<float>(mseq[0] + k, mseq[1] + k, -1));
+			//}
+		}
 	}
 
 

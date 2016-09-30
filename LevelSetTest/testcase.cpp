@@ -13,6 +13,7 @@
 #include "XTimer.hpp"
 
 #include <MatrixFactory.hpp>
+#include "SparseCholeskyUpdate.hpp"
 
 
 // macros
@@ -39,50 +40,6 @@ public:
 	float x, y, z;
 };
 
-typedef  Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> solver_t;
-typedef  Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper> solver_t2;
-
-int trivial()
-{
-	solver_t *solver = new solver_t;
-	Eigen::VectorXf m(4), x(4);
-	WR::SparseMat *m2 = new std::remove_reference<decltype(*m2)>::type(4, 4);
-	m2->setIdentity();
-	m2->coeffRef(0, 2) = 0.5;
-
-	decltype(m.data()) a(0);
-
-	auto k = m2->triangularView<Eigen::Upper>();
-	m2->coeffRef(0, 0) = 9;
-
-	cout.precision(2);
-	cout.width(8);
-
-	solver->compute(*m2);
-	assert(solver->info() == Eigen::Success);
-	WR::SparseMat k2x = solver->matrixL();
-	auto k2 = k2x.triangularView<Eigen::Lower>();
-
-	cout << *m2 << endl;
-	cout << "L: \n" << k2 << endl;
-
-	m << 1, 1, 1, 1;
-
-	x = solver->solve(m);
-	cout << "1: \n" <<  x << endl;
-
-	k2.solveInPlace(m);
-	auto kv = k2x.transpose().triangularView<Eigen::Upper>();
-	kv.solveInPlace(m);
-	cout << "2: \n" << m << endl;
-
-	k2x.resize(2, 2);
-	k2x.setIdentity();
-	k2x.coeffRef(1, 0) = 20;
-	cout << k2 << kv << endl;
-
-	return 0;
-}
 
 bool testall();
 bool check_matrix_update();
@@ -90,11 +47,38 @@ int profiler_find_all_pair();
 bool check_find_all_pairs(double *r, unsigned n);
 bool check_matrix_update_naive();
 
+int trivial()
+{
+	typedef WR::SparseMat Matrix;
+	Matrix a(3,3);
+	Matrix v;
+	std::vector<Eigen::Triplet<float>> t;
+	t.emplace_back(0, 0, 1);
+	a.setFromTriplets(t.begin(), t.end());
+	a.coeffRef(0, 1) = 2;
+	a.coeffRef(0, 2) = 3;
+	a.coeffRef(1, 2) = 0;
+	cout << a.outerSize();
+	for (Matrix::InnerIterator itr(a, 2); itr; ++itr)
+	{
+		//a.coeffRef(2, 2) = 3;
+
+		cout << itr.value();
+	}
+
+	////cholesky_update(a, v);
+	//Eigen::JacobiRotation<float> rot;
+	//Eigen::internal::apply_rotation_in_the_plane(a.row(0).tail(0), v.row(0).tail(0), rot);
+	//auto b = a.row(0).tail(0);
+
+	return 0;
+}
+
 int main(int argc, char** argv)
 {
-	//trivial();
+	trivial();
 	
-	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
+	//if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
 	//if (testall()) cout << "All cases are passed! :-)" << endl;
 
 	system("pause");
@@ -148,10 +132,10 @@ bool check_matrix_update()
 	std::ifstream f;
 	size_t nParticle;
 	float* p;
-	float r = 0.02f;
+	float r = 0.03f;
 	unsigned ncase = sizeof(fver) / sizeof(fver[0]);
 
-	for (int j = 0; j < 2; j++)
+	for (int j = 0; j < 1; j++)
 	{
 		XRwy::tool::Timer::getTimer().setClock("a");
 
@@ -380,6 +364,53 @@ int profiler_find_all_pair()
 	delete pgrid;
 	cout << XRwy::stat1 << " ||| " << XRwy::stat2 << endl;
 	system("pause");
+	return 0;
+}
+
+
+int LLTtest()
+{
+
+	typedef  Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> solver_t;
+	typedef  Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper> solver_t2;
+
+	solver_t *solver = new solver_t;
+	Eigen::VectorXf m(4), x(4);
+	WR::SparseMat *m2 = new std::remove_reference<decltype(*m2)>::type(4, 4);
+	m2->setIdentity();
+	m2->coeffRef(0, 2) = 0.5;
+
+	decltype(m.data()) a(0);
+
+	auto k = m2->triangularView<Eigen::Upper>();
+	m2->coeffRef(0, 0) = 9;
+
+	cout.precision(2);
+	cout.width(8);
+
+	solver->compute(*m2);
+	assert(solver->info() == Eigen::Success);
+	WR::SparseMat k2x = solver->matrixL();
+	auto k2 = k2x.triangularView<Eigen::Lower>();
+
+	cout << *m2 << endl;
+	cout << "L: \n" << k2 << endl;
+
+	m << 1, 1, 1, 1;
+
+	x = solver->solve(m);
+	cout << "1: \n" << x << endl;
+
+	k2.solveInPlace(m);
+	auto kv = k2x.transpose().triangularView<Eigen::Upper>();
+	kv.solveInPlace(m);
+	cout << "2: \n" << m << endl;
+
+	k2x.resize(2, 2);
+	k2x.setIdentity();
+	k2x.coeffRef(1, 0) = 20;
+	cout << k2 << kv << endl;
+
 	return 0;
 }
 
