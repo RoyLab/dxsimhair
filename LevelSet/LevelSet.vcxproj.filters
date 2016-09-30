@@ -66,6 +66,9 @@
     <ClInclude Include="SparseCholeskyUpdate.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LinkVector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LevelSet.cpp">

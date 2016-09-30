@@ -93,6 +93,7 @@
   <ItemGroup>
     <ClInclude Include="ADFCollisionObject.h" />
     <ClInclude Include="CGALKernel.h" />
+    <ClInclude Include="LinkVector.h" />
     <ClInclude Include="SparseCholeskyUpdate.hpp" />
     <ClInclude Include="CholeskyUpdate.hpp" />
     <ClInclude Include="EigenTypes.h" />
