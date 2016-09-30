@@ -2,8 +2,10 @@
 #include <Eigen\Sparse>
 #include <linmath.h>
 #include <deque>
+#include <boost\log\trivial.hpp>
 #include "HairStructs.h"
 #include "EigenTypes.h"
+#include "XTimer.hpp"
 
 namespace XRwy
 {
@@ -15,7 +17,7 @@ namespace Hair
 		typedef WR::SparseMat SparseMatrix;
 		typedef WR::VecX Vector;
 		typedef uint8_t gid_t;
-		typedef Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper> LLTSolver;
+		typedef Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> LLTSolver;
 
 		struct GroupCache
 		{
@@ -31,18 +33,20 @@ namespace Hair
 			///Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper> solver;
 		};
 	public:
-		MatrixFactory(const char*, double k, int skipFactor);
+		MatrixFactory(const char*, double k, int skipFactor=0);
+		MatrixFactory(int* gids, int np, double k, int skipFactor=0);
 		~MatrixFactory();
 
-		void update(Container & id0, Container & id1, float* &pos, uint32_t npos, double dr);
+		void update(Container & id0, Container & id1, float* pos, uint32_t npos, double dr);
+		float reportError(Container & id0, Container & id1, float* pos0, float* pos1, double dr);
 
 	private:
 		void initCache(double h);
 		void computeb(int pass, float* pts, float dr);
 		void updateL(Container & id0, Container & id1);
 		bool isInit() const { return bInit; }
-		void loadPosition(float*& pts);
-		void dispatchPosition(float*& pts);
+		void loadPosition(float* pts);
+		void dispatchPosition(float* pts);
 		void cachePosition();
 
 		/** update b to x prime */
@@ -63,62 +67,44 @@ namespace Hair
 
 
 	template<class Container>
-	void MatrixFactory<Container>::choleskySolve(int gid)
-	{
-		GroupCache &infos = cache[gid];
-		infos.L.solveInPlace(infos.b);
-		infos.LBase.transpose().triangularView<Eigen::Upper>().solveInPlace(infos.b);
-	}
-
-	template<class Container>
-	MatrixFactory<Container>::MatrixFactory(const char* fgroup, double k, int skipFactor)
+	MatrixFactory<Container>::MatrixFactory(int* gids, int np, double k, int skipFactor)
 	{
 		k_ = k;
 
-		/** read *.group file */
-		std::ifstream file(fgroup, std::ios::binary);
-		assert(file.is_open());
-		int ngi;
-		Read4Bytes(file, ngi);
-
-		int *gid = new int[ngi];
-		ReadNBytes(file, gid, ngi * sizeof(4));
-		file.close();
-
-		groupId.resize(ngi);
-		for (int i = 0; i < ngi; i++)
-			groupId[i] = static_cast<gid_t>(gid[i]);
+		groupId.resize(np);
+		for (int i = 0; i < np; i++)
+			groupId[i] = static_cast<gid_t>(gids[i]);
 
 		auto minmaxpair = std::minmax_element(groupId.begin(), groupId.end());
 		nGroup = *minmaxpair.second - *minmaxpair.first + 1;
-		assert(nGroup > 1);
+		assert(nGroup > 0);
 
 		/** initialize id, matrix map */
 		// groupMatrixMapping = new std::deque<int>[nGroup];
 		groups = new std::remove_reference<decltype(groups[0])>::type[nGroup];
-		pid2matrixSeq.resize(ngi);
+		pid2matrixSeq.resize(np);
 		int *counter = new int[nGroup];
 		memset(counter, 0, sizeof(int) * nGroup);
 
-		for (size_t i = 0; i < ngi; i++)
+		for (size_t i = 0; i < np; i++)
 		{
 			int gid = groupId[i];
 			if (skipFactor < 1 || i % skipFactor != 0)
 			{
-				pid2matrixSeq[i] = 3*counter[gid]++;
+				pid2matrixSeq[i] = 3 * counter[gid]++;
 				groups[gid].push_back(i);
 				//groupMatrixMapping[groupId].push_back(i);
 			}
 			else pid2matrixSeq[i] = -1;
 		}
 
-		assert( [](int* arr, int n)->int{
+		assert([](int* arr, int n)->int {
 			int count = 0;
 			for (int i = 0; i < n; i++)
 				count += arr[i];
 			return count;
 		}(counter, nGroup) * (skipFactor < 1 ? 1 : skipFactor) /
-			(skipFactor < 1 ? 1 : skipFactor-1) == ngi);
+			(skipFactor < 1 ? 1 : skipFactor - 1) == np);
 
 		/** alloc memory for cache */
 		cache.resize(nGroup);
@@ -138,6 +124,61 @@ namespace Hair
 		delete[]counter;
 	}
 
+
+	template<class Container>
+	MatrixFactory<Container>::MatrixFactory(const char* fgroup, double k, int skipFactor)
+	{
+		/** read *.group file */
+		std::ifstream file(fgroup, std::ios::binary);
+		assert(file.is_open());
+		int ngi;
+		Read4Bytes(file, ngi);
+
+		int *gid = new int[ngi];
+		ReadNBytes(file, gid, ngi * sizeof(4));
+		file.close();
+
+		new (this)MatrixFactory(gid, ngi, k, skipFactor);
+	}
+
+	template<class Container>
+	float MatrixFactory<Container>::reportError(Container & id0, Container & id1, float* pos0, float* pos1, double dr)
+	{
+		const uint32_t npair = id0_.size();
+		float error = 0.0f;
+		const uint32_t np = groupId.size();
+
+		for (uint32_t i = 0; i < np*3; i++)
+			error += std::pow((pos0[i] - pos1[i]), 2);
+
+		//float snap = error;
+		//BOOST_LOG_TRIVIAL(debug) << "error a: " << error;
+
+		for (uint32_t i = 0; i < npair; i++)
+		{
+			uint32_t id[2] = { id0_[i], id1_[i] };
+			assert(id[0] < id[1]);
+
+			int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
+			if (mseq[0] < 0 && mseq[1] < 0) continue;
+
+			float* p0[2] = { pos0 + 3 * id[0], pos0 + 3 * id[1] };
+			float* p1[2] = { pos1 + 3 * id[0], pos1 + 3 * id[1] };
+
+			vec3 v10_0, v10_1;
+			vec3_sub(v10_0, p0[0], p0[1]);
+			vec3_sub(v10_1, p1[0], p1[1]);
+
+			vec3_scale(v10_0, v10_0, dr / vec3_len(v10_0)); // from p1 to p0
+			vec3_sub(v10_0, v10_0, v10_1); // from p1 to p0
+			error += balance * vec3_mul_inner(v10_0, v10_0);
+		}
+		//BOOST_LOG_TRIVIAL(debug) << "error b: " << error-snap;
+
+		return error;
+	}
+
+
 	template<class Container>
 	MatrixFactory<Container>::~MatrixFactory()
 	{
@@ -145,8 +186,12 @@ namespace Hair
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::update(Container & id0, Container & id1, float* &pos, uint32_t npos, double dr)
+	void MatrixFactory<Container>::update(Container & id0, Container & id1, float* pos, uint32_t npos, double dr)
 	{
+#ifdef XRWY_PROFILE
+		XTIMER_HELPER(setClock("mf"));
+#endif
+
 		assert(npos == groupId.size());
 		assert(id0.size() == id1.size());
 
@@ -169,6 +214,13 @@ namespace Hair
 
 		loadPosition(pos);
 
+		float *de_pos = new float[npos * 3];
+		memcpy(de_pos, pos, sizeof(float) * npos * 3);
+
+#ifdef XRWY_DEBUG
+		BOOST_LOG_TRIVIAL(debug) << "error 0: " << reportError(id0, id1, pos, de_pos, dr);
+#endif
+
 		const int maxiter = 4;
 		for (int i = 0; i < maxiter; i++)
 		{
@@ -179,12 +231,21 @@ namespace Hair
 				choleskySolve(j);
 			}
 			cachePosition();
+			dispatchPosition(de_pos);
+#ifdef XRWY_PROFILE
+			BOOST_LOG_TRIVIAL(debug) << XTIMER_HELPER(millisecondsAndReset("mf"));
+#endif
+#ifdef XRWY_DEBUG
+			BOOST_LOG_TRIVIAL(debug) << "error "<< i+1 <<": " << reportError(id0, id1, pos, de_pos, dr);
+#endif
 		}
 		dispatchPosition(pos);
+
+		delete[] de_pos;
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::loadPosition(float*& pts)
+	void MatrixFactory<Container>::loadPosition(float* pts)
 	{
 		for (uint32_t i = 0; i < nGroup; i++)
 		{
@@ -195,7 +256,7 @@ namespace Hair
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::dispatchPosition(float*& pts)
+	void MatrixFactory<Container>::dispatchPosition(float* pts)
 	{
 		for (uint32_t i = 0; i < nGroup; i++)
 		{
@@ -389,70 +450,20 @@ namespace Hair
 	template<class Container>
 	void MatrixFactory<Container>::updateL(Container & id0, Container & id1)
 	{
+		// find difference
 
+		// update each L
 	}
 
 
-	//void GroupPBD::solveSingleGroup(int gId, const Tree* pTree, XMFLOAT3* p0, WR::VecX& x, int pps, bool pass0)
-	//{
-	//	Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper>* pSolver = nullptr;
-	//	size_t dim = 3 * groupIds[gId].size();
-	//	if (!bMatrixInited)
-	//	{
-	//		void(0);
-	//	}
-	//	auto &solverCache = solverCacheBuffer[gId];
+	template<class Container>
+	void MatrixFactory<Container>::choleskySolve(int gid)
+	{
+		GroupCache &infos = cache[gid];
 
-	//	if (pass0)
-	//	{
-	//		auto& particleList = groupIds[gId];
-	//		std::list<IntPair> l, l2;
-
-	//		for (size_t i = 0; i < particleList.size(); i++)
-	//		{
-	//			int particleId = particleList[i]; //global id
-	//			if (particleId % pps == 0) continue; // do not check follicle
-
-	//			std::list<IntWrapper> tmps;
-	//			auto &v = p0[particleId];
-	//			Fuzzy_sphere fs(Point_3(v.x, v.y, v.z, particleId), dr, 0.5f * dr);
-	//			pTree->search(std::back_inserter(tmps), fs);
-	//			for (auto item : tmps)
-	//			{
-	//				if (item.i % pps != 0 && belongTo(item.i, gId)) // not follicle and belong to group
-	//				{
-	//					if (item.i < particleId)
-	//						l.emplace_back(item.i, particleId);
-	//				}
-	//				else l2.emplace_back(item.i, particleId);
-	//			}
-	//		}
-
-	//		solverCache.l.swap(l);
-	//		solverCache.l2.swap(l2);
-	//		assembleMatA(l, l2, gId);
-
-	//		//solver.analyzePattern(A);
-	//		//solver.factorize(A);
-	//		solverCache.solver.compute(solverCache.A);//????????? TODO
-	//	}
-	//	pSolver = &solverCache.solver;
-
-	//	WR::VecX b;
-	//	b.resize(dim);
-	//	computeVecb(gId, p0, dr, b);
-
-	//	if (Eigen::Success != pSolver->info())
-	//	{
-	//		// TODO thread lock needed
-	//		std::cout << "Matrix A is not factorizable." << std::endl;
-	//		system("pause");
-	//		exit(0);
-	//	}
-	//	x = pSolver->solve(b);
-	//}
-
-
+		infos.L.solveInPlace(infos.b);
+		infos.LBase.transpose().triangularView<Eigen::Upper>().solveInPlace(infos.b);
+	}
 
 
 } /// Hair

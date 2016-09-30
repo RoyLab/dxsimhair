@@ -23,6 +23,56 @@
 #include <list>
 #include <CholeskyUpdate.hpp>
 
+
+#include <algorithm>
+#include <set>
+#include <vector>
+using std::vector;
+class Solution {
+	struct Data
+	{
+		bool operator<(const Data& other) const
+		{
+			return num < other.num;
+		}
+
+		bool operator==(const Data& other)
+		{
+			return num == other.num;
+		}
+
+		bool operator==(int other)
+		{
+			return num == other;
+		}
+
+		int num;
+		int id;
+	};
+public:
+	vector<int> twoSum(vector<int>& nums, int target) {
+		const int n = nums.size();
+		std::set<Data> data;
+		for (int i = 0; i < n; i++)
+		{
+			Data tmp = { nums[i], i };
+			data.insert(tmp);
+		}
+
+		for (int i = 0; i < n; i++)
+		{
+			int remain = target - nums[i];
+			Data tmp = { remain, 0 };
+			auto res = data.find(tmp);
+			if (res != data.end())
+			{
+				return vector<int>{i, res->id};
+			}
+		}
+		return vector<int>();
+	}
+};
+
 typedef CGAL::Sphere_3<XRwy::KernelPBD> Sphere;
 typedef XRwy::KDSearchPoint Point_3;
 
@@ -45,7 +95,6 @@ int main3()
 		auto pos = p+3*i;
 		points.emplace_back(pos[0], pos[1], pos[2], i);
 	}
-
 
 	//for (size_t i = 0; i < nParticle; i++)
 	//{

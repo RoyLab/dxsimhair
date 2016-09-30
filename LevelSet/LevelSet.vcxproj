@@ -106,6 +106,7 @@
     <ClInclude Include="UnitTest.h" />
     <ClInclude Include="wrGeo.h" />
     <ClInclude Include="wrTripleMatrix.h" />
+    <ClInclude Include="XTimer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\HairSim\ConfigReader.cpp" />

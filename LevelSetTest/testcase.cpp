@@ -8,7 +8,12 @@
 #include "Octree.hpp"
 #include "utils.h"
 #include "gridraster.h"
+
+#define XTIMER_INSTANCE
+#include "XTimer.hpp"
+
 #include <MatrixFactory.hpp>
+
 
 // macros
 #define TRUE_OR_ERROR_LOG(func, ...) {if (!(res = func(__VA_ARGS__))) {BOOST_LOG_TRIVIAL(error) << "Test case not pass: " << #func;}\
@@ -83,6 +88,7 @@ bool testall();
 bool check_matrix_update();
 int profiler_find_all_pair();
 bool check_find_all_pairs(double *r, unsigned n);
+bool check_matrix_update_naive();
 
 int main(int argc, char** argv)
 {
@@ -104,21 +110,51 @@ bool testall()
 	return res0;
 }
 
+bool check_matrix_update_naive()
+{
+	typedef std::vector<uint32_t> IdContainer;
+	const int nParticle = 2;
+	int gid[nParticle] = { 0,0 };
+	XRwy::Hair::MatrixFactory<IdContainer> mf(gid, nParticle, 1);
+
+	float p[nParticle * 3] = { 0,0,-0.1f,0,0,0.1f };
+	float r = 0.2f;
+
+	std::vector<Point3f> points;
+	for (size_t ii = 0; ii < nParticle; ii++)
+	{
+		auto pos = p + 3 * ii;
+		points.emplace_back(pos[0], pos[1], pos[2]);
+	}
+
+	std::vector<uint32_t> id0, id1;
+	XRwy::GridRaster<Point3f> pgrid(points, r, 1.01);
+	pgrid.createGrid();
+	pgrid.query(id0, id1);
+
+	mf.update(id0, id1, p, nParticle, r);
+
+	return true;
+}
+
 bool check_matrix_update()
 {
 	const char fver[][128] = { "D:/Data/vpos/50k.vertex" , "D:/Data/vpos/50kf10.vertex" , "D:/Data/vpos/50kf20.vertex"};
 	const char fgroup[] = "E:/c0514/indexcomp1/cg-100.group";
 
 	typedef std::vector<uint32_t> IdContainer;
-	XRwy::Hair::MatrixFactory<IdContainer> mf(fgroup, 1, 25);
+	XRwy::Hair::MatrixFactory<IdContainer> mf(fgroup, 3, 25);
 
 	std::ifstream f;
 	size_t nParticle;
 	float* p;
 	float r = 0.02f;
 	unsigned ncase = sizeof(fver) / sizeof(fver[0]);
-	for (int j = 0; j < 1; j++)
+
+	for (int j = 0; j < 2; j++)
 	{
+		XRwy::tool::Timer::getTimer().setClock("a");
+
 		f.open(fver[j], std::ios::binary);
 		f.read((char*)&nParticle, sizeof(size_t));
 		p = new float[3 * nParticle];
@@ -138,6 +174,9 @@ bool check_matrix_update()
 		pgrid.query(id0, id1);
 
 		mf.update(id0, id1, p, nParticle, r);
+
+		BOOST_LOG_TRIVIAL(info) << "On update " << XRwy::tool::Timer::getTimer().milliseconds("a");
+
 	}
 
 	return true;
