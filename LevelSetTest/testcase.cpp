@@ -129,7 +129,7 @@ int check_chelosky_update()
 
 
 	sparse_cholesky_update(a, v);
-	sparse_cholesky_downdate(a, v);
+	//sparse_cholesky_downdate(a, v);
 
 	//cholesky_update<N>(ap, vp);
 	//cholesky_downdate<N>(ap, vp2);
@@ -181,7 +181,7 @@ bool check_matrix_update_naive()
 
 bool check_matrix_update()
 {
-	const char fver[][128] = { "D:/Data/vpos/50k.vertex" , "D:/Data/vpos/50kf10.vertex" , "D:/Data/vpos/50kf20.vertex"};
+	const char fver[][128] = { "D:/Data/vpos/50kf001.vertex" , "D:/Data/vpos/50kf002.vertex" , "D:/Data/vpos/50kf003.vertex"};
 	const char fgroup[] = "E:/c0514/indexcomp1/cg-100.group";
 
 	typedef std::vector<uint32_t> IdContainer;
@@ -218,7 +218,6 @@ bool check_matrix_update()
 		mf.update(id0, id1, p, nParticle, r);
 
 		BOOST_LOG_TRIVIAL(info) << "On update " << XRwy::tool::Timer::getTimer().milliseconds("a");
-
 	}
 
 	return true;

@@ -22,7 +22,7 @@ namespace Hair
 
 		struct GroupCache
 		{
-			GroupCache() : LBase(20, 20), L(LBase.triangularView<Eigen::Lower>()) {}
+			GroupCache() : LBase(), L(LBase) {}
 
 			SparseMatrix A, LBase;
 			Eigen::SparseTriangularView<SparseMatrix, Eigen::Lower> L;
@@ -50,7 +50,7 @@ namespace Hair
 		void dispatchPosition(float* pts);
 		void cachePosition();
 		void _update(SparseMatrix& m, int id, int id2 = -1);
-		void _downdate(SparseMatrix& m, int id, int id2 = -1);
+		void _downdate(GroupCache& cache, int id, int id2 = -1);
 
 		/** update b to x prime */
 		void choleskySolve(int gid);
@@ -210,6 +210,8 @@ namespace Hair
 			updateL(id0, id1);
 		}
 
+		//return;
+
 		loadPosition(pos);
 
 		float *de_pos = new float[npos * 3];
@@ -280,6 +282,8 @@ namespace Hair
 	{
 		id0_.swap(id0);
 		id1_.swap(id1);
+
+		//return;
 
 		std::deque<Eigen::Triplet<float>> *assemble = new std::deque<Eigen::Triplet<float>>[nGroup];
 		const uint32_t npair = id0_.size();
@@ -493,16 +497,17 @@ namespace Hair
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::_downdate(SparseMatrix& m, int id, int id2)
+	void MatrixFactory<Container>::_downdate(GroupCache& cache, int id, int id2)
 	{
-		SparseVector v(m.rows());
+		cache.b.setZero();
+		auto &v = cache.b;
 		for (int i = 0; i < 3; i++)
 		{
 			v.setZero();
-			v.coeffRef(id + i) = sqrtBalance;
+			v(id + i) = sqrtBalance;
 			if (id2 > 0)
-				v.coeffRef(id2 + i) = -sqrtBalance;
-			sparse_cholesky_downdate(m, v);
+				v(id2 + i) = -sqrtBalance;
+			sparse_cholesky_downdate(cache.LBase, v);
 		}
 	}
 	
@@ -512,10 +517,15 @@ namespace Hair
 		//recomputeA(1, id0, id1);
 		//return;
 
+		//id0_ = id0;
+		//id1_ = id1;
+
 		const size_t sz = id0.size();
 		size_t i = 0, i0 = 0, idx[2] = {id0[0], id1[0]}, idx0[2] = { id0_[0], id1_[0] };
 		int mseq[2];
 		uint32_t g[2];
+
+		int counta=0, countb=0;
 
 		while (i < id0.size() || i0 < id0_.size())
 		{
@@ -542,30 +552,36 @@ namespace Hair
 			switch (res)
 			{
 			case 1: // update
+				mseq[0] = pid2matrixSeq[idx[0]]; mseq[1] = pid2matrixSeq[idx[1]];
 				g[0] = groupId[idx[0]]; g[1] = groupId[idx[1]];
-				if (g[0] == g[1])
+				if (g[0] == g[1] && mseq[0] != -1 && mseq[1] != -1)
 				{
-					_update(cache[g[0]].LBase, pid2matrixSeq[idx[0]], pid2matrixSeq[idx[1]]);
+					_update(cache[g[0]].LBase, mseq[0], mseq[1]);
 				}
 				else
 				{
-					_update(cache[g[0]].LBase, pid2matrixSeq[idx[0]]);
-					_update(cache[g[1]].LBase, pid2matrixSeq[idx[1]]);
+					if (mseq[0] != -1)
+						_update(cache[g[0]].LBase, mseq[0]);
+					if (mseq[1] != -1)
+						_update(cache[g[1]].LBase, mseq[1]);
 				}
-				i++;
+				i++; counta++;
 				break;
 			case -1: // downdate
+				mseq[0] = pid2matrixSeq[idx0[0]]; mseq[1] = pid2matrixSeq[idx0[1]];
 				g[0] = groupId[idx0[0]]; g[1] = groupId[idx0[1]];
-				if (g[0] == g[1])
+				if (g[0] == g[1] && mseq[0] != -1 && mseq[1] != -1)
 				{
-					_downdate(cache[g[0]].LBase, pid2matrixSeq[idx[0]], pid2matrixSeq[idx[1]]);
+					_downdate(cache[g[0]], mseq[0], mseq[1]);
 				}
 				else
 				{
-					_downdate(cache[g[0]].LBase, pid2matrixSeq[idx[0]]);
-					_downdate(cache[g[1]].LBase, pid2matrixSeq[idx[1]]);
+					if (mseq[0] != -1)
+						_downdate(cache[g[0]], mseq[0]);
+					if (mseq[1] != -1)
+						_downdate(cache[g[1]], mseq[1]);
 				}
-				i0++;
+				i0++; countb++;
 				break;
 			default: // skip
 				assert(res == 0);
@@ -573,6 +589,8 @@ namespace Hair
 				break;
 			}
 		}
+
+		BOOST_LOG_TRIVIAL(trace) << "Number of update " << counta << '/' << countb << '/' << id0.size();
 
 		id0_.swap(id0);
 		id1_.swap(id1);

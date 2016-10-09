@@ -149,23 +149,32 @@ void sparse_cholesky_update(Eigen::SparseMatrix<T>& L,
 //*/
 template <class T>
 void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
-	Eigen::SparseVector<T>& p) {
+	Eigen::Matrix<T, -1, 1>& p) {
 
 	//L.template triangularView<Eigen::Lower>().solveInPlace(p);
-	L.triangularView<Eigen::Lower>().solveInPlace(p);
+	Eigen::SparseTriangularView<SparseMatrix, Eigen::Lower> LView(L);
+	LView.solveInPlace(p);
 	const size_t N = p.rows();
+
+	//BOOST_LOG_TRIVIAL(debug) << p.squaredNorm();
+	//if (std::isnan(p.squaredNorm()))
+	//{
+	//	std::cout << L << p;
+	//	system("pause");
+	//}
 
 	assert(p.squaredNorm()
 		< 1); // otherwise the downdate would destroy positive definiteness.
+
 	float rho = std::sqrt(1 - p.squaredNorm());
 
 	Eigen::JacobiRotation<float> rot;
 	Eigen::SparseVector<T> temp(N);
 
 	for (int i = N - 1; i >= 0; --i) {
-		if (p.coeff(i) != 0.0f)
+		if (p(i) != 0.0f)
 		{
-			rot.makeGivens(rho, p.coeff(i), &rho);
+			rot.makeGivens(rho, p(i), &rho);
 			apply_jacobi_rotation2(temp, L, i, rot);
 		}
 	}
