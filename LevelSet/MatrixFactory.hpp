@@ -42,13 +42,15 @@ namespace Hair
 		float reportError(Container & id0, Container & id1, float* pos0, float* pos1, double dr);
 
 	private:
-		void initCache(double h);
+		void recomputeA(double h, Container & id0, Container & id1);
 		void computeb(int pass, float* pts, float dr);
 		void updateL(Container & id0, Container & id1);
 		bool isInit() const { return bInit; }
 		void loadPosition(float* pts);
 		void dispatchPosition(float* pts);
 		void cachePosition();
+		void _update(SparseMatrix& m, int id, int id2 = -1);
+		void _downdate(SparseMatrix& m, int id, int id2 = -1);
 
 		/** update b to x prime */
 		void choleskySolve(int gid);
@@ -57,7 +59,7 @@ namespace Hair
 
 		bool bInit = false;
 		double k_;
-		float balance;
+		float balance, sqrtBalance;
 		Container id0_, id1_;
 		uint32_t nGroup;
 		std::vector<gid_t> groupId; /** group id of each particle */
@@ -179,7 +181,7 @@ namespace Hair
 		return error;
 	}
 
-
+//#define XRWY_DEBUG
 	template<class Container>
 	MatrixFactory<Container>::~MatrixFactory()
 	{
@@ -200,17 +202,12 @@ namespace Hair
 		{
 			bInit = true;
 
-			id0_.swap(id0);
-			id1_.swap(id1);
-
-			/** h is given here explicitly, because prefactorization do not allow change on h */
-			initCache(1);
+			/** h is given explicitly */
+			recomputeA(1, id0, id1);
 		}
 		else
 		{
 			updateL(id0, id1);
-			id0_.swap(id0);
-			id1_.swap(id1);
 		}
 
 		loadPosition(pos);
@@ -219,7 +216,7 @@ namespace Hair
 		memcpy(de_pos, pos, sizeof(float) * npos * 3);
 
 #ifdef XRWY_DEBUG
-		BOOST_LOG_TRIVIAL(debug) << "error 0: " << reportError(id0, id1, pos, de_pos, dr);
+		BOOST_LOG_TRIVIAL(info) << "error 0: " << reportError(id0, id1, pos, de_pos, dr);
 #endif
 
 		const int maxiter = 4;
@@ -237,7 +234,7 @@ namespace Hair
 			BOOST_LOG_TRIVIAL(debug) << XTIMER_HELPER(millisecondsAndReset("mf"));
 #endif
 #ifdef XRWY_DEBUG
-			BOOST_LOG_TRIVIAL(debug) << "error "<< i+1 <<": " << reportError(id0, id1, pos, de_pos, dr);
+			BOOST_LOG_TRIVIAL(info) << "error "<< i+1 <<": " << reportError(id0, id1, pos, de_pos, dr);
 #endif
 		}
 		dispatchPosition(pos);
@@ -279,11 +276,14 @@ namespace Hair
 
 
 	template<class Container>
-	void MatrixFactory<Container>::initCache(double h)
+	void MatrixFactory<Container>::recomputeA(double h, Container & id0, Container & id1)
 	{
+		id0_.swap(id0);
+		id1_.swap(id1);
+
 		std::deque<Eigen::Triplet<float>> *assemble = new std::deque<Eigen::Triplet<float>>[nGroup];
 		const uint32_t npair = id0_.size();
-		balance = h*h*k_;
+		balance = h*h*k_; sqrtBalance = std::sqrt(balance);
 
 		for (uint32_t i = 0; i < npair; i++)
 		{
@@ -323,8 +323,8 @@ namespace Hair
 			assert(solver.info() == Eigen::Success);
 
 			infos.LBase = solver.matrixL();
-			BOOST_LOG_TRIVIAL(debug) << "nnz: " << infos.LBase.nonZeros() << " size: " << infos.LBase.rows()
-				<< " sample nnz: " << infos.LBase.row(0).nonZeros();
+			BOOST_LOG_TRIVIAL(debug) << "nnz: " << infos.LBase.nonZeros() << " size: " << infos.LBase.rows() <<
+				"\tratio: "<< infos.LBase.nonZeros()/ (float)infos.LBase.rows();
 		}
 	}
 
@@ -442,7 +442,6 @@ namespace Hair
 			}
 		}
 
-
 		for (uint32_t i = 0; i < nGroup; i++)
 		{
 			auto &infos = cache[i];
@@ -467,35 +466,116 @@ namespace Hair
 		return (a[0] == b[0]) && (a[1] == b[1]);
 	}
 
+
+	static int _comp_1(uint32_t a[2], uint32_t b[2])
+	{
+		if (a[0] < b[0]) return 1;
+		if (a[0] == b[0])
+		{
+			if (a[1] < b[1]) return 1;
+			if (a[1] == b[1]) return 0;
+		}
+		return -1;
+	}
+	
+	template<class Container>
+	void MatrixFactory<Container>::_update(SparseMatrix& m, int id, int id2)
+	{
+		SparseVector v(m.rows());
+		for (int i = 0; i < 3; i++)
+		{
+			v.setZero();
+			v.coeffRef(id + i) = sqrtBalance;
+			if (id2 > 0)
+				v.coeffRef(id2 + i) = -sqrtBalance;
+			sparse_cholesky_update(m, v);
+		}
+	}
+
+	template<class Container>
+	void MatrixFactory<Container>::_downdate(SparseMatrix& m, int id, int id2)
+	{
+		SparseVector v(m.rows());
+		for (int i = 0; i < 3; i++)
+		{
+			v.setZero();
+			v.coeffRef(id + i) = sqrtBalance;
+			if (id2 > 0)
+				v.coeffRef(id2 + i) = -sqrtBalance;
+			sparse_cholesky_downdate(m, v);
+		}
+	}
+	
 	template<class Container>
 	void MatrixFactory<Container>::updateL(Container & id0, Container & id1)
 	{
-		// find difference
+		//recomputeA(1, id0, id1);
+		//return;
+
 		const size_t sz = id0.size();
-		size_t i, j, ip[2], jp[2];
-		for (i = 0; i < sz; i++)
+		size_t i = 0, i0 = 0, idx[2] = {id0[0], id1[0]}, idx0[2] = { id0_[0], id1_[0] };
+		int mseq[2];
+		uint32_t g[2];
+
+		while (i < id0.size() || i0 < id0_.size())
 		{
-			//uint32_t id[2] = { id0_[i], id1_[i] };
-			//assert(id[0] < id[1]);
+			if (i < id0.size())
+			{
+				idx[0] = id0[i];
+				idx[1] = id1[i];
+			}
 
-			//int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
-			//if (mseq[0] < 0 && mseq[1] < 0) continue;
+			if (i0 < id0_.size())
+			{
+				idx0[0] = id0_[i0];
+				idx0[1] = id1_[i0];
+			}
+			
+			int res;
+			if (i == id0.size())
+				res = -1;
+			else if (i0 == id0_.size())
+				res = 1;
+			else
+				res = _comp_1(idx, idx0);
 
-			//uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
-			//for (int j = 0; j < 2; j++)
-			//{
-			//	if (mseq[j] < 0) continue;
-			//	for (int k = 0; k < 3; k++)
-			//		assemble[g[j]].push_back(Eigen::Triplet<float>(mseq[j] + k, mseq[j] + k, 1));
-			//}
-
-			//if (g[0] == g[1])
-			//{
-			//	/** upper triangle, row < column */
-			//	for (int k = 0; k < 3; k++)
-			//		assemble[g[0]].push_back(Eigen::Triplet<float>(mseq[0] + k, mseq[1] + k, -1));
-			//}
+			switch (res)
+			{
+			case 1: // update
+				g[0] = groupId[idx[0]]; g[1] = groupId[idx[1]];
+				if (g[0] == g[1])
+				{
+					_update(cache[g[0]].LBase, pid2matrixSeq[idx[0]], pid2matrixSeq[idx[1]]);
+				}
+				else
+				{
+					_update(cache[g[0]].LBase, pid2matrixSeq[idx[0]]);
+					_update(cache[g[1]].LBase, pid2matrixSeq[idx[1]]);
+				}
+				i++;
+				break;
+			case -1: // downdate
+				g[0] = groupId[idx0[0]]; g[1] = groupId[idx0[1]];
+				if (g[0] == g[1])
+				{
+					_downdate(cache[g[0]].LBase, pid2matrixSeq[idx[0]], pid2matrixSeq[idx[1]]);
+				}
+				else
+				{
+					_downdate(cache[g[0]].LBase, pid2matrixSeq[idx[0]]);
+					_downdate(cache[g[1]].LBase, pid2matrixSeq[idx[1]]);
+				}
+				i0++;
+				break;
+			default: // skip
+				assert(res == 0);
+				i++; i0++;
+				break;
+			}
 		}
+
+		id0_.swap(id0);
+		id1_.swap(id1);
 	}
 
 

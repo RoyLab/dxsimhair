@@ -1,4 +1,6 @@
 #include <boost/log/trivial.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
 #include <iostream>
 #include <cstdlib>
 #include <time.h>
@@ -55,11 +57,22 @@ int trivial()
 	return 0;
 }
 
+namespace logging = boost::log;
+
+void init()
+{
+	logging::core::get()->set_filter
+	(
+		logging::trivial::severity >= logging::trivial::info
+	);
+}
+
 int main(int argc, char** argv)
 {
+	//init();
 	trivial();
 	
-	//if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
+	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
 	//if (testall()) cout << "All cases are passed! :-)" << endl;
 
 	system("pause");
@@ -177,10 +190,10 @@ bool check_matrix_update()
 	std::ifstream f;
 	size_t nParticle;
 	float* p;
-	float r = 0.03f;
+	float r = 0.02f;
 	unsigned ncase = sizeof(fver) / sizeof(fver[0]);
 
-	for (int j = 0; j < 1; j++)
+	for (int j = 0; j < 3; j++)
 	{
 		XRwy::tool::Timer::getTimer().setClock("a");
 
