@@ -14,6 +14,8 @@
 
 #include <MatrixFactory.hpp>
 #include "SparseCholeskyUpdate.hpp"
+#include "CholeskyUpdate.hpp"
+#include "wrMath.h"
 
 
 // macros
@@ -46,31 +48,10 @@ bool check_matrix_update();
 int profiler_find_all_pair();
 bool check_find_all_pairs(double *r, unsigned n);
 bool check_matrix_update_naive();
+int check_chelosky_update(); // TODO
 
 int trivial()
 {
-	typedef WR::SparseMat Matrix;
-	Matrix a(3,3);
-	Matrix v;
-	std::vector<Eigen::Triplet<float>> t;
-	t.emplace_back(0, 0, 1);
-	a.setFromTriplets(t.begin(), t.end());
-	a.coeffRef(0, 1) = 2;
-	a.coeffRef(0, 2) = 3;
-	a.coeffRef(1, 2) = 0;
-	cout << a.outerSize();
-	for (Matrix::InnerIterator itr(a, 2); itr; ++itr)
-	{
-		//a.coeffRef(2, 2) = 3;
-
-		cout << itr.value();
-	}
-
-	////cholesky_update(a, v);
-	//Eigen::JacobiRotation<float> rot;
-	//Eigen::internal::apply_rotation_in_the_plane(a.row(0).tail(0), v.row(0).tail(0), rot);
-	//auto b = a.row(0).tail(0);
-
 	return 0;
 }
 
@@ -92,6 +73,70 @@ bool testall()
 	TRUE_OR_ERROR_LOG(check_find_all_pairs, r, 3);
 	TRUE_OR_ERROR_LOG(check_matrix_update);
 	return res0;
+}
+
+
+int check_chelosky_update()
+{
+	const int N = 6;
+	srand(2);
+	typedef WR::SparseMat Matrix;
+	Matrix a(N, N);
+	WR::SparseVec v(N);
+	Eigen::JacobiRotation<float> rot;
+	float p = 0.6f, q = 0.44f;
+	rot.makeGivens(p, q);
+
+	std::vector<Eigen::Triplet<float>> t;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = i; j < N; j++)
+		{
+			if (randf() > 0.4)
+				t.emplace_back(j, i, randf() * 100);
+		}
+	}
+	a.setFromTriplets(t.begin(), t.end());
+	a.setIdentity(); a *= 10000;
+
+	for (int i = 0; i < N; i++)
+	{
+		if (randf() > 0.4)
+			v.coeffRef(i) = randf() * 100;
+	}
+	cout.precision(4);
+	cout.width(10);
+
+	Eigen::Matrix<float, N, N> ap = a;
+	Eigen::Matrix<float, N, 1> vp = v, vp2 = v;
+	cout << ap << std::endl;
+
+	//apply_jacobi_rotation(0, a, 1, v, rot);
+	//apply_jacobi_rotation(ap.col(1).tail(N - 1), vp.tail(N - 1), rot);
+
+
+	sparse_cholesky_update(a, v);
+	sparse_cholesky_downdate(a, v);
+
+	//cholesky_update<N>(ap, vp);
+	//cholesky_downdate<N>(ap, vp2);
+
+	//cout << "As follows: \n" << a.toDense().cast<float>() - ap << std::endl;
+	//cout << "As follows: \n" << a << std::endl;
+
+	cout << "As follows: \n" << a.toDense().cast<float>() - ap << std::endl;
+	cout << "As follows: \n" << a << std::endl;
+
+	//cout << ap << std::endl;
+
+
+	////cholesky_update(a, v);
+	//Eigen::JacobiRotation<float> rot;
+	//Eigen::internal::apply_rotation_in_the_plane(a.row(0).tail(0), v.row(0).tail(0), rot);
+	//auto b = a.row(0).tail(0);
+
+
+	return 0;
 }
 
 bool check_matrix_update_naive()

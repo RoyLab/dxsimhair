@@ -5,8 +5,8 @@
 *      Author: roshan
 */
 
-#ifndef CHOLESKY_HPP_
-#define CHOLESKY_HPP_
+#ifndef SPARSE_CHOLESKY_HPP_
+#define SPARSE_CHOLESKY_HPP_
 
 #include <cmath>
 
@@ -15,6 +15,8 @@
 
 typedef Eigen::SparseMatrix<float> SparseMatrix;
 typedef Eigen::SparseVector<float> SparseVector;
+
+struct Triplet2 { Triplet2(int a, float b) :r(a), val(b) {} int r; float val; };
 
 /* NOTE: This function is a hack; in particular the first two parameters are
 * modified even though
@@ -25,67 +27,148 @@ typedef Eigen::SparseVector<float> SparseVector;
 * Computes [a b]' := rot * [a b]' in-place, where a and b are column vectors
 * and rot is a Jacobi
 * rotation, i.e. rot = |  cos(x)  sin(x) |
-* 	                    | -sin(x)  cos(x) |
+* 	                   | -sin(x)  cos(x) |
 */
-void apply_jacobi_rotation(const SparseMatrix& a, const SparseVector& b, const Eigen::JacobiRotation<float>& rot)
+
+template<class IteratorX, class IteratorY>
+void rot_compute(std::vector<Triplet2>& xs, std::vector<Triplet2>& ys, IteratorX& itrx,
+	IteratorY& itry, const Eigen::JacobiRotation<float>& rot)
 {
 	float c = rot.c();
 	float s = rot.s();
-	
-	//for (auto i = 0; i < )
 
-	//x[i] = c * xi + numext::conj(s) * yi;
-	//y[i] = -s * xi + numext::conj(c) * yi;
+	while (itrx || itry)
+	{
+		if (itrx)
+		{
+			if (itry)
+			{
+				if (itrx.row() < itry.row())
+				{
+					xs.emplace_back(itrx.row(), c * itrx.value());
+					ys.emplace_back(itrx.row(), -s*itrx.value());
+					++itrx;
+				}
+				else if (itrx.row() > itry.row())
+				{
+					xs.emplace_back(itry.row(), s * itry.value());
+					ys.emplace_back(itry.row(), c * itry.value());
+					++itry;
+				}
+				else
+				{
+					xs.emplace_back(itrx.row(), c * itrx.value() + s * itry.value());
+					ys.emplace_back(itrx.row(), -s*itrx.value() + c * itry.value());
+					++itrx; ++itry;
+				}
+			}
+			else
+			{
+				xs.emplace_back(itrx.row(), c * itrx.value());
+				ys.emplace_back(itrx.row(), -s*itrx.value());
+				++itrx;
+			}
+		}
+		else
+		{
+			xs.emplace_back(itry.row(), s * itry.value());
+			ys.emplace_back(itry.row(), c * itry.value());
+			++itry;
+		}
+	}
 }
+
+void apply_jacobi_rotation(int after, SparseMatrix& x, size_t col, SparseVector& y, const Eigen::JacobiRotation<float>& rot)
+{
+	static std::vector<Triplet2> xs;
+	static std::vector<Triplet2> ys;
+	xs.clear();
+	ys.clear();
+
+	auto itrx = SparseMatrix::InnerIterator(x, col);
+	auto itry = SparseVector::InnerIterator(y);
+
+	while (itrx && itrx.row() <= after) ++itrx;
+	while (itry && itry.row() <= after) ++itry;
+
+	rot_compute(xs, ys, itrx, itry, rot);
+
+	for (auto& triplet : xs)
+		x.coeffRef(triplet.r, col) = triplet.val;
+
+	for (auto& triplet : ys)
+		y.coeffRef(triplet.r) = triplet.val;
+}
+
+void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const Eigen::JacobiRotation<float>& rot)
+{
+	static std::vector<Triplet2> xs;
+	static std::vector<Triplet2> ys;
+	xs.clear();
+	ys.clear();
+
+	auto itrx = SparseVector::InnerIterator(x);
+	auto itry = SparseMatrix::InnerIterator(y, col);
+
+	//while (itrx && itrx.row() <= after) ++itrx;
+	//while (itry && itry.row() <= after) ++itry;
+
+	rot_compute(xs, ys, itrx, itry, rot);
+
+	for (auto& triplet : xs)
+		x.coeffRef(triplet.r) = triplet.val;
+
+	for (auto& triplet : ys)
+		y.coeffRef(triplet.r, col) = triplet.val;
+}
+
 
 /* See M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008 at
 * 	http://lapmal.epfl.ch/papers/cholupdate.pdf
 * for more an explanation of the algorithm used here.
 */
 template <class T>
-void cholesky_update(Eigen::SparseMatrix<T>& L,
+void sparse_cholesky_update(Eigen::SparseMatrix<T>& L,
 	Eigen::SparseVector<T>& v) {
 
 	Eigen::JacobiRotation<T> rot;
-
+	const size_t N = v.rows();
 	for (int i = 0; i < N; ++i) {
-		rot.makeGivens(L(i, i), -v(i), &L(i, i)), v(i) = 0;
-		if (i < N - 1)
-			apply_jacobi_rotation(L.col(i).tail(N - i - 1), v.tail(N - i - 1), rot);
+		if (v.coeff(i) != 0.0f)
+		{
+			rot.makeGivens(L.coeff(i, i), -v.coeff(i), &L.coeffRef(i, i));
+			if (i < N - 1)
+				apply_jacobi_rotation(i, L, i, v, rot);
+		}
 	}
 }
 
-/* See M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008 at
-* 	http://lapmal.epfl.ch/papers/cholupdate.pdf
-* for more an explanation of the algorithm used here.
-*/
-template <int N>
-void cholesky_downdate(Eigen::Matrix<double, N, N>& L,
-	Eigen::Matrix<double, N, 1> p) {
+///* See M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008 at
+//* 	http://lapmal.epfl.ch/papers/cholupdate.pdf
+//* for more an explanation of the algorithm used here.
+//*/
+template <class T>
+void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
+	Eigen::SparseVector<T>& p) {
 
-	L.template triangularView<Eigen::Lower>().solveInPlace(p);
+	//L.template triangularView<Eigen::Lower>().solveInPlace(p);
+	L.triangularView<Eigen::Lower>().solveInPlace(p);
+	const size_t N = p.rows();
 
 	assert(p.squaredNorm()
 		< 1); // otherwise the downdate would destroy positive definiteness.
-	double rho = std::sqrt(1 - p.squaredNorm());
+	float rho = std::sqrt(1 - p.squaredNorm());
 
-	Eigen::JacobiRotation<double> rot;
-	Eigen::Matrix<double, N, 1> temp;
-	temp.setZero();
+	Eigen::JacobiRotation<float> rot;
+	Eigen::SparseVector<T> temp(N);
 
 	for (int i = N - 1; i >= 0; --i) {
-		rot.makeGivens(rho, p(i), &rho), p(i) = 0;
-		apply_jacobi_rotation(temp, L.col(i), rot);
+		if (p.coeff(i) != 0.0f)
+		{
+			rot.makeGivens(rho, p.coeff(i), &rho);
+			apply_jacobi_rotation2(temp, L, i, rot);
+		}
 	}
 }
 
-template <int N>
-void cholesky_update(Eigen::Matrix<double, N, N>& L,
-	const Eigen::Matrix<double, N, 1>& v, double k) {
-	if (k > 0)
-		cholesky_update<N>(L, std::sqrt(k) * v);
-	else if (k < 0)
-		cholesky_downdate<N>(L, std::sqrt(-k) * v);
-}
-
-#endif /* CHOLESKY_HPP_ */
+#endif /* SPARSE_CHOLESKY_HPP_ */
