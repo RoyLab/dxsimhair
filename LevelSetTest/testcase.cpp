@@ -50,10 +50,33 @@ bool check_matrix_update();
 int profiler_find_all_pair();
 bool check_find_all_pairs(double *r, unsigned n);
 bool check_matrix_update_naive();
-int check_chelosky_update(); // TODO
+bool check_chelosky_update(); // TODO
 
 int trivial()
 {
+	SparseMatrix mat(10, 10);
+	mat.coeffRef(0, 0) = 0;
+	mat.coeffRef(1, 1) = 1;
+	mat.coeffRef(2, 2) = 2;
+	mat.coeffRef(3, 3) = 3;
+	mat.coeffRef(2, 0) = randf();
+	mat.coeffRef(0, 3) = randf();
+	mat.coeffRef(3, 1) = randf();
+	mat.coeffRef(4, 1) = randf();
+	mat.coeffRef(5, 1) = randf();
+	mat.coeffRef(6, 1) = randf();
+	mat.coeffRef(7, 1) = randf();
+	mat.coeffRef(8, 1) = randf();
+
+	SparseMatrix::Storage &data = mat.data();
+
+	Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> llt;
+	//llt.compute(mat);
+	//cout << llt.matrixL();
+	cout << mat;
+
+	//mat.prune(0.0f);
+	//cout << mat;
 	return 0;
 }
 
@@ -69,8 +92,9 @@ void init()
 
 int main(int argc, char** argv)
 {
-	//init();
-	trivial();
+	init();
+	//trivial();
+	//check_chelosky_update();
 	
 	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
 	//if (testall()) cout << "All cases are passed! :-)" << endl;
@@ -89,67 +113,86 @@ bool testall()
 }
 
 
-int check_chelosky_update()
+bool check_chelosky_update()
 {
 	const int N = 6;
 	srand(2);
 	typedef WR::SparseMat Matrix;
-	Matrix a(N, N);
-	WR::SparseVec v(N);
+	Matrix a(N, N), L(N, N);
+	WR::SparseVec v(N), v2;
 	Eigen::JacobiRotation<float> rot;
 	float p = 0.6f, q = 0.44f;
 	rot.makeGivens(p, q);
 
 	std::vector<Eigen::Triplet<float>> t;
-	for (int i = 0; i < N; i++)
-	{
-		for (int j = i; j < N; j++)
-		{
-			if (randf() > 0.4)
-				t.emplace_back(j, i, randf() * 100);
-		}
-	}
-	a.setFromTriplets(t.begin(), t.end());
-	a.setIdentity(); a *= 10000;
+	a.setIdentity();
 
-	for (int i = 0; i < N; i++)
+	int pair[][2] = { 1, 2,   3, 4,   1, 5,   0, 3,   0, 2,   2, 3 };
+	const int sz = sizeof(pair) / sizeof(int) / 2;
+	for (int i = 0; i < sz; i++)
 	{
-		if (randf() > 0.4)
-			v.coeffRef(i) = randf() * 100;
+		a.coeffRef(pair[i][0], pair[i][1]) = -1;
+		//a.coeffRef(pair[i][1], pair[i][0]) = -1;
+		a.coeffRef(pair[i][0], pair[i][0]) += 1;
+		a.coeffRef(pair[i][1], pair[i][1]) += 1;
 	}
+
+	Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> llt;
+	llt.compute(a);
+
+	v.coeffRef(2) = 1;
+	v.coeffRef(4) = -1;
+
+	L = llt.matrixL();
 	cout.precision(4);
-	cout.width(10);
 
-	Eigen::Matrix<float, N, N> ap = a;
+	Eigen::Matrix<float, N, N> Lp = L;
 	Eigen::Matrix<float, N, 1> vp = v, vp2 = v;
-	cout << ap << std::endl;
+	Eigen::Matrix<float, -1, 1> vp3;
+	cout << Lp << std::endl;
 
 	//apply_jacobi_rotation(0, a, 1, v, rot);
 	//apply_jacobi_rotation(ap.col(1).tail(N - 1), vp.tail(N - 1), rot);
 
+	//for (int i = 0; i < 10000; i++)
+	//{
+	//	if (i % 100 == 0)
+	//		XTIMER_HELPER(setClock("a"));
+	//	v2 = v;
+	//	sparse_cholesky_update(L, v2);
+	//	vp3 = v;
+	//	sparse_cholesky_downdate(L, vp3);
 
-	sparse_cholesky_update(a, v);
-	//sparse_cholesky_downdate(a, v);
+	//	if (i % 100 == 0)
+	//	{
+	//		cout << XTIMER_HELPER(milliseconds("a")) << "ms\n";
+	//		Eigen::Matrix<float, N, N> diff = L.toDense().cast<float>() - Lp;
+	//		cout << "error: " << diff.sum() << endl;
+	//	}
+	//}
 
-	//cholesky_update<N>(ap, vp);
-	//cholesky_downdate<N>(ap, vp2);
+	v2 = v;
+	sparse_cholesky_update(L, v2);
+	//vp3 = v;
+	//sparse_cholesky_downdate(L, vp3);
 
-	//cout << "As follows: \n" << a.toDense().cast<float>() - ap << std::endl;
-	//cout << "As follows: \n" << a << std::endl;
+	cholesky_update<N>(Lp, vp);
+	//cholesky_downdate<N>(Lp, vp2);
 
-	cout << "As follows: \n" << a.toDense().cast<float>() - ap << std::endl;
-	cout << "As follows: \n" << a << std::endl;
+	auto tmpa = a + v*v.transpose();
 
-	//cout << ap << std::endl;
+	Eigen::Matrix<float, N, N> diff = L.toDense().cast<float>() - Lp;
+	SparseMatrix diff2 = Eigen::SparseTriangularView<SparseMatrix, Eigen::Upper>(L*L.transpose())- Eigen::SparseTriangularView<SparseMatrix, Eigen::Upper>(tmpa);
 
+	cout << "As follows: \n" << diff.sum() << "\t" << diff2.sum() << std::endl;
 
-	////cholesky_update(a, v);
-	//Eigen::JacobiRotation<float> rot;
-	//Eigen::internal::apply_rotation_in_the_plane(a.row(0).tail(0), v.row(0).tail(0), rot);
-	//auto b = a.row(0).tail(0);
+	bool res = diff.sum() < 1e-5f && diff2.sum() < 1e-5f;
+	assert(res);
 
+	//cout << tmpa.toDense() << std::endl;
+	//cout << SparseMatrix(L*L.transpose()).toDense() << std::endl;
 
-	return 0;
+	return res;
 }
 
 bool check_matrix_update_naive()

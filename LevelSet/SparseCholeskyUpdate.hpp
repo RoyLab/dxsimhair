@@ -133,13 +133,12 @@ void sparse_cholesky_update(Eigen::SparseMatrix<T>& L,
 
 	Eigen::JacobiRotation<T> rot;
 	const size_t N = v.rows();
-	for (int i = 0; i < N; ++i) {
-		if (v.coeff(i) != 0.0f)
-		{
-			rot.makeGivens(L.coeff(i, i), -v.coeff(i), &L.coeffRef(i, i));
-			if (i < N - 1)
-				apply_jacobi_rotation(i, L, i, v, rot);
-		}
+	Eigen::SparseVector<T>::Storage& data = v.data();
+	for (int i = 0; i < v.nonZeros(); ++i) {
+		auto idx = data.index(i);
+		rot.makeGivens(L.coeff(idx, idx), -data.value(i), &L.coeffRef(idx, idx));
+		if (i < N - 1)
+			apply_jacobi_rotation(idx, L, idx, v, rot);
 	}
 }
 
@@ -170,7 +169,7 @@ void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
 
 	Eigen::JacobiRotation<float> rot;
 	Eigen::SparseVector<T> temp(N);
-
+	
 	for (int i = N - 1; i >= 0; --i) {
 		if (p(i) != 0.0f)
 		{
