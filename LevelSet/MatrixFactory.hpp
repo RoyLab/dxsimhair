@@ -499,14 +499,16 @@ namespace Hair
 	template<class Container>
 	void MatrixFactory<Container>::_downdate(GroupCache& cache, int id, int id2)
 	{
-		cache.b.setZero();
-		auto &v = cache.b;
+		//cache.b.setZero();
+		//auto &v = cache.b;
+		SparseVector v(cache.b.rows());
+
 		for (int i = 0; i < 3; i++)
 		{
 			v.setZero();
-			v(id + i) = sqrtBalance;
+			v.coeffRef(id + i) = sqrtBalance;
 			if (id2 > 0)
-				v(id2 + i) = -sqrtBalance;
+				v.coeffRef(id2 + i) = -sqrtBalance;
 			sparse_cholesky_downdate(cache.LBase, v);
 		}
 	}

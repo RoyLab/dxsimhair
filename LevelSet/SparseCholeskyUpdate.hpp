@@ -110,9 +110,6 @@ void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const 
 	auto itrx = SparseVector::InnerIterator(x);
 	auto itry = SparseMatrix::InnerIterator(y, col);
 
-	//while (itrx && itrx.row() <= after) ++itrx;
-	//while (itry && itry.row() <= after) ++itry;
-
 	rot_compute(xs, ys, itrx, itry, rot);
 
 	for (auto& triplet : xs)
@@ -121,6 +118,8 @@ void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const 
 	for (auto& triplet : ys)
 		y.coeffRef(triplet.r, col) = triplet.val;
 }
+
+
 
 
 /* See M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008 at
@@ -142,25 +141,44 @@ void sparse_cholesky_update(Eigen::SparseMatrix<T>& L,
 	}
 }
 
+template<class T>
+void lower_sparse_matrix_solve_in_place_sparse_vector(Eigen::SparseMatrix<T>& L, Eigen::SparseVector<T>& p)
+{
+	std::remove_reference<decltype(p)>::type::Storage &data = p.data();
+	for (int i = 0; i < p.nonZeros(); i++)
+	{
+		auto idx = data.index(i);
+		auto val = data.value(i);
+		auto itrL = std::remove_reference<decltype(L)>::type::InnerIterator(L, idx);
+		assert(itrL.index() == idx);
+		T fix = val / itrL.value();
+		data.value(i) = fix;
+
+		// substitution
+		for (++itrL; itrL; ++itrL)
+			p.coeffRef(itrL.index()) -= fix*itrL.value();
+	}
+}
+
 ///* See M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008 at
 //* 	http://lapmal.epfl.ch/papers/cholupdate.pdf
 //* for more an explanation of the algorithm used here.
 //*/
 template <class T>
 void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
-	Eigen::Matrix<T, -1, 1>& p) {
+	Eigen::SparseVector<T>& p) {
 
-	//L.template triangularView<Eigen::Lower>().solveInPlace(p);
-	Eigen::SparseTriangularView<SparseMatrix, Eigen::Lower> LView(L);
-	LView.solveInPlace(p);
+	//cout << endl;
+	//cout << L.toDense() << endl;
+	//cout << p.transpose().toDense() << endl;
+
+	//auto tmp = p;
+	lower_sparse_matrix_solve_in_place_sparse_vector(L, p);
+	//cout << p.transpose().toDense() << endl << endl;
+	//p = tmp;
+	//L.triangularView<Eigen::Lower>().solveInPlace(p);
+	//cout << p.transpose().toDense() << endl << endl;
 	const size_t N = p.rows();
-
-	//BOOST_LOG_TRIVIAL(debug) << p.squaredNorm();
-	//if (std::isnan(p.squaredNorm()))
-	//{
-	//	std::cout << L << p;
-	//	system("pause");
-	//}
 
 	assert(p.squaredNorm()
 		< 1); // otherwise the downdate would destroy positive definiteness.
@@ -169,14 +187,21 @@ void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
 
 	Eigen::JacobiRotation<float> rot;
 	Eigen::SparseVector<T> temp(N);
-	
+
 	for (int i = N - 1; i >= 0; --i) {
-		if (p(i) != 0.0f)
+		if (p.coeff(i) != 0.0f)
 		{
-			rot.makeGivens(rho, p(i), &rho);
+			rot.makeGivens(rho, p.coeffRef(i), &rho);
 			apply_jacobi_rotation2(temp, L, i, rot);
 		}
 	}
+
+	//for (auto itr = Eigen::SparseVector<T>::InnerIterator(p); itr; ++itr)
+	//{
+	//	auto idx = itr.index();
+	//	rot.makeGivens(rho, itr.value(), &rho);
+	//	apply_jacobi_rotation2(temp, L, idx, rot);
+	//}
 }
 
 #endif /* SPARSE_CHOLESKY_HPP_ */

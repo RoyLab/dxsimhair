@@ -173,20 +173,23 @@ bool check_chelosky_update()
 
 	v2 = v;
 	sparse_cholesky_update(L, v2);
-	//vp3 = v;
-	//sparse_cholesky_downdate(L, vp3);
+	v2 = v;
+	sparse_cholesky_downdate(L, v2);
 
 	cholesky_update<N>(Lp, vp);
-	//cholesky_downdate<N>(Lp, vp2);
+	cholesky_downdate<N>(Lp, vp2);
 
-	auto tmpa = a + v*v.transpose();
+	//a += v*v.transpose();
 
 	Eigen::Matrix<float, N, N> diff = L.toDense().cast<float>() - Lp;
-	SparseMatrix diff2 = Eigen::SparseTriangularView<SparseMatrix, Eigen::Upper>(L*L.transpose())- Eigen::SparseTriangularView<SparseMatrix, Eigen::Upper>(tmpa);
+	SparseMatrix diff2 = Eigen::SparseTriangularView<SparseMatrix, Eigen::Upper>(L*L.transpose())- Eigen::SparseTriangularView<SparseMatrix, Eigen::Upper>(a);
 
 	cout << "As follows: \n" << diff.sum() << "\t" << diff2.sum() << std::endl;
 
-	bool res = diff.sum() < 1e-5f && diff2.sum() < 1e-5f;
+	bool res = std::abs(diff.sum()) < 1e-5f && std::abs(diff2.sum()) < 1e-5f;
+
+	cout << L << endl;
+	cout << diff << endl;
 	assert(res);
 
 	//cout << tmpa.toDense() << std::endl;
