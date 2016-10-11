@@ -61,12 +61,12 @@ int trivial()
 	mat.coeffRef(3, 3) = 3;
 	mat.coeffRef(2, 0) = randf();
 	mat.coeffRef(0, 3) = randf();
+	mat.coeffRef(8, 1) = randf();
+	mat.coeffRef(7, 1) = randf();
+	mat.coeffRef(6, 1) = randf();
 	mat.coeffRef(3, 1) = randf();
 	mat.coeffRef(4, 1) = randf();
 	mat.coeffRef(5, 1) = randf();
-	mat.coeffRef(6, 1) = randf();
-	mat.coeffRef(7, 1) = randf();
-	mat.coeffRef(8, 1) = randf();
 
 	SparseMatrix::Storage &data = mat.data();
 
@@ -227,7 +227,22 @@ bool check_matrix_update_naive()
 
 bool check_matrix_update()
 {
-	const char fver[][128] = { "D:/Data/vpos/50kf001.vertex" , "D:/Data/vpos/50kf002.vertex" , "D:/Data/vpos/50kf003.vertex"};
+	const size_t ntest = 9;
+	void *tp = malloc(sizeof(char) * 128 * ntest);
+	char(*fver)[128] = reinterpret_cast<char(*)[128]>(tp);
+
+	for (int j = 0; j < ntest/2+1; j++)
+	{
+		sprintf(fver[j], "D:/Data/vpos/50kf%03d.vertex", j+1);
+	}
+
+	for (int j = 0; j < ntest / 2; j++)
+	{
+		sprintf(fver[j+ ntest / 2+1], "D:/Data/vpos/50kf%03d.vertex", ntest / 2-j);
+	}
+	//{ "D:/Data/vpos/50kf001.vertex" , "D:/Data/vpos/50kf002.vertex" , "D:/Data/vpos/50kf003.vertex"};
+
+
 	const char fgroup[] = "E:/c0514/indexcomp1/cg-100.group";
 
 	typedef std::vector<uint32_t> IdContainer;
@@ -239,7 +254,7 @@ bool check_matrix_update()
 	float r = 0.02f;
 	unsigned ncase = sizeof(fver) / sizeof(fver[0]);
 
-	for (int j = 0; j < 3; j++)
+	for (int j = 0; j < ntest; j++)
 	{
 		XRwy::tool::Timer::getTimer().setClock("a");
 
@@ -262,6 +277,7 @@ bool check_matrix_update()
 		pgrid.query(id0, id1);
 
 		mf.update(id0, id1, p, nParticle, r);
+		Sleep(1000);
 
 		BOOST_LOG_TRIVIAL(info) << "On update " << XRwy::tool::Timer::getTimer().milliseconds("a");
 	}

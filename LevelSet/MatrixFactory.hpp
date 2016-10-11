@@ -592,7 +592,14 @@ namespace Hair
 			}
 		}
 
-		BOOST_LOG_TRIVIAL(trace) << "Number of update " << counta << '/' << countb << '/' << id0.size();
+
+		int countc = 0;
+		for (uint32_t i = 0; i < nGroup; i++)
+		{
+			countc += cache[i].LBase.nonZeros();
+		}
+		BOOST_LOG_TRIVIAL(info) << "Number of update " << counta << '/' << countb << '/' << id0.size() << '\t' << countc;
+
 
 		id0_.swap(id0);
 		id1_.swap(id1);

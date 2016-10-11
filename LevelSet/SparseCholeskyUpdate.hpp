@@ -188,12 +188,14 @@ void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
 	Eigen::JacobiRotation<float> rot;
 	Eigen::SparseVector<T> temp(N);
 
-	for (int i = N - 1; i >= 0; --i) {
-		if (p.coeff(i) != 0.0f)
-		{
-			rot.makeGivens(rho, p.coeffRef(i), &rho);
-			apply_jacobi_rotation2(temp, L, i, rot);
-		}
+	std::remove_reference<decltype(p)>::type::Storage &data = p.data();
+	const size_t sz = data.size();
+	for (int i = sz - 1; i >= 0; --i)
+	{
+		auto idx = data.index(i);
+		auto value = data.value(i);
+		rot.makeGivens(rho, value, &rho);
+		apply_jacobi_rotation2(temp, L, idx, rot);
 	}
 
 	//for (auto itr = Eigen::SparseVector<T>::InnerIterator(p); itr; ++itr)
