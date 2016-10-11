@@ -210,7 +210,9 @@ namespace Hair
 			updateL(id0, id1);
 		}
 
-		//return;
+		BOOST_LOG_TRIVIAL(info) << XTIMER_HELPER(milliseconds("a"));
+
+		XTIMER_HELPER(setClock("ap"));
 
 		loadPosition(pos);
 
@@ -242,6 +244,8 @@ namespace Hair
 		dispatchPosition(pos);
 
 		delete[] de_pos;
+
+		BOOST_LOG_TRIVIAL(info) << XTIMER_HELPER(milliseconds("ap"));
 	}
 
 	template<class Container>
@@ -567,7 +571,7 @@ namespace Hair
 					if (mseq[1] != -1)
 						_update(cache[g[1]].LBase, mseq[1]);
 				}
-				i++; counta++;
+				i++;counta++;
 				break;
 			case -1: // downdate
 				mseq[0] = pid2matrixSeq[idx0[0]]; mseq[1] = pid2matrixSeq[idx0[1]];
@@ -592,13 +596,13 @@ namespace Hair
 			}
 		}
 
-
 		int countc = 0;
 		for (uint32_t i = 0; i < nGroup; i++)
 		{
 			countc += cache[i].LBase.nonZeros();
 		}
 		BOOST_LOG_TRIVIAL(info) << "Number of update " << counta << '/' << countb << '/' << id0.size() << '\t' << countc;
+
 
 
 		id0_.swap(id0);

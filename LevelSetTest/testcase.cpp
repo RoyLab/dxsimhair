@@ -256,7 +256,6 @@ bool check_matrix_update()
 
 	for (int j = 0; j < ntest; j++)
 	{
-		XRwy::tool::Timer::getTimer().setClock("a");
 
 		f.open(fver[j], std::ios::binary);
 		f.read((char*)&nParticle, sizeof(size_t));
@@ -276,9 +275,8 @@ bool check_matrix_update()
 		pgrid.createGrid();
 		pgrid.query(id0, id1);
 
+		XRwy::tool::Timer::getTimer().setClock("a");
 		mf.update(id0, id1, p, nParticle, r);
-		Sleep(1000);
-
 		BOOST_LOG_TRIVIAL(info) << "On update " << XRwy::tool::Timer::getTimer().milliseconds("a");
 	}
 
