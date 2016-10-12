@@ -7,6 +7,7 @@
 #include <deque>
 
 #include <windows.h>
+
 #include "Octree.hpp"
 #include "utils.h"
 #include "gridraster.h"

@@ -12,11 +12,15 @@
 
 #include <Eigen/Sparse>
 #include <Eigen/Jacobi>
+#include "XSparseMatrix.h"
 
 typedef Eigen::SparseMatrix<float> SparseMatrix;
 typedef Eigen::SparseVector<float> SparseVector;
 
-struct Triplet2 { Triplet2(int a, float b) :r(a), val(b) {} int r; float val; };
+template <class Index = int, class T = float>
+struct XTriplet { XTriplet(const Index& a, const T& b) :r(a), val(b) {} Index r; T val; };
+
+typedef XTriplet<> Triplet2;
 
 /* NOTE: This function is a hack; in particular the first two parameters are
 * modified even though
@@ -110,6 +114,47 @@ void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const 
 	auto itrx = SparseVector::InnerIterator(x);
 	auto itry = SparseMatrix::InnerIterator(y, col);
 
+	rot_compute(xs,  ys, itrx, itry, rot);
+
+	for (auto& triplet : xs)
+		x.coeffRef(triplet.r) = triplet.val;
+
+	for (auto& triplet : ys)
+		y.coeffRef(triplet.r, col) = triplet.val;
+}
+
+void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col, SparseVector& y, const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
+{
+	static std::vector<Triplet2> xs;
+	static std::vector<Triplet2> ys;
+	xs.clear();
+	ys.clear();
+
+	auto itrx = x.getIterator(col, after);
+
+	auto itry = SparseVector::InnerIterator(y);
+	while (itry && itry.row() <= after) ++itry;
+
+	rot_compute(xs, ys, itrx, itry, rot);
+
+	for (auto& triplet : xs)
+		x.coeffRef(triplet.r, col) = triplet.val;
+
+	for (auto& triplet : ys)
+		y.coeffRef(triplet.r) = triplet.val;
+}
+
+
+void apply_jacobi_rotation2(SparseVector& x, XRwy::core::SPDLowerMatrix& y, size_t col, const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
+{
+	static std::vector<Triplet2> xs;
+	static std::vector<Triplet2> ys;
+	xs.clear();
+	ys.clear();
+
+	auto itrx = SparseVector::InnerIterator(x);
+	auto itry = y.getIterator(col);
+
 	rot_compute(xs, ys, itrx, itry, rot);
 
 	for (auto& triplet : xs)
@@ -121,7 +166,6 @@ void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const 
 
 
 
-
 /* See M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008 at
 * 	http://lapmal.epfl.ch/papers/cholupdate.pdf
 * for more an explanation of the algorithm used here.
@@ -130,6 +174,21 @@ template <class T>
 void sparse_cholesky_update(Eigen::SparseMatrix<T>& L,
 	Eigen::SparseVector<T>& v) {
 
+	Eigen::JacobiRotation<T> rot;
+	const size_t N = v.rows();
+	Eigen::SparseVector<T>::Storage& data = v.data();
+	for (int i = 0; i < v.nonZeros(); ++i) {
+		auto idx = data.index(i);
+		rot.makeGivens(L.coeff(idx, idx), -data.value(i), &L.coeffRef(idx, idx));
+		if (i < N - 1)
+			apply_jacobi_rotation(idx, L, idx, v, rot);
+	}
+}
+
+void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
+	Eigen::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
+
+	typedef XRwy::core::SPDLowerMatrix::T T;
 	Eigen::JacobiRotation<T> rot;
 	const size_t N = v.rows();
 	Eigen::SparseVector<T>::Storage& data = v.data();
@@ -168,16 +227,7 @@ template <class T>
 void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
 	Eigen::SparseVector<T>& p) {
 
-	//cout << endl;
-	//cout << L.toDense() << endl;
-	//cout << p.transpose().toDense() << endl;
-
-	//auto tmp = p;
 	lower_sparse_matrix_solve_in_place_sparse_vector(L, p);
-	//cout << p.transpose().toDense() << endl << endl;
-	//p = tmp;
-	//L.triangularView<Eigen::Lower>().solveInPlace(p);
-	//cout << p.transpose().toDense() << endl << endl;
 	const size_t N = p.rows();
 
 	assert(p.squaredNorm()
@@ -197,13 +247,33 @@ void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
 		rot.makeGivens(rho, value, &rho);
 		apply_jacobi_rotation2(temp, L, idx, rot);
 	}
-
-	//for (auto itr = Eigen::SparseVector<T>::InnerIterator(p); itr; ++itr)
-	//{
-	//	auto idx = itr.index();
-	//	rot.makeGivens(rho, itr.value(), &rho);
-	//	apply_jacobi_rotation2(temp, L, idx, rot);
-	//}
 }
+
+void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
+	Eigen::SparseVector<typename XRwy::core::SPDLowerMatrix::T>& p) {
+
+	typedef XRwy::core::SPDLowerMatrix::T T;
+	L.forwardSubstitution(p);
+	const size_t N = p.rows();
+
+	assert(p.squaredNorm()
+		< 1); // otherwise the downdate would destroy positive definiteness.
+
+	float rho = std::sqrt(1 - p.squaredNorm());
+
+	Eigen::JacobiRotation<float> rot;
+	Eigen::SparseVector<T> temp(N);
+
+	std::remove_reference<decltype(p)>::type::Storage &data = p.data();
+	const size_t sz = data.size();
+	for (int i = sz - 1; i >= 0; --i)
+	{
+		auto idx = data.index(i);
+		auto value = data.value(i);
+		rot.makeGivens(rho, value, &rho);
+		apply_jacobi_rotation2(temp, L, idx, rot);
+	}
+}
+
 
 #endif /* SPARSE_CHOLESKY_HPP_ */

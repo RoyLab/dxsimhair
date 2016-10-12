@@ -80,3 +80,10 @@ m_##__name__ = _##__name__##_; \
 #define Read4Bytes(f, b) (ReadNBytes(f, &b, 4))
 #define WriteNBytes(f, b, n) (f.write(reinterpret_cast<char*>(b), n))
 #define Write4Bytes(f, b) (WriteNBytes(f, &b, 4))
+
+
+#ifdef XRWY_EXPORTS
+#define XRWY_DLL __declspec(dllexport)
+#else
+#define XRWY_DLL __declspec(dllimport)
+#endif

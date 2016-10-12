@@ -6,6 +6,7 @@
 #include "HairStructs.h"
 #include "EigenTypes.h"
 #include "XTimer.hpp"
+#include "XSparseMatrix.h"
 #include "SparseCholeskyUpdate.hpp"
 
 namespace XRwy
@@ -16,16 +17,18 @@ namespace Hair
 	class MatrixFactory
 	{
 		typedef WR::SparseMat SparseMatrix;
+		typedef XRwy::core::SPDLowerMatrix XSparseMatrix;
 		typedef WR::VecX Vector;
 		typedef uint8_t gid_t;
 		typedef Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> LLTSolver;
 
 		struct GroupCache
 		{
-			GroupCache() : LBase(), L(LBase) {}
+			GroupCache() {}
 
-			SparseMatrix A, LBase;
-			Eigen::SparseTriangularView<SparseMatrix, Eigen::Lower> L;
+			SparseMatrix A;
+			XSparseMatrix LBase;
+			//Eigen::SparseTriangularView<SparseMatrix, Eigen::Lower> L;
 			/// Eigen::SparseTriangularView<SparseMatrix, Eigen::Upper> LT; // no use???????
 
 			Vector b, b0;
@@ -50,6 +53,7 @@ namespace Hair
 		void dispatchPosition(float* pts);
 		void cachePosition();
 		void _update(SparseMatrix& m, int id, int id2 = -1);
+		void _update(XSparseMatrix& m, int id, int id2 = -1);
 		void _downdate(GroupCache& cache, int id, int id2 = -1);
 
 		/** update b to x prime */
@@ -319,10 +323,13 @@ namespace Hair
 
 		LLTSolver solver;
 		SparseMatrix tmpSM;
+
+
 		for (uint32_t i = 0; i < nGroup; i++)
 		{
 			auto &infos = cache[i];
-			tmpSM = infos.A;
+			if (infos.buffersize == 0) continue;
+			tmpSM.resize(infos.A.rows(), infos.A.cols());
 			tmpSM.setFromTriplets(assemble[i].begin(), assemble[i].end());
 			infos.A.setIdentity();
 			infos.A += tmpSM * balance;
@@ -331,6 +338,7 @@ namespace Hair
 			assert(solver.info() == Eigen::Success);
 
 			infos.LBase = solver.matrixL();
+
 			BOOST_LOG_TRIVIAL(debug) << "nnz: " << infos.LBase.nonZeros() << " size: " << infos.LBase.rows() <<
 				"\tratio: "<< infos.LBase.nonZeros()/ (float)infos.LBase.rows();
 		}
@@ -501,6 +509,20 @@ namespace Hair
 	}
 
 	template<class Container>
+	void MatrixFactory<Container>::_update(XSparseMatrix& m, int id, int id2)
+	{
+		SparseVector v(m.rows());
+		for (int i = 0; i < 3; i++)
+		{
+			v.setZero();
+			v.coeffRef(id + i) = sqrtBalance;
+			if (id2 > 0)
+				v.coeffRef(id2 + i) = -sqrtBalance;
+			sparse_cholesky_update(m, v);
+		}
+	}
+
+	template<class Container>
 	void MatrixFactory<Container>::_downdate(GroupCache& cache, int id, int id2)
 	{
 		//cache.b.setZero();
@@ -603,8 +625,6 @@ namespace Hair
 		}
 		BOOST_LOG_TRIVIAL(info) << "Number of update " << counta << '/' << countb << '/' << id0.size() << '\t' << countc;
 
-
-
 		id0_.swap(id0);
 		id1_.swap(id1);
 	}
@@ -615,8 +635,8 @@ namespace Hair
 	{
 		GroupCache &infos = cache[gid];
 
-		infos.L.solveInPlace(infos.b);
-		infos.LBase.transpose().triangularView<Eigen::Upper>().solveInPlace(infos.b);
+		infos.LBase.forwardSubstitution(infos.b);
+		infos.LBase.backwardSubstitution(infos.b);
 	}
 
 

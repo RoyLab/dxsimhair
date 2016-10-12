@@ -49,7 +49,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>XRWY_DEBUG;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:/Codes/Common/;..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -72,7 +72,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:/Codes/Common/;..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -107,6 +107,7 @@
     <ClInclude Include="UnitTest.h" />
     <ClInclude Include="wrGeo.h" />
     <ClInclude Include="wrTripleMatrix.h" />
+    <ClInclude Include="XSparseMatrix.h" />
     <ClInclude Include="XTimer.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +118,7 @@
     <ClCompile Include="GridCollisionObject.cpp" />
     <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="LevelSet.cpp" />
+    <ClCompile Include="XSparseMatrix.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
