@@ -1,6 +1,7 @@
 #define XRWY_EXPORTS
 #include "XSparseMatrix.h"
 #include <XR_Exception.hpp>
+#include <boost\log\trivial.hpp>
 
 namespace XRwy
 {
@@ -54,19 +55,35 @@ namespace core
 
 	void SPDLowerMatrix::backwardSubstitution(Eigen::Matrix<T, -1, 1>& p) const
 	{
+		std::vector<std::vector<Index>> slot(mn_row);
+		std::vector<ConstReverseInnerIterator> iters(mn_row);
+
+		for (size_t i = 0; i < mn_row; i++)
+		{
+			iters[i] = getReverseConstIterator(i);
+			auto j = iters[i].index();
+			if (j != i) // diag is not added;
+				slot[j].push_back(i);
+		}
+
 		const size_t sz = p.rows();
 		for (int i = sz-1; i >= 0; i--)
 		{
-			auto idx = i;
 			auto val = p(i);
-			auto itrL = getReverseConstIterator(idx);
-			assert(itrL.index() == idx);
-			T fix = val / itrL.value();
+			T fix = val / diag(i);
 			p(i) = fix;
 
 			// substitution
-			for (++itrL; itrL; ++itrL)
-				p(itrL.index()) -= fix*itrL.value();
+			for (size_t j = 0; j < slot[i].size(); j++)
+			{
+				auto item = slot[i][j];
+				p(item) -= fix*iters[item].value();
+
+				iters[item]++;
+				auto k = iters[item].index();
+				if (k != item) // diag is not added;
+					slot[k].push_back(item);
+			}
 		}
 	}
 

@@ -59,6 +59,7 @@ namespace core
 			ColStorage::const_reverse_iterator data, end;
 
 		public:
+			ConstReverseInnerIterator() {}
 			ConstReverseInnerIterator(const SPDLowerMatrix& m, Index col) :
 				end(m.m_data[col].crend()), data(m.m_data[col].crbegin())
 			{}
@@ -90,6 +91,8 @@ namespace core
 		// access
 		T& coeffRef(Index r, Index c) { return m_data[c][r]; }
 		T coeff(Index r, Index c) const { auto res = m_data[c].find(r); if (res == m_data[c].end()) return T(0); else return res->second; }
+		T& diag(Index i) { return m_data[i].begin()->second; }
+		const T& diag(Index i) const { return m_data[i].begin()->second; }
 
 		// iterator
 		InnerIterator getIterator(Index col) { return InnerIterator(*this, col); }

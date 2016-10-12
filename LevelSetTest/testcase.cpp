@@ -52,6 +52,7 @@ int profiler_find_all_pair();
 bool check_find_all_pairs(double *r, unsigned n);
 bool check_matrix_update_naive();
 bool check_chelosky_update(); // TODO
+bool check_spd_lower_matrix();
 
 int trivial()
 {
@@ -96,7 +97,7 @@ int main(int argc, char** argv)
 	init();
 	//trivial();
 	//check_chelosky_update();
-	
+	//check_spd_lower_matrix();
 	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
 	//if (testall()) cout << "All cases are passed! :-)" << endl;
 
@@ -113,6 +114,23 @@ bool testall()
 	return res0;
 }
 
+
+WR::SparseMat genUpperSPD(const int N = 6)
+{
+	typedef WR::SparseMat Matrix;
+	Matrix a(N, N);
+	a.setIdentity();
+
+	int pair[][2] = { 1, 2,   3, 4,   1, 5,   0, 3,   0, 2,   2, 3 };
+	const int sz = sizeof(pair) / sizeof(int) / 2;
+	for (int i = 0; i < sz; i++)
+	{
+		a.coeffRef(pair[i][0], pair[i][1]) = -1;
+		a.coeffRef(pair[i][0], pair[i][0]) += 1;
+		a.coeffRef(pair[i][1], pair[i][1]) += 1;
+	}
+	return a;
+}
 
 bool check_chelosky_update()
 {
@@ -532,3 +550,25 @@ int LLTtest()
 	return 0;
 }
 
+bool check_spd_lower_matrix()
+{
+	typedef  Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> solver_t;
+
+	auto A = genUpperSPD();
+	solver_t solver;
+	solver.compute(A);
+
+	const size_t sz = A.rows();
+	Eigen::VectorXf b(sz), x0;
+	b.setRandom();
+
+	x0 = solver.solve(b);
+
+	XRwy::core::SPDLowerMatrix L = solver.matrixL();
+	L.forwardSubstitution(b);
+	L.backwardSubstitution(b);
+
+	cout << x0 - b;
+
+	return true;
+}
