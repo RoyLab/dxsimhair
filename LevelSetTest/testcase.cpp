@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 	init();
 	//trivial();
 	//check_chelosky_update();
-	//check_spd_lower_matrix();
+	check_spd_lower_matrix();
 	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
 	//if (testall()) cout << "All cases are passed! :-)" << endl;
 

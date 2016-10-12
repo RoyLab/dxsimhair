@@ -55,15 +55,37 @@ namespace core
 
 	void SPDLowerMatrix::backwardSubstitution(Eigen::Matrix<T, -1, 1>& p) const
 	{
-		std::vector<std::vector<Index>> slot(mn_row);
-		std::vector<ConstReverseInnerIterator> iters(mn_row);
+		//std::vector<std::vector<Index>> slot(mn_row);
+		//std::vector<ConstReverseInnerIterator> iters(mn_row);
+		const unsigned char ERROR = 0xfe;
+		const Index ERRORX4 = 0xfefefefe;
+
+		Index(*slot)[2] = new Index[mn_row][2];
+		memset(slot, ERROR, sizeof(Index)*mn_row * 2);
+
+		ConstReverseInnerIterator* iters = new ConstReverseInnerIterator[mn_row];
+
+		Index* linkedList = new Index[mn_row];
+		memset(linkedList, ERROR, sizeof(Index)*mn_row);
 
 		for (size_t i = 0; i < mn_row; i++)
 		{
 			iters[i] = getReverseConstIterator(i);
 			auto j = iters[i].index();
 			if (j != i) // diag is not added;
-				slot[j].push_back(i);
+			{
+				if (slot[j][0] == ERRORX4)
+				{
+					assert(slot[j][1] == ERRORX4);
+					slot[j][0] = i;
+					slot[j][1] = i;
+				}
+				else
+				{
+					linkedList[slot[j][1]] = i;
+					slot[j][1] = i;
+				}
+			}
 		}
 
 		const size_t sz = p.rows();
@@ -74,17 +96,37 @@ namespace core
 			p(i) = fix;
 
 			// substitution
-			for (size_t j = 0; j < slot[i].size(); j++)
+			auto cur = slot[i][0];
+			while (cur != ERRORX4)
 			{
-				auto item = slot[i][j];
+				auto item = cur;
 				p(item) -= fix*iters[item].value();
 
 				iters[item]++;
 				auto k = iters[item].index();
 				if (k != item) // diag is not added;
-					slot[k].push_back(item);
+				{
+					if (slot[k][0] == ERRORX4)
+					{
+						assert(slot[k][1] == ERRORX4);
+						slot[k][0] = item;
+						slot[k][1] = item;
+					}
+					else
+					{
+						linkedList[slot[k][1]] = item;
+						slot[k][1] = item;
+					}
+				}
+				auto tmp = linkedList[cur];
+				linkedList[cur] = ERRORX4;
+				cur = tmp;
 			}
 		}
+
+		delete[]slot;
+		delete[]iters;
+		delete[]linkedList;
 	}
 
 	void SPDLowerMatrix::forwardSubstitution(Eigen::SparseVector<T>& p) const
