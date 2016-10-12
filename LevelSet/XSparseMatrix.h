@@ -40,7 +40,10 @@ namespace core
 			ColStorage::const_iterator data, end;
 
 		public:
-			ConstInnerIterator(const SPDLowerMatrix& m, Index col, Index row = 0) :
+			ConstInnerIterator(const SPDLowerMatrix& m, Index col) :
+				end(m.m_data[col].cend()), data(m.m_data[col].begin())
+			{}
+			ConstInnerIterator(const SPDLowerMatrix& m, Index col, Index row) :
 				end(m.m_data[col].cend()), data(m.m_data[col].lower_bound(row))
 			{}
 

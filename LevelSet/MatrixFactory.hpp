@@ -234,7 +234,13 @@ namespace Hair
 			for (int j = 0; j < nGroup; j++)
 			{
 				if (groups[j].empty()) continue;
-				choleskySolve(j);
+				GroupCache &infos = cache[j];
+
+				infos.LBase.forwardSubstitution(infos.b);
+				infos.LBase.backwardSubstitution(infos.b);
+
+				//infos.LBase.triangularView<Eigen::Lower>().solveInPlace(infos.b);
+				//infos.LBase.transpose().triangularView<Eigen::Upper>().solveInPlace(infos.b);
 			}
 			cachePosition();
 			dispatchPosition(de_pos);
@@ -635,8 +641,11 @@ namespace Hair
 	{
 		GroupCache &infos = cache[gid];
 
-		infos.LBase.forwardSubstitution(infos.b);
-		infos.LBase.backwardSubstitution(infos.b);
+		//infos.LBase.forwardSubstitution(infos.b);
+		//infos.LBase.backwardSubstitution(infos.b);
+
+		infos.LBase.triangularView<Eigen::Lower>().solveInPlace(infos.b);
+		infos.LBase.transpose().triangularView<Eigen::Upper>().solveInPlace(infos.b);
 	}
 
 

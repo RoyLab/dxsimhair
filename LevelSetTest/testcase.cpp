@@ -250,15 +250,15 @@ bool check_matrix_update()
 	void *tp = malloc(sizeof(char) * 128 * ntest);
 	char(*fver)[128] = reinterpret_cast<char(*)[128]>(tp);
 
-	for (int j = 0; j < ntest/2+1; j++)
+	for (int j = 0; j < ntest; j++)
 	{
 		sprintf(fver[j], "D:/Data/vpos/50kf%03d.vertex", j+1);
 	}
 
-	for (int j = 0; j < ntest / 2; j++)
-	{
-		sprintf(fver[j+ ntest / 2+1], "D:/Data/vpos/50kf%03d.vertex", ntest / 2-j);
-	}
+	//for (int j = 0; j < ntest / 2; j++)
+	//{
+	//	sprintf(fver[j+ ntest / 2+1], "D:/Data/vpos/50kf%03d.vertex", ntest / 2-j);
+	//}
 	//{ "D:/Data/vpos/50kf001.vertex" , "D:/Data/vpos/50kf002.vertex" , "D:/Data/vpos/50kf003.vertex"};
 
 
