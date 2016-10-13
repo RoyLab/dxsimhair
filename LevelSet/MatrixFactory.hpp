@@ -517,7 +517,7 @@ namespace Hair
 	template<class Container>
 	void MatrixFactory<Container>::_update(XSparseMatrix& m, int id, int id2)
 	{
-		SparseVector v(m.rows());
+		XRwy::core::SparseVector<float> v(m.rows());
 		for (int i = 0; i < 3; i++)
 		{
 			v.setZero();
@@ -533,7 +533,7 @@ namespace Hair
 	{
 		//cache.b.setZero();
 		//auto &v = cache.b;
-		SparseVector v(cache.b.rows());
+		XRwy::core::SparseVector<float> v(cache.b.rows());
 
 		for (int i = 0; i < 3; i++)
 		{

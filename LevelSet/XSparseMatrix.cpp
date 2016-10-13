@@ -11,6 +11,7 @@ namespace core
 	{
 		const size_t cols = matrix.cols();
 		mn_row = cols;
+		SAFE_DELETE_ARRAY(m_data);
 		m_data = new std::remove_pointer<decltype(m_data)>::type[cols];
 
 		for (size_t i = 0; i < cols; i++)
@@ -144,6 +145,7 @@ namespace core
 	//	delete[]linkedList;
 	//}
 
+
 	void SPDLowerMatrix::forwardSubstitution(Eigen::SparseVector<T>& p) const
 	{
 		std::remove_reference<decltype(p)>::type::Storage &data = p.data();
@@ -161,9 +163,52 @@ namespace core
 				p.coeffRef(itrL.index()) -= fix*itrL.value();
 		}
 	}
+
+	void SPDLowerMatrix::forwardSubstitution(SparseVector<T>& p) const
+	{
+		std::remove_reference<decltype(p)>::type::Storage &data = p.data();
+		for (auto &pair: data)
+		{
+			auto idx = pair.first;
+			auto val = pair.second;
+			auto itrL = getConstIterator(idx);
+			assert(itrL.index() == idx);
+			T fix = val / itrL.value();
+			pair.second = fix;
+
+			// substitution
+			for (++itrL; itrL; ++itrL)
+				p.coeffRef(itrL.index()) -= fix*itrL.value();
+		}
+	}
+
+
 	void SPDLowerMatrix::backwardSubstitution(Eigen::SparseVector<T>& b) const
 	{
 		throw XR::NotImplementedException();
+	}
+
+	void XRWY_DLL assign(Eigen::MatrixXf & a, const SPDLowerMatrix & b)
+	{
+		a.resize(b.rows(), b.cols());
+		a.setZero();
+
+		for (int i = 0; i < b.cols(); i++)
+		{
+			auto itr = b.getConstIterator(i);
+			for (; itr; ++itr)
+				a(itr.index(), i) = itr.value();
+		}
+	}
+
+	void XRWY_DLL assign(Eigen::VectorXf& a, const SparseVector<float>& b)
+	{
+		a.resize(b.rows());
+		a.setZero();
+
+		auto itr = b.getConstIterator();
+		for (; itr; ++itr)
+			a(itr.index()) = itr.value();
 	}
 }
 }

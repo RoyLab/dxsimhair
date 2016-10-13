@@ -22,6 +22,12 @@ struct XTriplet { XTriplet(const Index& a, const T& b) :r(a), val(b) {} Index r;
 
 typedef XTriplet<> Triplet2;
 
+
+#define SPARSE_CHOLESKY_UPDATE_PRUNE
+#ifdef SPARSE_CHOLESKY_UPDATE_PRUNE
+#define PRUNE_THRESH 1e-5
+#endif
+
 /* NOTE: This function is a hack; in particular the first two parameters are
 * modified even though
 * they are passed by const reference. See
@@ -123,7 +129,9 @@ void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const 
 		y.coeffRef(triplet.r, col) = triplet.val;
 }
 
-void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col, SparseVector& y, const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
+void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col, 
+	XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& y, 
+	const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
 {
 	static std::vector<Triplet2> xs;
 	static std::vector<Triplet2> ys;
@@ -131,9 +139,7 @@ void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col,
 	ys.clear();
 
 	auto itrx = x.getIterator(col, after);
-
-	auto itry = SparseVector::InnerIterator(y);
-	while (itry && itry.row() <= after) ++itry;
+	auto itry = y.getConstIterator(after);
 
 	rot_compute(xs, ys, itrx, itry, rot);
 
@@ -145,14 +151,15 @@ void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col,
 }
 
 
-void apply_jacobi_rotation2(SparseVector& x, XRwy::core::SPDLowerMatrix& y, size_t col, const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
+void apply_jacobi_rotation2(XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& x,
+	XRwy::core::SPDLowerMatrix& y, size_t col, const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
 {
 	static std::vector<Triplet2> xs;
 	static std::vector<Triplet2> ys;
 	xs.clear();
 	ys.clear();
 
-	auto itrx = SparseVector::InnerIterator(x);
+	auto itrx = x.getConstIterator();
 	auto itry = y.getIterator(col);
 
 	rot_compute(xs, ys, itrx, itry, rot);
@@ -186,16 +193,16 @@ void sparse_cholesky_update(Eigen::SparseMatrix<T>& L,
 }
 
 void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
-	Eigen::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
+	XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
 
 	typedef XRwy::core::SPDLowerMatrix::T T;
 	Eigen::JacobiRotation<T> rot;
 	const size_t N = v.rows();
-	Eigen::SparseVector<T>::Storage& data = v.data();
-	for (int i = 0; i < v.nonZeros(); ++i) {
-		auto idx = data.index(i);
-		rot.makeGivens(L.coeff(idx, idx), -data.value(i), &L.coeffRef(idx, idx));
-		if (i < N - 1)
+	std::remove_reference<decltype(v)>::type::Storage& data = v.data();
+	for (auto &pair : data) {
+		auto idx =  pair.first;
+		rot.makeGivens(L.coeff(idx, idx), -pair.second, &L.coeffRef(idx, idx));
+		if (idx < N - 1)
 			apply_jacobi_rotation(idx, L, idx, v, rot);
 	}
 }
@@ -250,9 +257,12 @@ void sparse_cholesky_downdate(Eigen::SparseMatrix<T>& L,
 }
 
 void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
-	Eigen::SparseVector<typename XRwy::core::SPDLowerMatrix::T>& p) {
+	XRwy::core::SparseVector<typename XRwy::core::SPDLowerMatrix::T>& p) {
 
-	typedef XRwy::core::SPDLowerMatrix::T T;
+	typedef std::remove_reference<decltype(L)>::type SparseMatrix;
+	typedef std::remove_reference<decltype(p)>::type SparseVector;
+	typedef typename SparseMatrix::T T;
+
 	L.forwardSubstitution(p);
 	const size_t N = p.rows();
 
@@ -262,14 +272,14 @@ void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
 	float rho = std::sqrt(1 - p.squaredNorm());
 
 	Eigen::JacobiRotation<float> rot;
-	Eigen::SparseVector<T> temp(N);
+	SparseVector temp(N);
 
-	std::remove_reference<decltype(p)>::type::Storage &data = p.data();
+	SparseVector::Storage &data = p.data();
 	const size_t sz = data.size();
-	for (int i = sz - 1; i >= 0; --i)
+	for (auto itr = data.crbegin(); itr != data.crend(); ++itr)
 	{
-		auto idx = data.index(i);
-		auto value = data.value(i);
+		auto idx = itr->first;
+		auto value = itr->second;
 		rot.makeGivens(rho, value, &rho);
 		apply_jacobi_rotation2(temp, L, idx, rot);
 	}

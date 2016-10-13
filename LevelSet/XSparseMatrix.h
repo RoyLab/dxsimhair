@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <cmath>
 #include <Eigen/Sparse>
 #include "macros.h"
 
@@ -7,6 +8,57 @@ namespace XRwy
 {
 namespace core
 {
+	template <class T>
+	class SparseVector
+	{
+	public:
+		typedef size_t Index;
+		typedef std::map<Index, T> Storage;
+
+		class ConstInnerIterator
+		{
+		private:
+			typename Storage::const_iterator data, end;
+
+		public:
+			ConstInnerIterator(const SparseVector& m) :
+				end(m.m_data.cend()), data(m.m_data.cbegin())
+			{}
+			ConstInnerIterator(const SparseVector& m, Index row) :
+				end(m.m_data.cend()), data(m.m_data.upper_bound(row))
+			{}
+
+			operator bool() const { return data != end; }
+			void operator++() { data++; }
+			void operator++(int) { ++data; }
+
+			Index row() const { return data->first; }
+			Index index() const { return data->first; }
+			T value() const { return data->second; }
+		};
+
+	private:
+		Storage m_data;
+		size_t mn_rows = 0;
+
+	public:
+		SparseVector() {}
+		SparseVector(size_t n):mn_rows(n) {}
+		SparseVector(const Eigen::SparseVector<T>& matrix) { *this = matrix; }
+
+		size_t rows() const { return mn_rows; }
+		size_t nonZeros() const { return m_data.size(); }
+		void setZero() { m_data.clear(); }
+		T& coeffRef(Index i) { return m_data[i]; }
+		Storage& data() { return m_data; }
+		SparseVector& operator=(const Eigen::SparseVector<T>& matrix);
+
+		T squaredNorm() const;
+		ConstInnerIterator getConstIterator() const { return ConstInnerIterator(*this); }
+		ConstInnerIterator getConstIterator(Index after) const { return ConstInnerIterator(*this, after); }
+	};
+
+
 	class XRWY_DLL SPDLowerMatrix
 	{
 	public:
@@ -21,8 +73,11 @@ namespace core
 			ColStorage::iterator data, end;
 
 		public:
+			InnerIterator(const SPDLowerMatrix& m, Index col) :
+				end(m.m_data[col].end()), data(m.m_data[col].begin())
+			{}
 			InnerIterator(SPDLowerMatrix& m, Index col, Index row = 0) :
-				end(m.m_data[col].end()), data(m.m_data[col].lower_bound(row)) 
+				end(m.m_data[col].end()), data(m.m_data[col].upper_bound(row))
 			{}
 
 			operator bool() const { return data != end; }
@@ -41,10 +96,10 @@ namespace core
 
 		public:
 			ConstInnerIterator(const SPDLowerMatrix& m, Index col) :
-				end(m.m_data[col].cend()), data(m.m_data[col].begin())
+				end(m.m_data[col].cend()), data(m.m_data[col].cbegin())
 			{}
 			ConstInnerIterator(const SPDLowerMatrix& m, Index col, Index row) :
-				end(m.m_data[col].cend()), data(m.m_data[col].lower_bound(row))
+				end(m.m_data[col].cend()), data(m.m_data[col].upper_bound(row))
 			{}
 
 			operator bool() const { return data != end; }
@@ -118,8 +173,40 @@ namespace core
 		void forwardSubstitution(Eigen::Matrix<T, -1, 1>& b) const;
 		void backwardSubstitution(Eigen::Matrix<T, -1, 1>& b) const;
 		void forwardSubstitution(Eigen::SparseVector<T>& b) const;
+		void forwardSubstitution(SparseVector<T>& b) const;
+
 		void backwardSubstitution(Eigen::SparseVector<T>& b) const;
 
 	};
+
+	void XRWY_DLL assign(Eigen::MatrixXf& a, const SPDLowerMatrix& b);
+	void XRWY_DLL assign(Eigen::VectorXf& a, const SparseVector<float>& b);
+
+
+	template<class T>
+	inline T SparseVector<T>::squaredNorm() const
+	{
+		T res = T(0);
+		for (auto& pair : m_data)
+		{
+			res += std::pow(pair.second, 2);
+		}
+		return res;
+	}
+
+
+	template<class T>
+	SparseVector<T>&  SparseVector<T>::operator=(const Eigen::SparseVector<T>& matrix)
+	{
+		mn_rows = matrix.rows();
+		m_data.clear();
+		for (auto itr = std::remove_reference<decltype(matrix)>::type::InnerIterator(matrix);
+			itr; ++itr)
+		{
+			m_data[itr.index()] = itr.value();
+		}
+		return *this;
+	}
+
 }
 }
