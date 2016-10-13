@@ -78,11 +78,12 @@ int trivial()
 	a[1] = 1;
 	a[2] = 2;
 	a[3] = 3;
-
 	for (auto &pair : a)
 	{
-		a[pair.second + 3] = pair.second + 3;
+		*const_cast<int*>(&pair.first) = 2;
 	}
+	std::map<int, int>::value_type b(2, 3);
+	a.insert(a.begin(), b);
 
 	return 0;
 }
@@ -100,7 +101,7 @@ void init()
 int main(int argc, char** argv)
 {
 	init();
-	//trivial();
+	trivial();
 	check_spd_lower_matrix();
 	check_chelosky_update();
 	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
@@ -193,7 +194,7 @@ bool check_chelosky_update()
 
 	bool res = std::abs(diff.sum()) < 1e-5f && std::abs(diff2.sum()) < 1e-5f;
 
-	//cout << LDense << endl;
+	cout << LDense << endl;
 	//cout << Lp << endl;
 	//cout << diff << endl;
 	assert(res);
@@ -252,7 +253,7 @@ bool check_matrix_update_naive()
 
 bool check_matrix_update()
 {
-	const size_t ntest = 9;
+	const size_t ntest = 40;
 	void *tp = malloc(sizeof(char) * 128 * ntest);
 	char(*fver)[128] = reinterpret_cast<char(*)[128]>(tp);
 

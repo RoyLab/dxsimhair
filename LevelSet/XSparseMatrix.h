@@ -18,7 +18,8 @@ namespace core
 		class ConstInnerIterator
 		{
 		private:
-			typename Storage::const_iterator data, end;
+			typedef typename Storage::const_iterator Iterator;
+			Iterator data, end;
 
 		public:
 			ConstInnerIterator(const SparseVector& m) :
@@ -35,6 +36,32 @@ namespace core
 			Index row() const { return data->first; }
 			Index index() const { return data->first; }
 			T value() const { return data->second; }
+			Iterator pos() const { return data; }
+		};
+
+		class InnerIterator
+		{
+		private:
+			typedef typename Storage::iterator Iterator;
+			Iterator data, end;
+
+		public:
+			InnerIterator(SparseVector& m) :
+				end(m.m_data.end()), data(m.m_data.begin())
+			{}
+			InnerIterator(SparseVector& m,  Index row) :
+				end(m.m_data.end()), data(m.m_data.upper_bound(row))
+			{}
+
+			operator bool() const { return data != end; }
+			void operator++() { data++; }
+			void operator++(int) { ++data; }
+
+			Index row() const { return data->first; }
+			Index index() const { return data->first; }
+			T& value() { return data->second; }
+			T value() const { return data->second; }
+			Iterator pos() const { return data; }
 		};
 
 	private:
@@ -54,6 +81,8 @@ namespace core
 		SparseVector& operator=(const Eigen::SparseVector<T>& matrix);
 
 		T squaredNorm() const;
+		InnerIterator getIterator() { return InnerIterator(*this); }
+		InnerIterator getIterator(Index col) { return InnerIterator(*this, col); }
 		ConstInnerIterator getConstIterator() const { return ConstInnerIterator(*this); }
 		ConstInnerIterator getConstIterator(Index after) const { return ConstInnerIterator(*this, after); }
 	};
@@ -66,33 +95,42 @@ namespace core
 		typedef size_t Index;
 		typedef std::map<Index, T> ColStorage;
 
-
 		class InnerIterator
 		{
 		private:
-			ColStorage::iterator data, end;
+			typedef typename ColStorage::iterator Iterator;
+			Iterator data, end;
 
 		public:
-			InnerIterator(const SPDLowerMatrix& m, Index col) :
+			InnerIterator(SPDLowerMatrix& m, Index col) :
 				end(m.m_data[col].end()), data(m.m_data[col].begin())
 			{}
-			InnerIterator(SPDLowerMatrix& m, Index col, Index row = 0) :
+			InnerIterator(SPDLowerMatrix& m, Index col, Index row) :
 				end(m.m_data[col].end()), data(m.m_data[col].upper_bound(row))
 			{}
 
 			operator bool() const { return data != end; }
 			void operator++() { data++; }
 			void operator++(int) { ++data; }
+			void increAndPrune(ColStorage& c, T thresh)
+			{ 
+				++data;
+				while (data != end && data->second < thresh && data->second > -thresh)
+					data = c.erase(data);
+			}
 
 			Index row() const { return data->first; }
 			Index index() const { return data->first; }
+			T& value() { return data->second; }
 			T value() const { return data->second; }
+			Iterator pos() const { return data; }
 		};
 
 		class ConstInnerIterator
 		{
 		private:
-			ColStorage::const_iterator data, end;
+			typedef typename ColStorage::const_iterator Iterator;
+			Iterator data, end;
 
 		public:
 			ConstInnerIterator(const SPDLowerMatrix& m, Index col) :
@@ -109,12 +147,14 @@ namespace core
 			Index row() const { return data->first; }
 			Index index() const { return data->first; }
 			T value() const { return data->second; }
+			Iterator pos() const { return data; }
 		};
 
 		class ConstReverseInnerIterator
 		{
 		private:
-			ColStorage::const_reverse_iterator data, end;
+			typedef typename ColStorage::const_reverse_iterator Iterator;
+			Iterator data, end;
 
 		public:
 			ConstReverseInnerIterator() {}
@@ -129,6 +169,7 @@ namespace core
 			Index row() const { return data->first; }
 			Index index() const { return data->first; }
 			T value() const { return data->second; }
+			Iterator pos() const { return data; }
 		};
 
 	private:
@@ -170,6 +211,8 @@ namespace core
 		// solve
 		// forward is lower triangle (default), backward is upper triangle
 		// http://mathfaculty.fullerton.edu/mathews/n2003/BackSubstitutionMod.html
+		void forwardSubstitutionWithPrune(Eigen::Matrix<T, -1, 1>& b, T thresh = T(0));
+
 		void forwardSubstitution(Eigen::Matrix<T, -1, 1>& b) const;
 		void backwardSubstitution(Eigen::Matrix<T, -1, 1>& b) const;
 		void forwardSubstitution(Eigen::SparseVector<T>& b) const;

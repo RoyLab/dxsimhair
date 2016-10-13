@@ -214,7 +214,7 @@ namespace Hair
 			updateL(id0, id1);
 		}
 
-		BOOST_LOG_TRIVIAL(info) << XTIMER_HELPER(milliseconds("a"));
+		BOOST_LOG_TRIVIAL(info) << "Update L: "<< XTIMER_HELPER(milliseconds("a"));
 
 		XTIMER_HELPER(setClock("ap"));
 
@@ -236,7 +236,7 @@ namespace Hair
 				if (groups[j].empty()) continue;
 				GroupCache &infos = cache[j];
 
-				infos.LBase.forwardSubstitution(infos.b);
+				infos.LBase.forwardSubstitutionWithPrune(infos.b);
 				infos.LBase.backwardSubstitution(infos.b);
 
 				//infos.LBase.triangularView<Eigen::Lower>().solveInPlace(infos.b);
@@ -255,7 +255,7 @@ namespace Hair
 
 		delete[] de_pos;
 
-		BOOST_LOG_TRIVIAL(info) << XTIMER_HELPER(milliseconds("ap"));
+		BOOST_LOG_TRIVIAL(info) << "Solve: " << XTIMER_HELPER(milliseconds("ap"));
 	}
 
 	template<class Container>
@@ -344,6 +344,14 @@ namespace Hair
 			assert(solver.info() == Eigen::Success);
 
 			infos.LBase = solver.matrixL();
+			//for (int j = 0; j < infos.LBase.cols(); j++)
+			//{
+			//	for (auto itr = infos.LBase.getIterator(j); itr; itr++)
+			//	{
+			//		if (itr.index() != j)
+			//			cout << itr.index() << '\t' << j << '\t' << itr.value() << std::endl;
+			//	}
+			//}
 
 			BOOST_LOG_TRIVIAL(debug) << "nnz: " << infos.LBase.nonZeros() << " size: " << infos.LBase.rows() <<
 				"\tratio: "<< infos.LBase.nonZeros()/ (float)infos.LBase.rows();
@@ -518,30 +526,55 @@ namespace Hair
 	void MatrixFactory<Container>::_update(XSparseMatrix& m, int id, int id2)
 	{
 		XRwy::core::SparseVector<float> v(m.rows());
-		for (int i = 0; i < 3; i++)
+		assert(id % 3 == 0);
+		assert(id2 < 0 || id2 % 3 == 0);
+		if (id2 > 0)
 		{
-			v.setZero();
-			v.coeffRef(id + i) = sqrtBalance;
-			if (id2 > 0)
+			for (int i = 0; i < 3; i++)
+			{
+				v.setZero();
+				v.coeffRef(id + i) = sqrtBalance;
 				v.coeffRef(id2 + i) = -sqrtBalance;
-			sparse_cholesky_update(m, v);
+				sparse_cholesky_update(m, v);
+			}
 		}
+		else
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				v.setZero();
+				v.coeffRef(id + i) = sqrtBalance;
+				sparse_cholesky_update(m, v);
+			}
+		}
+
 	}
 
 	template<class Container>
 	void MatrixFactory<Container>::_downdate(GroupCache& cache, int id, int id2)
 	{
-		//cache.b.setZero();
-		//auto &v = cache.b;
 		XRwy::core::SparseVector<float> v(cache.b.rows());
+		assert(id % 3 == 0);
+		assert(id2 < 0 || id2 % 3 == 0);
 
-		for (int i = 0; i < 3; i++)
+		if (id2 > 0)
 		{
-			v.setZero();
-			v.coeffRef(id + i) = sqrtBalance;
-			if (id2 > 0)
+			for (int i = 0; i < 3; i++)
+			{
+				v.setZero();
+				v.coeffRef(id + i) = sqrtBalance;
 				v.coeffRef(id2 + i) = -sqrtBalance;
-			sparse_cholesky_downdate(cache.LBase, v);
+				sparse_cholesky_downdate(cache.LBase, v);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				v.setZero();
+				v.coeffRef(id + i) = sqrtBalance;
+				sparse_cholesky_downdate(cache.LBase, v);
+			}
 		}
 	}
 	

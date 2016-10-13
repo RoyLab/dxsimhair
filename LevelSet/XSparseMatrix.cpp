@@ -1,7 +1,9 @@
 #define XRWY_EXPORTS
-#include "XSparseMatrix.h"
 #include <XR_Exception.hpp>
 #include <boost\log\trivial.hpp>
+#include <iostream>
+
+#include "XSparseMatrix.h"
 
 namespace XRwy
 {
@@ -34,6 +36,26 @@ namespace core
 			res += m_data[i].size();
 		}
 		return res;
+	}
+
+	void SPDLowerMatrix::forwardSubstitutionWithPrune(Eigen::Matrix<T, -1, 1>& p, T thresh)
+	{
+		const size_t sz = p.rows();
+		for (int i = 0; i < sz; i++)
+		{
+			auto itrL = getIterator(i);
+			assert(itrL.index() == i);
+			T fix = p(i) / itrL.value();
+			p(i) = fix;
+
+			// substitution
+			while (1)
+			{
+				itrL.increAndPrune(m_data[i], 1e-4f);
+				if (!itrL) break;
+				p(itrL.index()) -= fix*itrL.value();
+			}
+		}
 	}
 
 	void SPDLowerMatrix::forwardSubstitution(Eigen::Matrix<T, -1, 1>& p) const
