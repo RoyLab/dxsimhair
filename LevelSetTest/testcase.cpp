@@ -84,7 +84,6 @@ int trivial()
 	}
 	std::map<int, int>::value_type b(2, 3);
 	a.insert(a.begin(), b);
-
 	return 0;
 }
 
@@ -165,7 +164,7 @@ bool check_chelosky_update()
 
 	Eigen::Matrix<float, N, N> Lp = llt.matrixL();
 
-	XSparseVec v2 = v;
+	WR::SparseVec v2 = v;
 
 	sparse_cholesky_update(L, v2);
 	v2 = v;

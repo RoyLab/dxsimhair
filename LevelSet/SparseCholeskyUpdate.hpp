@@ -295,6 +295,154 @@ void applyRotInPlace(MA& va, MB& vb, IteratorX& itrx,
 }
 
 void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
+	Eigen::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
+
+	typedef XRwy::core::SPDLowerMatrix::T T;
+	Eigen::JacobiRotation<T> rot;
+	const size_t N = v.rows();
+	std::remove_reference<decltype(v)>::type::Storage& data = v.data();
+
+	for (int i = 0; i < data.size(); i++) {
+		auto idx = data.index(i);
+		auto &ref = L.diag(idx);
+		rot.makeGivens(ref, -data.value(i), &ref);
+		if (idx < N - 1)
+		{
+			auto itrx = L.getIterator(idx, idx);
+			int ptry = 0;
+			while (ptry < data.size() && data.index(ptry) <= idx) ptry++;
+
+			float c = rot.c();
+			float s = rot.s();
+
+			auto &va = L.col(idx);
+
+			// x is matrix, y is vector
+			while (itrx || ptry < data.size())
+			{
+				if (itrx)
+				{
+					if (ptry < data.size())
+					{
+						if (itrx.row() < data.index(ptry))
+						{
+							v.coeffRef(itrx.row()) = -s*itrx.value();
+							itrx.value() = c * itrx.value();
+							++itrx; ++ptry;
+						}
+						else if (itrx.row() > data.index(ptry))
+						{
+							va[data.index(ptry)] = s * data.value(ptry);
+							data.value(ptry) = c * data.value(ptry);
+							++ptry;
+						}
+						else
+						{
+							float tmp = c * itrx.value() + s * data.value(ptry);
+							data.value(ptry) = -s*itrx.value() + c * data.value(ptry);
+							itrx.value() = tmp;
+							++itrx; ++ptry;
+						}
+					}
+					else
+					{
+						v.coeffRef(itrx.row()) = -s*itrx.value();
+						itrx.value() = c * itrx.value();
+						++itrx; ++ptry;
+					}
+				}
+				else
+				{
+					va[data.index(ptry)] = s * data.value(ptry);
+					data.value(ptry) = c * data.value(ptry);
+					++ptry;
+				}
+			}
+		}
+	}
+}
+
+void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
+	Eigen::SparseVector<typename XRwy::core::SPDLowerMatrix::T>& p) {
+
+	typedef std::remove_reference<decltype(L)>::type SparseMatrix;
+	typedef std::remove_reference<decltype(p)>::type SparseVector;
+	typedef typename SparseMatrix::T T;
+
+	L.forwardSubstitution(p);
+	const size_t N = p.rows();
+
+	assert(p.squaredNorm()
+		< 1); // otherwise the downdate would destroy positive definiteness.
+
+	float rho = std::sqrt(1 - p.squaredNorm());
+
+	Eigen::JacobiRotation<float> rot;
+	Eigen::SparseVector<T> temp(N);
+
+	SparseVector::Storage &data = p.data();
+	SparseVector::Storage &data2 = temp.data();
+	const size_t sz = data.size();
+	for (int i = sz - 1; i >= 0; --i)
+	{
+		auto idx = data.index(i);
+		auto value = data.value(i);
+		rot.makeGivens(rho, value, &rho);
+
+		int ptrx = 0;
+		auto itry = L.getIterator(idx);
+
+		float c = rot.c();
+		float s = rot.s();
+
+		auto &vb = L.col(idx);
+
+		// x is vector, y is matrix
+		while (ptrx < data2.size() || itry)
+		{
+			if (ptrx < data2.size())
+			{
+				if (itry)
+				{
+					if (data2.index(ptrx) < itry.row())
+					{
+						vb[data2.index(ptrx)] = -s*data2.value(ptrx);
+						data2.value(ptrx) = c * data2.value(ptrx);
+						++ptrx;
+					}
+					else if (data2.index(ptrx) > itry.row())
+					{
+						temp.coeffRef(itry.row())  = s * itry.value();
+						itry.value() = c * itry.value();
+						++itry; ++ptrx;
+					}
+					else
+					{
+						float tmp = c * data2.value(ptrx) + s * itry.value();
+						itry.value() = -s*data2.value(ptrx) + c * itry.value();
+						data2.value(ptrx) = tmp;
+						++ptrx; ++itry;
+					}
+				}
+				else
+				{
+					vb[data2.index(ptrx)] = -s*data2.value(ptrx);
+					data2.value(ptrx) = c * data2.value(ptrx);
+					++ptrx;
+				}
+			}
+			else
+			{
+				temp.coeffRef(itry.row()) = s * itry.value();
+				itry.value() = c * itry.value();
+				++itry; ++ptrx;
+			}
+		}
+	}
+}
+
+
+void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
 	XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
 
 	typedef XRwy::core::SPDLowerMatrix::T T;

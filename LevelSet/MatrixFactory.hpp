@@ -525,7 +525,7 @@ namespace Hair
 	template<class Container>
 	void MatrixFactory<Container>::_update(XSparseMatrix& m, int id, int id2)
 	{
-		XRwy::core::SparseVector<float> v(m.rows());
+		Eigen::SparseVector<float> v(m.rows());
 		assert(id % 3 == 0);
 		assert(id2 < 0 || id2 % 3 == 0);
 		if (id2 > 0)
@@ -553,7 +553,7 @@ namespace Hair
 	template<class Container>
 	void MatrixFactory<Container>::_downdate(GroupCache& cache, int id, int id2)
 	{
-		XRwy::core::SparseVector<float> v(cache.b.rows());
+		Eigen::SparseVector<float> v(cache.b.rows());
 		assert(id % 3 == 0);
 		assert(id2 < 0 || id2 % 3 == 0);
 
