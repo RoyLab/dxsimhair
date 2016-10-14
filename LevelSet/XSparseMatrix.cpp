@@ -67,7 +67,11 @@ namespace core
 			assert(itrL.index() == i);
 			T fix[3];
 			for (int j = 0; j < 3; j++)
-				p(3*i+j) /= itrL.value();
+			{
+				//if (std::isinf(p(3 * i + j)) || std::abs(p(3 * i + j)) > 2000)
+				//	std::cout << "!!!!!!!!!!!!" << itrL.value();
+				p(3 * i + j) /= itrL.value();
+			}
 
 			// substitution
 			while (1)
@@ -75,7 +79,9 @@ namespace core
 				itrL.increAndPrune(m_data[i], thresh);
 				if (!itrL) break;
 				for (int j = 0; j < 3; j++)
-					p(3*itrL.index()+j) -= p(3 * i + j)*itrL.value();
+				{
+					p(3 * itrL.index() + j) -= p(3 * i + j)*itrL.value();
+				}
 			}
 		}
 	}
@@ -130,7 +136,11 @@ namespace core
 			}
 
 			for (int j = 0; j < 3; j++)
+			{
+				//if (std::isinf(p(3 * i + j)) || std::abs(p(3 * i + j)) > 2000)
+				//	std::cout << "!!!!!!!!!!!!" << div;
 				p(3 * i + j) /= div;
+			}
 		}
 	}
 

@@ -252,13 +252,13 @@ bool check_matrix_update_naive()
 
 bool check_matrix_update()
 {
-	const size_t ntest = 40;
+	const size_t ntest = 30;
 	void *tp = malloc(sizeof(char) * 128 * ntest);
 	char(*fver)[128] = reinterpret_cast<char(*)[128]>(tp);
 
 	for (int j = 0; j < ntest; j++)
 	{
-		sprintf(fver[j], "D:/Data/vpos/50kf%03d.vertex", j+1);
+		sprintf(fver[j], "D:/Data/vpos/50kf%03d.vertex", j+20);
 	}
 
 	//for (int j = 0; j < ntest / 2; j++)
@@ -281,7 +281,6 @@ bool check_matrix_update()
 
 	for (int j = 0; j < ntest; j++)
 	{
-
 		f.open(fver[j], std::ios::binary);
 		f.read((char*)&nParticle, sizeof(size_t));
 		p = new float[3 * nParticle];
@@ -294,11 +293,14 @@ bool check_matrix_update()
 			auto pos = p + 3 * ii;
 			points.emplace_back(pos[0], pos[1], pos[2]);
 		}
+		XRwy::tool::Timer::getTimer().setClock("a23");
 
 		std::vector<uint32_t> id0, id1;
 		XRwy::GridRaster<Point3f> pgrid(points, r, 1.01);
 		pgrid.createGrid();
 		pgrid.query(id0, id1);
+
+		BOOST_LOG_TRIVIAL(info) << "Find pairs " << XRwy::tool::Timer::getTimer().milliseconds("a23");
 
 		XRwy::tool::Timer::getTimer().setClock("a");
 		mf.update(id0, id1, p, nParticle, r);
