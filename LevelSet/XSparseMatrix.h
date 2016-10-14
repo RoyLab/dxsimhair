@@ -212,13 +212,17 @@ namespace core
 		// forward is lower triangle (default), backward is upper triangle
 		// http://mathfaculty.fullerton.edu/mathews/n2003/BackSubstitutionMod.html
 		void forwardSubstitutionWithPrune(Eigen::Matrix<T, -1, 1>& b, T thresh = T(0));
+		void forwardSubstitutionWithPrunex3(Eigen::Matrix<T, -1, 1>& b, T thresh = T(0));
 
 		void forwardSubstitution(Eigen::Matrix<T, -1, 1>& b) const;
 		void backwardSubstitution(Eigen::Matrix<T, -1, 1>& b) const;
+		void backwardSubstitutionx3(Eigen::Matrix<T, -1, 1>& b) const;
+
 		void forwardSubstitution(Eigen::SparseVector<T>& b) const;
+		void backwardSubstitution(Eigen::SparseVector<T>& b) const;
+
 		void forwardSubstitution(SparseVector<T>& b) const;
 
-		void backwardSubstitution(Eigen::SparseVector<T>& b) const;
 
 	};
 

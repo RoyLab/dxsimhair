@@ -98,7 +98,7 @@ namespace Hair
 			int gid = groupId[i];
 			if (skipFactor < 1 || i % skipFactor != 0)
 			{
-				pid2matrixSeq[i] = 3 * counter[gid]++;
+				pid2matrixSeq[i] = counter[gid]++;
 				groups[gid].push_back(i);
 				//groupMatrixMapping[groupId].push_back(i);
 			}
@@ -119,13 +119,14 @@ namespace Hair
 		{
 			if (!counter[i]) continue;
 
-			auto dim = counter[i] * 3;
+			auto dim = counter[i];
+			auto dimx3 = dim * 3;
 			cache[i].A.resize(dim, dim);
-			cache[i].b.resize(dim);
-			cache[i].b0.resize(dim);
+			cache[i].b.resize(dimx3);
+			cache[i].b0.resize(dimx3);
 
-			cache[i].buffer = new float[dim];
-			cache[i].buffersize = dim * sizeof(float);
+			cache[i].buffer = new float[dimx3];
+			cache[i].buffersize = dimx3 * sizeof(float);
 		}
 
 		delete[]counter;
@@ -176,6 +177,16 @@ namespace Hair
 			vec3_sub(v10_0, p0[0], p0[1]);
 			vec3_sub(v10_1, p1[0], p1[1]);
 
+			//if (std::isinf(dr / vec3_len(v10_0)))
+			//	std::cout << PRINT_TRIPLE(v10_0) << std::endl;
+
+			//if (std::isinf(vec3_len(v10_1)))
+			//{
+			//	std::cout << "error:\n" << PRINT_TRIPLE(p1[0]) << std::endl;
+			//	std::cout << "error:\n" << PRINT_TRIPLE(p1[1]) << std::endl;
+			//	std::cout << PRINT_TRIPLE(v10_1) << std::endl;
+			//}
+
 			vec3_scale(v10_0, v10_0, dr / vec3_len(v10_0)); // from p1 to p0
 			vec3_sub(v10_0, v10_0, v10_1); // from p1 to p0
 			error += balance * vec3_mul_inner(v10_0, v10_0);
@@ -185,7 +196,7 @@ namespace Hair
 		return error;
 	}
 
-//#define XRWY_DEBUG
+#define XRWY_DEBUG
 	template<class Container>
 	MatrixFactory<Container>::~MatrixFactory()
 	{
@@ -236,8 +247,8 @@ namespace Hair
 				if (groups[j].empty()) continue;
 				GroupCache &infos = cache[j];
 
-				infos.LBase.forwardSubstitutionWithPrune(infos.b);
-				infos.LBase.backwardSubstitution(infos.b);
+				infos.LBase.forwardSubstitutionWithPrunex3(infos.b, 1e-4f);
+				infos.LBase.backwardSubstitutionx3(infos.b);
 
 				//infos.LBase.triangularView<Eigen::Lower>().solveInPlace(infos.b);
 				//infos.LBase.transpose().triangularView<Eigen::Upper>().solveInPlace(infos.b);
@@ -315,15 +326,15 @@ namespace Hair
 			for (int j = 0; j < 2; j++)
 			{
 				if (mseq[j] < 0) continue;
-				for (int k = 0; k < 3; k++)
-					assemble[g[j]].push_back(Eigen::Triplet<float>(mseq[j] +k, mseq[j] +k, 1));
+				//for (int k = 0; k < 3; k++)
+				assemble[g[j]].push_back(Eigen::Triplet<float>(mseq[j], mseq[j], 1));
 			}
 
 			if (g[0] == g[1])
 			{
 				/** upper triangle, row < column */
-				for (int k = 0; k < 3; k++)
-					assemble[g[0]].push_back(Eigen::Triplet<float>(mseq[0] + k, mseq[1] + k, -1));
+				//for (int k = 0; k < 3; k++)
+				assemble[g[0]].push_back(Eigen::Triplet<float>(mseq[0], mseq[1], -1));
 			}
 		}
 
@@ -395,7 +406,7 @@ namespace Hair
 				assert(id[0] < id[1]);
 				uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
 
-				int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
+				int mseq[2] = { 3*pid2matrixSeq[id[0]],  3*pid2matrixSeq[id[1]] };
 				if (mseq[0] < 0 && mseq[1] < 0) continue;
 
 				float* p[2] = { pts + 3 * id[0], pts + 3 * id[1] };
@@ -449,7 +460,7 @@ namespace Hair
 				uint32_t id[2] = { id0_[i], id1_[i] };
 				assert(id[0] < id[1]);
 
-				int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
+				int mseq[2] = { 3*pid2matrixSeq[id[0]],  3*pid2matrixSeq[id[1]] };
 				if (mseq[0] < 0 && mseq[1] < 0) continue;
 
 				uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
@@ -512,40 +523,29 @@ namespace Hair
 	void MatrixFactory<Container>::_update(SparseMatrix& m, int id, int id2)
 	{
 		SparseVector v(m.rows());
-		for (int i = 0; i < 3; i++)
-		{
-			v.setZero();
-			v.coeffRef(id + i) = sqrtBalance;
-			if (id2 > 0)
-				v.coeffRef(id2 + i) = -sqrtBalance;
-			sparse_cholesky_update(m, v);
-		}
+		v.setZero();
+		v.coeffRef(id) = sqrtBalance;
+		if (id2 > 0)
+			v.coeffRef(id2) = -sqrtBalance;
+		sparse_cholesky_update(m, v);
 	}
 
 	template<class Container>
 	void MatrixFactory<Container>::_update(XSparseMatrix& m, int id, int id2)
 	{
 		Eigen::SparseVector<float> v(m.rows());
-		assert(id % 3 == 0);
-		assert(id2 < 0 || id2 % 3 == 0);
 		if (id2 > 0)
 		{
-			for (int i = 0; i < 3; i++)
-			{
-				v.setZero();
-				v.coeffRef(id + i) = sqrtBalance;
-				v.coeffRef(id2 + i) = -sqrtBalance;
-				sparse_cholesky_update(m, v);
-			}
+			v.setZero();
+			v.coeffRef(id) = sqrtBalance;
+			v.coeffRef(id2) = -sqrtBalance;
+			sparse_cholesky_update(m, v);
 		}
 		else
 		{
-			for (int i = 0; i < 3; i++)
-			{
-				v.setZero();
-				v.coeffRef(id + i) = sqrtBalance;
-				sparse_cholesky_update(m, v);
-			}
+			v.setZero();
+			v.coeffRef(id) = sqrtBalance;
+			sparse_cholesky_update(m, v);
 		}
 
 	}
@@ -554,27 +554,19 @@ namespace Hair
 	void MatrixFactory<Container>::_downdate(GroupCache& cache, int id, int id2)
 	{
 		Eigen::SparseVector<float> v(cache.b.rows());
-		assert(id % 3 == 0);
-		assert(id2 < 0 || id2 % 3 == 0);
 
 		if (id2 > 0)
 		{
-			for (int i = 0; i < 3; i++)
-			{
-				v.setZero();
-				v.coeffRef(id + i) = sqrtBalance;
-				v.coeffRef(id2 + i) = -sqrtBalance;
-				sparse_cholesky_downdate(cache.LBase, v);
-			}
+			v.setZero();
+			v.coeffRef(id) = sqrtBalance;
+			v.coeffRef(id2) = -sqrtBalance;
+			sparse_cholesky_downdate(cache.LBase, v);
 		}
 		else
 		{
-			for (int i = 0; i < 3; i++)
-			{
-				v.setZero();
-				v.coeffRef(id + i) = sqrtBalance;
-				sparse_cholesky_downdate(cache.LBase, v);
-			}
+			v.setZero();
+			v.coeffRef(id) = sqrtBalance;
+			sparse_cholesky_downdate(cache.LBase, v);
 		}
 	}
 	

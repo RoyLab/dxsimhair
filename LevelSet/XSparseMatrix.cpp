@@ -51,9 +51,31 @@ namespace core
 			// substitution
 			while (1)
 			{
-				itrL.increAndPrune(m_data[i], 1e-4f);
+				itrL.increAndPrune(m_data[i], thresh);
 				if (!itrL) break;
 				p(itrL.index()) -= fix*itrL.value();
+			}
+		}
+	}
+
+	void SPDLowerMatrix::forwardSubstitutionWithPrunex3(Eigen::Matrix<T, -1, 1>& p, T thresh)
+	{
+		const size_t sz = rows();
+		for (int i = 0; i < sz; i++)
+		{
+			auto itrL = getIterator(i);
+			assert(itrL.index() == i);
+			T fix[3];
+			for (int j = 0; j < 3; j++)
+				p(3*i+j) /= itrL.value();
+
+			// substitution
+			while (1)
+			{
+				itrL.increAndPrune(m_data[i], thresh);
+				if (!itrL) break;
+				for (int j = 0; j < 3; j++)
+					p(3*itrL.index()+j) -= p(3 * i + j)*itrL.value();
 			}
 		}
 	}
@@ -88,6 +110,27 @@ namespace core
 				p(i) -= p(itrL.index()) * itrL.value();
 
 			p(i) /= div;
+		}
+	}
+
+	void SPDLowerMatrix::backwardSubstitutionx3(Eigen::Matrix<T, -1, 1>& p) const
+	{
+		const size_t sz = rows();
+		T div;
+		for (int i = sz - 1; i >= 0; i--)
+		{
+			auto itrL = getConstIterator(i);
+			assert(itrL.index() == i);
+			div = itrL.value();
+
+			for (itrL++; itrL; itrL++)
+			{
+				for (int j = 0; j < 3; j++)
+					p(3*i+j) -= p(3*itrL.index()+j) * itrL.value();
+			}
+
+			for (int j = 0; j < 3; j++)
+				p(3 * i + j) /= div;
 		}
 	}
 

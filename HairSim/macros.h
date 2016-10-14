@@ -74,7 +74,7 @@ m_##__name__ = _##__name__##_; \
 
 #define UNIMPLEMENTED_METHOD "This is an unimplemented method. "
 
-#define ExternPtr
+#define ExternPtr // this ptr should not be release when destroy the object
 
 #define ReadNBytes(f, b, n) (f.read(reinterpret_cast<char*>(b), n))
 #define Read4Bytes(f, b) (ReadNBytes(f, &b, 4))
@@ -87,3 +87,5 @@ m_##__name__ = _##__name__##_; \
 #else
 #define XRWY_DLL __declspec(dllimport)
 #endif
+
+#define PRINT_TRIPLE(v) (v)[0] << '\t' << (v)[1] << '\t' << (v)[2]
