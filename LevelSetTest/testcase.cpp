@@ -261,7 +261,7 @@ bool check_matrix_update()
 
 	for (int j = 0; j < ntest; j++)
 	{
-		sprintf(fver[j], "D:/Data/vpos/50kf%03d.vertex", j+5);
+		sprintf(fver[j], "D:/Data/vpos/50kf%03d.vertex", j+1);
 	}
 
 	//for (int j = 0; j < ntest / 2; j++)
@@ -311,44 +311,44 @@ bool check_matrix_update()
 
 		BOOST_LOG_TRIVIAL(info) << "\tFind pairs " << XTIMER_HELPER(milliseconds("iterstart"));
 
-		std::set<uint64_t> olda;
-		std::set<uint64_t> newa;
-		for (int i = 0; i < id0->size(); i++)
-		{
-			uint64_t idx = uint64_t(id0->at(i)) << 32 | id1->at(i);
-			newa.insert(idx);
-		}
-		for (int i = 0; i < old0->size(); i++)
-		{
-			uint64_t idx = uint64_t(old0->at(i)) << 32 | old1->at(i);
-			olda.insert(idx);
-		}
+		//std::set<uint64_t> olda;
+		//std::set<uint64_t> newa;
+		//for (int i = 0; i < id0->size(); i++)
+		//{
+		//	uint64_t idx = uint64_t(id0->at(i)) << 32 | id1->at(i);
+		//	newa.insert(idx);
+		//}
+		//for (int i = 0; i < old0->size(); i++)
+		//{
+		//	uint64_t idx = uint64_t(old0->at(i)) << 32 | old1->at(i);
+		//	olda.insert(idx);
+		//}
 
-		// check add
-		size_t c__[6] = { 0 };
-		for (int i = 0; i < id[4].size(); i++)
-		{
-			uint64_t idx = uint64_t(id[4][i]) << 32 | id[5][i];
-			if (olda.find(idx) != olda.end())
-			{
-				BOOST_LOG_TRIVIAL(error) << 1 << " " << id[4][i] << " " << id[5][i];
-			}
-			if (newa.find(idx) == newa.end())
-				BOOST_LOG_TRIVIAL(error) << 2 << " " << id[4][i] << " " << id[5][i];
-		}
+		//// check add
+		//size_t c__[6] = { 0 };
+		//for (int i = 0; i < id[4].size(); i++)
+		//{
+		//	uint64_t idx = uint64_t(id[4][i]) << 32 | id[5][i];
+		//	if (olda.find(idx) != olda.end())
+		//	{
+		//		BOOST_LOG_TRIVIAL(error) << 1 << " " << id[4][i] << " " << id[5][i];
+		//	}
+		//	if (newa.find(idx) == newa.end())
+		//		BOOST_LOG_TRIVIAL(error) << 2 << " " << id[4][i] << " " << id[5][i];
+		//}
 
-		// check sub
-		for (int i = 0; i < id[6].size(); i++)
-		{
-			uint64_t idx = uint64_t(id[6][i]) << 32 | id[7][i];
-			if (olda.find(idx) == olda.end())
-				BOOST_LOG_TRIVIAL(error) << 3 << " " << id[6][i] << " " << id[7][i];
-			if (newa.find(idx) != newa.end())
-			{
-				BOOST_LOG_TRIVIAL(error) << 4 << " " << id[6][i] << " " << id[7][i];
-			}
+		//// check sub
+		//for (int i = 0; i < id[6].size(); i++)
+		//{
+		//	uint64_t idx = uint64_t(id[6][i]) << 32 | id[7][i];
+		//	if (olda.find(idx) == olda.end())
+		//		BOOST_LOG_TRIVIAL(error) << 3 << " " << id[6][i] << " " << id[7][i];
+		//	if (newa.find(idx) != newa.end())
+		//	{
+		//		BOOST_LOG_TRIVIAL(error) << 4 << " " << id[6][i] << " " << id[7][i];
+		//	}
 
-		}
+		//}
 		XTIMER_HELPER(setClock("solve"));
 		mf.update(*id0, *id1, id[4], id[5], id[6], id[7], p, nParticle, r);
 

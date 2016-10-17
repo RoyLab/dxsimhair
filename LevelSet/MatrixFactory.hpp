@@ -48,7 +48,7 @@ namespace Hair
 
 	private:
 		void recomputeA(double h, Container & id0, Container & id1);
-		void computeb(int pass, float* pts, float dr);
+		void computeb(Container & id0, Container & id1, int pass, float* pts, float dr);
 		void updateL(Container & id0, Container & id1);
 		void updateL(Container & id0p, Container & id1p, Container & id0n, Container & id1n);
 		
@@ -68,7 +68,6 @@ namespace Hair
 		bool bInit = false;
 		double k_;
 		float balance, sqrtBalance;
-		Container id0_, id1_;
 		uint32_t nGroup;
 		std::vector<gid_t> groupId; /** group id of each particle */
 		std::vector<uint32_t>* groups = nullptr; /** particles in each group */
@@ -154,7 +153,7 @@ namespace Hair
 	template<class Container>
 	float MatrixFactory<Container>::reportError(Container & id0, Container & id1, float* pos0, float* pos1, double dr)
 	{
-		const uint32_t npair = id0_.size();
+		const uint32_t npair = id0.size();
 		float error = 0.0f;
 		const uint32_t np = groupId.size();
 
@@ -171,7 +170,7 @@ namespace Hair
 
 		for (uint32_t i = 0; i < npair; i++)
 		{
-			uint32_t id[2] = { id0_[i], id1_[i] };
+			uint32_t id[2] = { id0[i], id1[i] };
 			assert(id[0] < id[1]);
 
 			int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
@@ -203,7 +202,7 @@ namespace Hair
 		return error;
 	}
 
-#define XRWY_DEBUG
+//#define XRWY_DEBUG
 	template<class Container>
 	MatrixFactory<Container>::~MatrixFactory()
 	{
@@ -226,7 +225,7 @@ namespace Hair
 			bInit = true;
 
 			/** h is given explicitly */
-			recomputeA(1, id0p, id1p);
+			recomputeA(1, id0, id1);
 		}
 		else
 		{
@@ -255,7 +254,7 @@ namespace Hair
 		const int maxiter = 4;
 		for (int i = 0; i < maxiter; i++)
 		{
-			computeb(i, de_pos, dr);
+			computeb(id0, id1, i, de_pos, dr);
 
 			for (int i = 0; i < nGroup; i++)
 				if (std::isnan(cache[i].b.sum()))
@@ -334,18 +333,13 @@ namespace Hair
 	template<class Container>
 	void MatrixFactory<Container>::recomputeA(double h, Container & id0, Container & id1)
 	{
-		id0_.swap(id0);
-		id1_.swap(id1);
-
-		//return;
-
 		std::deque<Eigen::Triplet<float>> *assemble = new std::deque<Eigen::Triplet<float>>[nGroup];
-		const uint32_t npair = id0_.size();
+		const uint32_t npair = id0.size();
 		balance = h*h*k_; sqrtBalance = std::sqrt(balance);
 
 		for (uint32_t i = 0; i < npair; i++)
 		{
-			uint32_t id[2] = { id0_[i], id1_[i] };
+			uint32_t id[2] = { id0[i], id1[i] };
 			assert(id[0] < id[1]);
 
 			int mseq[2] = { pid2matrixSeq[id[0]],  pid2matrixSeq[id[1]] };
@@ -399,10 +393,10 @@ namespace Hair
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::computeb(int pass, float* pts, float dr)
+	void MatrixFactory<Container>::computeb(Container & id0, Container & id1, int pass, float* pts, float dr)
 	{
 		const float coef = balance * dr;
-		const uint32_t npair = id0_.size();
+		const uint32_t npair = id0.size();
 
 		/** compute b0 */
 		if (pass == 0)
@@ -431,7 +425,7 @@ namespace Hair
 
 			for (uint32_t i = 0; i < npair; i++)
 			{
-				uint32_t id[2] = { id0_[i], id1_[i] };
+				uint32_t id[2] = { id0[i], id1[i] };
 				assert(id[0] < id[1]);
 				uint32_t g[2] = { groupId[id[0]], groupId[id[1]] };
 
@@ -481,7 +475,7 @@ namespace Hair
 			/** this is change over iter */
 			for (uint32_t i = 0; i < npair; i++)
 			{
-				uint32_t id[2] = { id0_[i], id1_[i] };
+				uint32_t id[2] = { id0[i], id1[i] };
 				assert(id[0] < id[1]);
 
 				int mseq[2] = { 3 * pid2matrixSeq[id[0]],  3 * pid2matrixSeq[id[1]] };
