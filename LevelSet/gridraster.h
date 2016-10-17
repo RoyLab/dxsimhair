@@ -217,6 +217,7 @@ namespace XRwy
 
 			T dr2 = r0 * r0;
 			std::vector<uint32_t> locals;
+			size_t oldPtr = 0;
 			for (uint32_t i = 0; i < N; i++)
 			{
 				auto c0 = pointMap_[i];
@@ -227,6 +228,23 @@ namespace XRwy
 
 				CubeIterator itr(cell, successors_);
 				uint32_t id2;
+
+				if (old0 && old1)
+				{
+					while (oldPtr < old0->size() && old0->at(oldPtr) == i)
+					{
+						auto id2 = old1->at(oldPtr);
+						flag_[id2] = i;
+
+						if (closeEnough(i, id2, dr2))
+						{
+							res0.push_back(i);
+							res1.push_back(old1->at(oldPtr));
+						}
+						oldPtr++;
+					}
+				}
+
 				do
 				{
 					id2 = itr.next();
@@ -236,7 +254,7 @@ namespace XRwy
 
 				for (auto i1 = locals.begin(); i1 != locals.end(); i1++)
 				{
-					if ((!filter || validPair(i, *i1)) && closeEnough(i, *i1, dr2))
+					if ((!filter || validPair(i, *i1)) && flag_[*i1] != i && closeEnough(i, *i1, dr2))
 					{
 						res0.push_back(i);
 						res1.push_back(*i1);
@@ -257,7 +275,7 @@ namespace XRwy
 						{
 							id2 = itr.next();
 							if (id2 == N) break;
-							if ((!filter || validPair(i, id2)) && closeEnough(i, id2, dr2))
+							if ((!filter || validPair(i, id2)) && flag_[id2] != i && closeEnough(i, id2, dr2))
 							{
 								res0.push_back(i);
 								res1.push_back(id2);
@@ -341,10 +359,23 @@ namespace XRwy
 		{
 			const PointT& pa = data_->at(a);
 			const PointT& pb = data_->at(b);
-			bool res = squaredDist(pa, pb) <= dr2;
-			//if (res) stat1++;
-			//else stat2++;
-			return res;
+			T tmp[3];
+			tmp[0] = get<0>(pa) - get<0>(pb);
+			tmp[1] = get<1>(pa) - get<1>(pb);
+			tmp[2] = get<2>(pa) - get<2>(pb);
+
+			dr2 -= tmp[0] * tmp[0];
+			if (dr2 > 0)
+			{
+				dr2 -= tmp[1] * tmp[1];
+				if (dr2 > 0)
+				{
+					dr2 -= tmp[2] * tmp[2];
+					if (dr2 > 0)
+						return true;
+				}
+			}
+			return false;
 		}
 
 		bool validPair(uint32_t a, uint32_t b) const

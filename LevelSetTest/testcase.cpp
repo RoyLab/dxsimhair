@@ -330,6 +330,7 @@ bool check_find_all_pairs(double *r, unsigned n)
 		float* p;
 		std::ifstream f;
 		XRwy::GridRaster<Point3f> pgrid(r[i]);
+		std::vector<uint32_t> id0, id1, id2, id3, *p0=&id0, *p1=&id1, *o0=&id2, *o1=&id3;
 		for (int j = 0; j < ncase; j++)
 		{
 			f.open(fileName[j], std::ios::binary);
@@ -357,17 +358,21 @@ bool check_find_all_pairs(double *r, unsigned n)
 			}
 			octree.clear();
 
-			std::vector<uint32_t> id0, id1;
 			pgrid.initialize(points);
-			pgrid.query(id0, id1, false);
+			p0->clear();
+			p1->clear();
+			pgrid.query(*p0, *p1, false, o0, o1);
 
-			if (octcount != id0.size())
+			if (octcount != p0->size())
 			{
 				char buffer[1024];
-				sprintf(buffer, "check_find_all_pairs:%d/%d, octree(gt)/grid:%d/%d, r:%0.2f", i+1, j+1, octcount, int(id0.size()), r[i]);
+				sprintf(buffer, "check_find_all_pairs:%d/%d, octree(gt)/grid:%d/%d, r:%0.2f", i+1, j+1, octcount, int(p0->size()), r[i]);
 				BOOST_LOG_TRIVIAL(warning) << buffer;
-				if (pgrid.checkPairs(id0, id1) > 0) res =  false;
+				if (pgrid.checkPairs(*p0, *p1) > 0) res =  false;
 			}
+
+			std::swap(p0, o0);
+			std::swap(p1, o1);
 		}
 	}
 	return res;
