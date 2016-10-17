@@ -102,68 +102,13 @@ namespace XRwy
 		typedef uint8_t count_t;
 
 	public:
-		GridRaster(const ContainerT& pts, T dr, double factor=1.05)
+		GridRaster(T dr)
 		{
-			data_ = &pts;
-
-			const uint32_t N = pts.size();
-			this->N = N;
-			successors_ = std::vector<uint32_t>(N+1);
-			pointMap_ = std::vector<uint32_t[3]>(N);
-
-			// determine axis-aligned bounding box.
-			T min[3], max[3];
-			min[0] = get<0>(pts[0]);
-			min[1] = get<1>(pts[0]);
-			min[2] = get<2>(pts[0]);
-			max[0] = min[0];
-			max[1] = min[1];
-			max[2] = min[2];
-
-			for (uint32_t i = 0; i < N; ++i)
-			{
-				// initially each element links simply to the following element.
-				successors_[i] = i + 1;
-				const PointT& p = pts[i];
-
-				if (get<0>(p) < min[0]) min[0] = get<0>(p);
-				if (get<1>(p) < min[1]) min[1] = get<1>(p);
-				if (get<2>(p) < min[2]) min[2] = get<2>(p);
-				if (get<0>(p) > max[0]) max[0] = get<0>(p);
-				if (get<1>(p) > max[1]) max[1] = get<1>(p);
-				if (get<2>(p) > max[2]) max[2] = get<2>(p);
-			}
-			successors_[N] = N;
-
-			//float ctr[3] = { 0 };
-			for (int i = 0; i < 3; i++)
-				ctr[i] = (min[i] + max[i]) / 2;
-
-			T maxextent = 0.5f * (max[0] - min[0]);
-			for (uint32_t i = 1; i < 3; ++i)
-			{
-				T extent = 0.5f * (max[i] - min[i]);
-				if (extent > maxextent) maxextent = extent;
-			}
-
-			offset = factor * dr;
+			const double rfactor = 1.01;
 			r0 = dr;
-			n = int(maxextent * 2 / offset) + 1;
-			n2 = n*n;
-			maxextent = n * offset / 2;
-
-			grid_ = new Cube[n*n*n];
-			memset(grid_, 0xff, sizeof(Cube)*n*n*n);
-
-			//size_ = new count_t[n*n*n];
-			//memset(size_, 0, sizeof(count_t)*n*n*n);
-
-			//start_ = new uint32_t[n*n*n];
-			//memset(start_, 0xff, sizeof(uint32_t)*n*n*n);
-
-			//end_ = new uint32_t[n*n*n];
-			//memset(end_, 0, sizeof(uint32_t)*n*n*n);
+			offset = rfactor * dr;
 		}
+
 
 		~GridRaster() { free(); }
 
@@ -178,18 +123,95 @@ namespace XRwy
 			if (grid_) SAFE_DELETE_ARRAY(grid_);
 			successors_.clear();
 			pointMap_.clear();
+			flag_.clear();
 		}
 
 		void reset()
 		{
 			//memset(size_, 0, sizeof(count_t)*n*n*n);
 			//memset(start_, 0xff, sizeof(uint32_t)*n*n*n);
-			memset(grid_, 0xff, sizeof(Cube)*n*n*n);
+			for (uint32_t i = 0; i < N; ++i)
+			{
+				// initially each element links simply to the following element.
+				successors_[i] = i + 1;
+				flag_[i] = -1;
+			}
+			successors_[N] = N;
+			memset(grid_, 0xff, sizeof(Cube)*nTotal);
+		}
+
+		void initialize(const ContainerT& pts)
+		{
+			N = pts.size();
+
+			if (!b_init)
+			{
+				b_init = true;
+
+				successors_.resize(N + 1);
+				pointMap_.resize(N);
+				flag_.resize(N);
+			}
+
+			assert(N == pointMap_.size());
+
+			// bounding box
+			T min[3], max[3];
+			min[0] = get<0>(pts[0]);
+			min[1] = get<1>(pts[0]);
+			min[2] = get<2>(pts[0]);
+			max[0] = min[0];
+			max[1] = min[1];
+			max[2] = min[2];
+
+			for (uint32_t i = 0; i < N; ++i)
+			{
+				const PointT& p = pts[i];
+
+				if (get<0>(p) < min[0]) min[0] = get<0>(p);
+				if (get<1>(p) < min[1]) min[1] = get<1>(p);
+				if (get<2>(p) < min[2]) min[2] = get<2>(p);
+				if (get<0>(p) > max[0]) max[0] = get<0>(p);
+				if (get<1>(p) > max[1]) max[1] = get<1>(p);
+				if (get<2>(p) > max[2]) max[2] = get<2>(p);
+			}
+
+			for (int i = 0; i < 3; i++)
+				center_[i] = (min[i] + max[i]) / 2;
+
+
+			T extent[3];
+			for (uint32_t i = 0; i < 3; ++i)
+				extent[i] = 0.5f * (max[i] - min[i]);
+
+			if (!grid_ || extent[0] > extent_[0] |
+				extent[1] > extent_[1] || extent[2] > extent_[2])
+			{
+				const double boxfactor = 1.1;
+
+				SAFE_DELETE_ARRAY(grid_);
+				for (uint32_t i = 0; i < 3; i++)
+				{
+					n[i] = int(extent[i] * 2 * boxfactor / offset) + 1;
+					extent_[i] = n[i] * offset / 2 ;
+				}
+
+				nRow = n[0];
+				nLayer = n[1] * n[0];
+				nTotal = nLayer * n[2];
+				grid_ = new Cube[nTotal];
+
+				BOOST_LOG_TRIVIAL(trace) << "Reallocate happened";
+			}
+
+			reset();
+			assginPoints(pts, center_, extent_);
 		}
 
 		template<class ResContainerT>
-		void query(ResContainerT& res0, ResContainerT& res1, bool filter=true)
+		void query(ResContainerT& res0, ResContainerT& res1, bool filter = true, ResContainerT* old0 = 0, ResContainerT* old1 = 0)
 		{
+
 			const uint32_t N = this->N;
 			std::vector<bool> flag(N, false);
 
@@ -197,10 +219,8 @@ namespace XRwy
 			std::vector<uint32_t> locals;
 			for (uint32_t i = 0; i < N; i++)
 			{
-				//if (flag[i]) continue;
-
 				auto c0 = pointMap_[i];
-				auto &cell = grid_[id(c0)];
+				Cube &cell = grid_[id(c0.data())];
 				assert(cell.start != INVALID_U32);
 
 				locals.clear();
@@ -212,9 +232,7 @@ namespace XRwy
 					id2 = itr.next();
 					if (id2 == N) break;
 					locals.push_back(id2);
-					//flag[id2] = true;
 				} while (1);
-
 
 				for (auto i1 = locals.begin(); i1 != locals.end(); i1++)
 				{
@@ -250,19 +268,14 @@ namespace XRwy
 			}
 		}
 
-		void createGrid()
-		{
-			createGrid(ctr[0], ctr[1], ctr[2], n * offset / 2);
-		}
-
 		void stat()
 		{
 			int count = 0, a=0, b=0;
-			for (int i = 0; i < n; i++)
+			for (int i = 0; i < n[0]; i++)
 			{
-				for (int j = 0; j < n; j++)
+				for (int j = 0; j < n[1]; j++)
 				{
-					for (int k = 0; k < n; k++)
+					for (int k = 0; k < n[2]; k++)
 					{
 						auto sz = getSize(i, j, k);
 						a += sz;
@@ -292,7 +305,7 @@ namespace XRwy
 
 		uint32_t id(uint32_t x, uint32_t y, uint32_t z) const
 		{
-			return n2*x + n*y + z;
+			return nLayer*x + nRow*y + z;
 		}
 
 		template<class ResContainerT>
@@ -343,22 +356,19 @@ namespace XRwy
 
 		bool validId(uint32_t x, uint32_t y, uint32_t z) const
 		{
-			return x < n && y < n && z < n;
+			return x < n[0] && y < n[1] && z < n[2];
 		}
 
-		void createGrid(float x, float y, float z, float extent)
+		void assginPoints(const ContainerT& pts, T* center, T* extent)
 		{
 			// @ extend is half length, radius
-			sl_ = extent * 2;
-			min_[0] = x - extent;
-			min_[1] = y - extent;
-			min_[2] = z - extent;
+			for (int i = 0; i < 3; i++)
+				min_[i] = center[i] - extent[i];
 
-			static const float factor[] = { -0.5f, 0.5f };
-			const uint32_t size = data_->size();
-
-			const ContainerT& points = *data_;
-			for (uint32_t i = 0; i < size; ++i)
+			assert(N == pts.size());
+			data_ = &pts;
+			const ContainerT& points = pts;
+			for (uint32_t i = 0; i < N; ++i)
 			{
 				const PointT& p = points[i];
 
@@ -381,23 +391,23 @@ namespace XRwy
 
 				//size_[tmpId] ++;
 				node.end = i;
-				successors_[node.end] = size;
+				successors_[node.end] = N;
 			}
 		}
 
 	private:
 		std::vector<uint32_t> successors_;    // single connected list of next point indices...
-		std::vector<uint32_t[3]> pointMap_;
+		std::vector<std::array<uint32_t, 3>> pointMap_;
+		std::vector<int> flag_;
 
-		const ContainerT* data_ = nullptr;
+		 const ContainerT* ExternPtr data_ = nullptr;
 		Cube * grid_ = nullptr;
 
-		T offset,ctr[3], r0;
-		uint32_t n, n2, N;
+		T offset,center_[3], r0, extent_[3];
+		uint32_t n[3], nTotal, nLayer, nRow, N;
 
-		//count_t *size_ = nullptr;
-		//uint32_t *start_ = nullptr, *end_ = nullptr;
+		T min_[3];
 
-		T min_[3], sl_;
+		bool b_init = false;
 	};
 }

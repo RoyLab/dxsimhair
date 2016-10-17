@@ -99,12 +99,15 @@ void init()
 
 int main(int argc, char** argv)
 {
-	init();
-	trivial();
-	check_spd_lower_matrix();
-	check_chelosky_update();
-	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
+	//init();
+	//trivial();
+	//check_spd_lower_matrix();
+	//check_chelosky_update();
+	//if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
 	//if (testall()) cout << "All cases are passed! :-)" << endl;
+	bool res0,res;
+	double r[] = { 0.01, 0.02, 0.03 };
+	TRUE_OR_ERROR_LOG(check_find_all_pairs, r, 3);
 
 	system("pause");
 	return 0;
@@ -241,8 +244,8 @@ bool check_matrix_update_naive()
 	}
 
 	std::vector<uint32_t> id0, id1;
-	XRwy::GridRaster<Point3f> pgrid(points, r, 1.01);
-	pgrid.createGrid();
+	XRwy::GridRaster<Point3f> pgrid(r);
+	pgrid.initialize(points);
 	pgrid.query(id0, id1);
 
 	mf.update(id0, id1, p, nParticle, r);
@@ -279,6 +282,11 @@ bool check_matrix_update()
 	float r = 0.02f;
 	unsigned ncase = sizeof(fver) / sizeof(fver[0]);
 
+	XRwy::GridRaster<Point3f> pgrid(r);
+	std::vector<uint32_t> id[4], 
+		*id0=&id[0], *id1=&id[1], 
+		*old0= &id[2], *old1= &id[3];
+
 	for (int j = 0; j < ntest; j++)
 	{
 		f.open(fver[j], std::ios::binary);
@@ -295,16 +303,17 @@ bool check_matrix_update()
 		}
 		XRwy::tool::Timer::getTimer().setClock("a23");
 
-		std::vector<uint32_t> id0, id1;
-		XRwy::GridRaster<Point3f> pgrid(points, r, 1.01);
-		pgrid.createGrid();
-		pgrid.query(id0, id1);
+		pgrid.initialize(points);
+		pgrid.query(*id0, *id1, true, old0, old1);
 
-		BOOST_LOG_TRIVIAL(info) << "Find pairs " << XRwy::tool::Timer::getTimer().milliseconds("a23");
+		BOOST_LOG_TRIVIAL(info) << "Find pairs " << XTIMER_HELPER(milliseconds("a23"));
 
 		XRwy::tool::Timer::getTimer().setClock("a");
-		mf.update(id0, id1, p, nParticle, r);
-		BOOST_LOG_TRIVIAL(info) << "On update " << XRwy::tool::Timer::getTimer().milliseconds("a");
+		mf.update(*id0, *id1, p, nParticle, r);
+		BOOST_LOG_TRIVIAL(info) << "On update " << XTIMER_HELPER(milliseconds("a"));
+
+		std::swap(id0, old0);
+		std::swap(id1, old1);
 	}
 
 	return true;
@@ -320,6 +329,7 @@ bool check_find_all_pairs(double *r, unsigned n)
 		size_t nParticle;
 		float* p;
 		std::ifstream f;
+		XRwy::GridRaster<Point3f> pgrid(r[i]);
 		for (int j = 0; j < ncase; j++)
 		{
 			f.open(fileName[j], std::ios::binary);
@@ -348,8 +358,7 @@ bool check_find_all_pairs(double *r, unsigned n)
 			octree.clear();
 
 			std::vector<uint32_t> id0, id1;
-			XRwy::GridRaster<Point3f> pgrid(points, r[i], 1.01);
-			pgrid.createGrid();
+			pgrid.initialize(points);
 			pgrid.query(id0, id1, false);
 
 			if (octcount != id0.size())
@@ -426,7 +435,7 @@ int profiler_find_all_pair()
 	//std::cout << "???? "<< 1u - 3 << std::endl;
 	std::vector<uint32_t> id0, id1;
 	XRwy::GridRaster<Point3f> *pgrid;
-	pgrid = new XRwy::GridRaster<Point3f>(points, r, 1.01);
+	pgrid = new XRwy::GridRaster<Point3f>( r);
 	for (int i = 0; i < 3; i++)
 	{
 		cout << "Sequence: " << i << endl;
@@ -434,7 +443,7 @@ int profiler_find_all_pair()
 		auto &grid = *pgrid;
 		QueryPerformanceCounter(&t1);
 		grid.reset();
-		grid.createGrid();
+		//grid.createGrid();
 		QueryPerformanceCounter(&t2);
 		tmp = (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
 		std::cout << "Grid construction in " << tmp << std::endl;
@@ -446,7 +455,7 @@ int profiler_find_all_pair()
 			QueryPerformanceCounter(&t1);
 
 			grid.reset();
-			grid.createGrid();
+			//grid.createGrid();
 
 			QueryPerformanceCounter(&t2);
 			auto tmp = (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
