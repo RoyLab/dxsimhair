@@ -209,11 +209,17 @@ namespace XRwy
 		}
 
 		template<class ResContainerT>
-		void query(ResContainerT& res0, ResContainerT& res1, bool filter = true, ResContainerT* old0 = 0, ResContainerT* old1 = 0)
+		void query(ResContainerT& res0, ResContainerT& res1, bool filter, ResContainerT* old0, ResContainerT* old1,
+			ResContainerT& p0, ResContainerT& p1, ResContainerT& n0, ResContainerT& n1)
 		{
+			size_t _count[5] = { 0 };
+
+			p0.clear();
+			p1.clear();
+			n0.clear();
+			n1.clear();
 
 			const uint32_t N = this->N;
-			std::vector<bool> flag(N, false);
 
 			T dr2 = r0 * r0;
 			std::vector<uint32_t> locals;
@@ -239,7 +245,13 @@ namespace XRwy
 						if (closeEnough(i, id2, dr2))
 						{
 							res0.push_back(i);
-							res1.push_back(old1->at(oldPtr));
+							res1.push_back(id2);
+						}
+						else
+						{
+							n0.push_back(i);
+							n1.push_back(id2);
+							_count[0]++;
 						}
 						oldPtr++;
 					}
@@ -254,10 +266,14 @@ namespace XRwy
 
 				for (auto i1 = locals.begin(); i1 != locals.end(); i1++)
 				{
-					if ((!filter || validPair(i, *i1)) && flag_[*i1] != i && closeEnough(i, *i1, dr2))
+					if ((!filter || validPair(i, *i1)) && flag_[*i1] != i && closeEnough(i, *i1, dr2*0.5))
 					{
 						res0.push_back(i);
 						res1.push_back(*i1);
+
+						p0.push_back(i);
+						p1.push_back(*i1);
+						_count[1]++;
 					}
 				}
 
@@ -275,15 +291,21 @@ namespace XRwy
 						{
 							id2 = itr.next();
 							if (id2 == N) break;
-							if ((!filter || validPair(i, id2)) && flag_[id2] != i && closeEnough(i, id2, dr2))
+							if ((!filter || validPair(i, id2)) && flag_[id2] != i && closeEnough(i, id2, dr2*0.5))
 							{
 								res0.push_back(i);
 								res1.push_back(id2);
+
+								p0.push_back(i);
+								p1.push_back(id2);
+								_count[1]++;
 							}
 						} while (1);
 					}
 				}
 			}
+			BOOST_LOG_TRIVIAL(info) << "\tUpdate: " << _count[0] << '/' << _count[1] << '/' << res0.size();
+
 		}
 
 		void stat()
@@ -361,19 +383,15 @@ namespace XRwy
 			const PointT& pb = data_->at(b);
 			T tmp[3];
 			tmp[0] = get<0>(pa) - get<0>(pb);
-			tmp[1] = get<1>(pa) - get<1>(pb);
-			tmp[2] = get<2>(pa) - get<2>(pb);
 
 			dr2 -= tmp[0] * tmp[0];
 			if (dr2 > 0)
 			{
-				dr2 -= tmp[1] * tmp[1];
+				tmp[1] = get<1>(pa) - get<1>(pb);
+				tmp[2] = get<2>(pa) - get<2>(pb);
+				dr2 -= tmp[1] * tmp[1] + tmp[2] * tmp[2];
 				if (dr2 > 0)
-				{
-					dr2 -= tmp[2] * tmp[2];
-					if (dr2 > 0)
-						return true;
-				}
+					return true;
 			}
 			return false;
 		}

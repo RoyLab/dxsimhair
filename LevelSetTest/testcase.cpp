@@ -49,7 +49,7 @@ public:
 bool testall();
 bool check_matrix_update();
 int profiler_find_all_pair();
-bool check_find_all_pairs(double *r, unsigned n);
+bool check_find_all_pairs(double *r, unsigned n, bool = true);
 bool check_matrix_update_naive();
 bool check_chelosky_update(); // TODO
 bool check_spd_lower_matrix();
@@ -99,15 +99,15 @@ void init()
 
 int main(int argc, char** argv)
 {
-	//init();
-	//trivial();
-	//check_spd_lower_matrix();
-	//check_chelosky_update();
-	//if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
+	init();
+	trivial();
+	check_spd_lower_matrix();
+	check_chelosky_update();
+	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
 	//if (testall()) cout << "All cases are passed! :-)" << endl;
-	bool res0,res;
-	double r[] = { 0.01, 0.02, 0.03 };
-	TRUE_OR_ERROR_LOG(check_find_all_pairs, r, 3);
+	//bool res0,res;
+	//double r[] = { 0.01, 0.02, 0.03 };
+	//TRUE_OR_ERROR_LOG(check_find_all_pairs, r+1, 1, false);
 
 	system("pause");
 	return 0;
@@ -117,7 +117,7 @@ bool testall()
 {
 	bool res, res0 = true;;
 	double r[] = { 0.01, 0.02, 0.03 };
-	TRUE_OR_ERROR_LOG(check_find_all_pairs, r, 3);
+	TRUE_OR_ERROR_LOG(check_find_all_pairs, r, 3, true);
 	TRUE_OR_ERROR_LOG(check_matrix_update);
 	return res0;
 }
@@ -246,9 +246,9 @@ bool check_matrix_update_naive()
 	std::vector<uint32_t> id0, id1;
 	XRwy::GridRaster<Point3f> pgrid(r);
 	pgrid.initialize(points);
-	pgrid.query(id0, id1);
+	//pgrid.query(id0, id1);
 
-	mf.update(id0, id1, p, nParticle, r);
+	//mf.update(id0, id1, p, nParticle, r);
 
 	return true;
 }
@@ -261,7 +261,7 @@ bool check_matrix_update()
 
 	for (int j = 0; j < ntest; j++)
 	{
-		sprintf(fver[j], "D:/Data/vpos/50kf%03d.vertex", j+20);
+		sprintf(fver[j], "D:/Data/vpos/50kf%03d.vertex", j+5);
 	}
 
 	//for (int j = 0; j < ntest / 2; j++)
@@ -283,7 +283,7 @@ bool check_matrix_update()
 	unsigned ncase = sizeof(fver) / sizeof(fver[0]);
 
 	XRwy::GridRaster<Point3f> pgrid(r);
-	std::vector<uint32_t> id[4], 
+	std::vector<uint32_t> id[8], 
 		*id0=&id[0], *id1=&id[1], 
 		*old0= &id[2], *old1= &id[3];
 
@@ -301,28 +301,76 @@ bool check_matrix_update()
 			auto pos = p + 3 * ii;
 			points.emplace_back(pos[0], pos[1], pos[2]);
 		}
-		XRwy::tool::Timer::getTimer().setClock("a23");
+
+		XRwy::tool::Timer::getTimer().setClock("iterstart");
+
+		BOOST_LOG_TRIVIAL(info) << "Frame: " << j;
 
 		pgrid.initialize(points);
-		pgrid.query(*id0, *id1, true, old0, old1);
+		pgrid.query(*id0, *id1, true, old0, old1, id[4], id[5], id[6], id[7]);
 
-		BOOST_LOG_TRIVIAL(info) << "Find pairs " << XTIMER_HELPER(milliseconds("a23"));
+		BOOST_LOG_TRIVIAL(info) << "\tFind pairs " << XTIMER_HELPER(milliseconds("iterstart"));
 
-		XRwy::tool::Timer::getTimer().setClock("a");
-		mf.update(*id0, *id1, p, nParticle, r);
-		BOOST_LOG_TRIVIAL(info) << "On update " << XTIMER_HELPER(milliseconds("a"));
+		std::set<uint64_t> olda;
+		std::set<uint64_t> newa;
+		for (int i = 0; i < id0->size(); i++)
+		{
+			uint64_t idx = uint64_t(id0->at(i)) << 32 | id1->at(i);
+			newa.insert(idx);
+		}
+		for (int i = 0; i < old0->size(); i++)
+		{
+			uint64_t idx = uint64_t(old0->at(i)) << 32 | old1->at(i);
+			olda.insert(idx);
+		}
+
+		// check add
+		size_t c__[6] = { 0 };
+		for (int i = 0; i < id[4].size(); i++)
+		{
+			uint64_t idx = uint64_t(id[4][i]) << 32 | id[5][i];
+			if (olda.find(idx) != olda.end())
+			{
+				BOOST_LOG_TRIVIAL(error) << 1 << " " << id[4][i] << " " << id[5][i];
+			}
+			if (newa.find(idx) == newa.end())
+				BOOST_LOG_TRIVIAL(error) << 2 << " " << id[4][i] << " " << id[5][i];
+		}
+
+		// check sub
+		for (int i = 0; i < id[6].size(); i++)
+		{
+			uint64_t idx = uint64_t(id[6][i]) << 32 | id[7][i];
+			if (olda.find(idx) == olda.end())
+				BOOST_LOG_TRIVIAL(error) << 3 << " " << id[6][i] << " " << id[7][i];
+			if (newa.find(idx) != newa.end())
+			{
+				BOOST_LOG_TRIVIAL(error) << 4 << " " << id[6][i] << " " << id[7][i];
+			}
+
+		}
+		XTIMER_HELPER(setClock("solve"));
+		mf.update(*id0, *id1, id[4], id[5], id[6], id[7], p, nParticle, r);
+
+		BOOST_LOG_TRIVIAL(info) << "\tOn update " << XTIMER_HELPER(milliseconds("iterstart"));
 
 		std::swap(id0, old0);
 		std::swap(id1, old1);
+		id0->clear(); id1->clear();
 	}
 
 	return true;
 }
 
-bool check_find_all_pairs(double *r, unsigned n)
+bool check_find_all_pairs(double *r, unsigned n, bool check)
 {
-	char fileName[][128] = { "D:/Data/vpos/50k.vertex" , "D:/Data/vpos/50kf10.vertex" , "D:/Data/vpos/50kf20.vertex" };
-	unsigned ncase = sizeof(fileName) / sizeof(fileName[0]);
+	const size_t ncase = 50;
+	void *tp = malloc(sizeof(char) * 128 * ncase);
+	char(*fileName)[128] = reinterpret_cast<char(*)[128]>(tp);
+
+	for (int j = 0; j < ncase; j++)
+		sprintf(fileName[j], "D:/Data/vpos/50kf%03d.vertex", j + 1);
+
 	bool res = true;
 	for (int i = 0; i < n; i++)
 	{
@@ -346,29 +394,35 @@ bool check_find_all_pairs(double *r, unsigned n)
 				points.emplace_back(pos[0], pos[1], pos[2]);
 			}
 
-			unibn::Octree<Point3f> octree;
-			unibn::OctreeParams params(powf(2, 6));
-			octree.initialize(points, params);
-			std::vector<uint32_t> results;
-			int octcount = 0;
-			for (uint32_t ii = 0; ii < points.size(); ++ii)
-			{
-				octree.radiusNeighbors<unibn::L2Distance<Point3f> >(points[ii], r[i], results);
-				octcount += results.size();
-			}
-			octree.clear();
-
+			XTIMER_HELPER(setClock("1"));
 			pgrid.initialize(points);
 			p0->clear();
 			p1->clear();
-			pgrid.query(*p0, *p1, false, o0, o1);
+			//pgrid.query(*p0, *p1, true, o0, o1);
+			BOOST_LOG_TRIVIAL(info) << "Frame " << j+1 << "\t" <<  XTIMER_HELPER(milliseconds("1"));
 
-			if (octcount != p0->size())
+			if (check)
 			{
-				char buffer[1024];
-				sprintf(buffer, "check_find_all_pairs:%d/%d, octree(gt)/grid:%d/%d, r:%0.2f", i+1, j+1, octcount, int(p0->size()), r[i]);
-				BOOST_LOG_TRIVIAL(warning) << buffer;
-				if (pgrid.checkPairs(*p0, *p1) > 0) res =  false;
+				unibn::Octree<Point3f> octree;
+				unibn::OctreeParams params(powf(2, 6));
+				octree.initialize(points, params);
+
+				int octcount = 0;
+				std::vector<uint32_t> results;
+				for (uint32_t ii = 0; ii < points.size(); ++ii)
+				{
+					octree.radiusNeighbors<unibn::L2Distance<Point3f> >(points[ii], r[i], results);
+					octcount += results.size();
+				}
+				octree.clear();
+
+				if (octcount != p0->size())
+				{
+					char buffer[1024];
+					sprintf(buffer, "check_find_all_pairs:%d/%d, octree(gt)/grid:%d/%d, r:%0.2f", i + 1, j + 1, octcount, int(p0->size()), r[i]);
+					BOOST_LOG_TRIVIAL(warning) << buffer;
+					if (pgrid.checkPairs(*p0, *p1) > 0) res =  false;
+				}
 			}
 
 			std::swap(p0, o0);
@@ -380,12 +434,6 @@ bool check_find_all_pairs(double *r, unsigned n)
 
 int profiler_find_all_pair()
 {
-	//if (argc < 2)
-	//{
-	//  std::cerr << "filename of point cloud missing." << std::endl;
-	//  return -1;
-	//}
-	//std::string filename = argv[1];
 	std::string filename = "C:\\Users\\v-war\\Desktop\\wachtberg_folds\\scan_001_points.dat";
 
 	size_t nParticle;
@@ -476,7 +524,7 @@ int profiler_find_all_pair()
 			QueryPerformanceCounter(&t1);
 
 			id0.clear(); id1.clear();
-			grid.query(id0, id1);
+			//grid.query(id0, id1);
 			//grid.reset();
 			//grid.createGrid();
 

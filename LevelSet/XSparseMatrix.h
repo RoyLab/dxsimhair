@@ -79,6 +79,7 @@ namespace core
 		T& coeffRef(Index i) { return m_data[i]; }
 		Storage& data() { return m_data; }
 		SparseVector& operator=(const Eigen::SparseVector<T>& matrix);
+		T sum() const { T res(0); for (auto & itr : m_data) res += m_data.second; return res; }
 
 		T squaredNorm() const;
 		InnerIterator getIterator() { return InnerIterator(*this); }
@@ -207,6 +208,7 @@ namespace core
 		size_t rows() const { return mn_row; }
 		const ColStorage& col(Index i) const { return m_data[i]; }
 		ColStorage& col(Index i) { return m_data[i]; }
+		T sum() const;
 
 		// solve
 		// forward is lower triangle (default), backward is upper triangle

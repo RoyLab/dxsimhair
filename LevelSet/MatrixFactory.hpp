@@ -3,6 +3,7 @@
 #include <linmath.h>
 #include <iostream>
 #include <deque>
+#include <set>
 #include <boost\log\trivial.hpp>
 #include "HairStructs.h"
 #include "EigenTypes.h"
@@ -42,13 +43,15 @@ namespace Hair
 		MatrixFactory(int* gids, int np, double k, int skipFactor = 0);
 		~MatrixFactory();
 
-		void update(Container & id0, Container & id1, float* pos, uint32_t npos, double dr);
+		void update(Container & id0, Container & id1, Container & id0p, Container & id1p, Container & id0n, Container & id1n, float* pos, uint32_t npos, double dr);
 		float reportError(Container & id0, Container & id1, float* pos0, float* pos1, double dr);
 
 	private:
 		void recomputeA(double h, Container & id0, Container & id1);
 		void computeb(int pass, float* pts, float dr);
 		void updateL(Container & id0, Container & id1);
+		void updateL(Container & id0p, Container & id1p, Container & id0n, Container & id1n);
+		
 		bool isInit() const { return bInit; }
 		void loadPosition(float* pts); // load from pts into cache buffer
 		void dispatchPosition(float* pts); // collect from cache buffer
@@ -72,7 +75,6 @@ namespace Hair
 		std::vector<GroupCache> cache; /** A, L, b, buffer */
 		std::vector<int> pid2matrixSeq; /** map from particle id to matrix position */
 	};
-
 
 	template<class Container>
 	MatrixFactory<Container>::MatrixFactory(int* gids, int np, double k, int skipFactor)
@@ -132,7 +134,6 @@ namespace Hair
 
 		delete[]counter;
 	}
-
 
 	template<class Container>
 	MatrixFactory<Container>::MatrixFactory(const char* fgroup, double k, int skipFactor)
@@ -202,7 +203,7 @@ namespace Hair
 		return error;
 	}
 
-//#define XRWY_DEBUG
+#define XRWY_DEBUG
 	template<class Container>
 	MatrixFactory<Container>::~MatrixFactory()
 	{
@@ -210,29 +211,35 @@ namespace Hair
 	}
 
 	template<class Container>
-	void MatrixFactory<Container>::update(Container & id0, Container & id1, float* pos, uint32_t npos, double dr)
+	void MatrixFactory<Container>::update(Container & id0, Container & id1, Container & id0p, Container & id1p,
+		Container & id0n, Container & id1n, float* pos, uint32_t npos, double dr)
 	{
 #ifdef XRWY_PROFILE
 		XTIMER_HELPER(setClock("mf"));
 #endif
-
 		assert(npos == groupId.size());
-		assert(id0.size() == id1.size());
+		assert(id0p.size() == id1p.size());
+		assert(id0n.size() == id1n.size());
 
 		if (!isInit())
 		{
 			bInit = true;
 
 			/** h is given explicitly */
-			recomputeA(1, id0, id1);
+			recomputeA(1, id0p, id1p);
 		}
 		else
 		{
 			//recomputeA(1, id0, id1);
-			updateL(id0, id1);
+			updateL(id0p, id1p, id0n, id1n);
+			//updateL(id0, id1);
 		}
 
-		BOOST_LOG_TRIVIAL(info) << "Update L: " << XTIMER_HELPER(milliseconds("a"));
+		for (int i = 0; i < nGroup; i++)
+			if (std::isnan(cache[i].LBase.sum()))
+				BOOST_LOG_TRIVIAL(error) << i;
+
+		BOOST_LOG_TRIVIAL(info) << "\tupdate cholesky: " << XTIMER_HELPER(milliseconds("solve"));
 
 		XTIMER_HELPER(setClock("ap"));
 
@@ -249,6 +256,11 @@ namespace Hair
 		for (int i = 0; i < maxiter; i++)
 		{
 			computeb(i, de_pos, dr);
+
+			for (int i = 0; i < nGroup; i++)
+				if (std::isnan(cache[i].b.sum()))
+					BOOST_LOG_TRIVIAL(warning) << i;
+
 			for (int j = 0; j < nGroup; j++)
 			{
 				if (groups[j].empty()) continue;
@@ -279,7 +291,7 @@ namespace Hair
 
 		delete[] de_pos;
 
-		BOOST_LOG_TRIVIAL(info) << "Solve: " << XTIMER_HELPER(milliseconds("ap"));
+		BOOST_LOG_TRIVIAL(info) << "\tsolve: " << XTIMER_HELPER(milliseconds("ap"));
 	}
 
 	template<class Container>
@@ -427,11 +439,6 @@ namespace Hair
 				if (mseq[0] < 0 && mseq[1] < 0) continue;
 
 				float* p[2] = { pts + 3 * id[0], pts + 3 * id[1] };
-#ifdef _DEBUG
-				float* p2[2] = { cache[g[0]].buffer + mseq[0], cache[g[1]].buffer + mseq[1] };
-				assert(p[0][0] == p2[0][0] && p[0][1] == p2[0][1] && p[0][2] == p2[0][2]
-					&& p[1][0] == p2[1][0] && p[1][1] == p2[1][1] && p[1][2] == p2[1][2]);
-#endif
 
 				vec3 v10;
 				vec3_sub(v10, p[0], p[1]);
@@ -681,6 +688,64 @@ namespace Hair
 
 		id0_.swap(id0);
 		id1_.swap(id1);
+	}
+
+	template<class Container>
+	void MatrixFactory<Container>::updateL(Container & id0p, Container & id1p, Container & id0n, Container & id1n)
+	{
+		size_t idx[2];
+		int mseq[2];
+		uint32_t g[2];
+
+		size_t n = id0p.size();
+		for (int i = 0; i < n; i++)
+		{
+			idx[0] = id0p[i];
+			idx[1] = id1p[i];
+
+			mseq[0] = pid2matrixSeq[idx[0]];
+			mseq[1] = pid2matrixSeq[idx[1]];
+
+			g[0] = groupId[idx[0]];
+			g[1] = groupId[idx[1]];
+
+			if (g[0] == g[1] && mseq[0] != -1 && mseq[1] != -1)
+			{
+				_update(cache[g[0]].LBase, mseq[0], mseq[1]);
+			}
+			else
+			{
+				if (mseq[0] != -1)
+					_update(cache[g[0]].LBase, mseq[0]);
+				if (mseq[1] != -1)
+					_update(cache[g[1]].LBase, mseq[1]);
+			}
+		}
+
+		n = id0n.size();
+		for (int i = 0; i < n; i++)
+		{
+			idx[0] = id0n[i];
+			idx[1] = id1n[i];
+
+			mseq[0] = pid2matrixSeq[idx[0]];
+			mseq[1] = pid2matrixSeq[idx[1]];
+
+			g[0] = groupId[idx[0]];
+			g[1] = groupId[idx[1]];
+
+			if (g[0] == g[1] && mseq[0] != -1 && mseq[1] != -1)
+			{
+				_downdate(cache[g[0]], mseq[0], mseq[1]);
+			}
+			else
+			{
+				if (mseq[0] != -1)
+					_downdate(cache[g[0]], mseq[0]);
+				if (mseq[1] != -1)
+					_downdate(cache[g[1]], mseq[1]);
+			}
+		}
 	}
 
 

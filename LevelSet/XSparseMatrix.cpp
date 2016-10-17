@@ -38,6 +38,17 @@ namespace core
 		return res;
 	}
 
+	SPDLowerMatrix::T SPDLowerMatrix::sum() const
+	{
+		T res(0);
+		for (int i = 0; i < cols(); i++)
+		{
+			for (auto& pair : m_data[i])
+				res += pair.second;
+		}
+		return res;
+	}
+
 	void SPDLowerMatrix::forwardSubstitutionWithPrune(Eigen::Matrix<T, -1, 1>& p, T thresh)
 	{
 		const size_t sz = p.rows();
