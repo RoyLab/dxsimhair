@@ -1,6 +1,9 @@
 #define CGAL_EIGEN3_ENABLED
 #define XTIMER_INSTANCE
 #define XRWY_EXPORTS
+#ifdef V
+#undef V
+#endif
 #include <CGAL/Kd_tree.h>
 #include <CGAL/Fuzzy_sphere.h>
 #include <CGAL/Search_traits_3.h>
@@ -506,7 +509,7 @@ namespace XRwy
 	}
 
 	GroupPBD2::GroupPBD2(HairGeometry * hair, float dr, float balance, const int * groupInfo, size_t ngi, int nGroup):
-		mf(groupInfo, nGroup, 3, 25), pgrid(dr)
+		mf(groupInfo, hair->nParticle, balance, hair->particlePerStrand), pgrid(dr)
 	{
 		ConfigReader reader("../config2.ini");
 		reader.getParamDict(g_PBDParas);

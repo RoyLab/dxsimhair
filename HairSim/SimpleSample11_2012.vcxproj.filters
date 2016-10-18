@@ -14,9 +14,6 @@
       <Extensions>
       </Extensions>
     </Filter>
-    <Filter Include="Source Files\Miscs">
-      <UniqueIdentifier>{ddc1de22-ef8b-40e6-be5d-f2681f69797c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\FBX">
       <UniqueIdentifier>{e366668c-c870-4fe5-8ea6-616560973fb5}</UniqueIdentifier>
     </Filter>
@@ -101,6 +98,9 @@
     </ClCompile>
     <ClCompile Include="HairSampleSelector.cpp">
       <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

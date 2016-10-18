@@ -1,4 +1,7 @@
 ﻿#pragma once
+#ifdef V
+#undef V
+#endif
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_traits.h>

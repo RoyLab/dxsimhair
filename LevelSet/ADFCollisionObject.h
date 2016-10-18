@@ -1,4 +1,9 @@
 #pragma once
+
+#ifdef V
+#undef V
+#endif
+
 #include <CGAL\Delaunay_Triangulation_3.h>
 #include <CGAL\Triangulation_vertex_base_with_info_3.h>
 #include <CGAL\Iso_cuboid_3.h>

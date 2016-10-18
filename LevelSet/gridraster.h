@@ -110,9 +110,9 @@ namespace XRwy
 		}
 
 
-		~GridRaster() { free(); }
+		~GridRaster() { freeAlloc(); }
 
-		void free()
+		void freeAlloc()
 		{
 			if (data_) data_ = nullptr;
 

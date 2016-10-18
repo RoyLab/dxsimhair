@@ -2,7 +2,7 @@
 #include <fstream>
 #include <DirectXMath.h>
 #include "XRwy_h.h"
-#include "wrMath.h"
+#include "xmath.h"
 #include "HairStructs.h"
 
 namespace XRwy

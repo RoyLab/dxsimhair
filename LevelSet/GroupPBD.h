@@ -1,5 +1,7 @@
 #pragma once
-
+#ifdef V
+#undef V
+#endif
 #include <vector>
 #include <deque>
 #include <directxmath.h>
@@ -72,7 +74,7 @@ namespace XRwy
 
 	struct HairGeometry;
 
-	class IHairCorrection
+	class XRWY_DLL IHairCorrection
 	{
 	public:
 		virtual void solve(HairGeometry* hair) = 0;
@@ -118,7 +120,7 @@ namespace XRwy
 		std::deque<SolveGroupCache> solverCacheBuffer;
 	};
 
-	class GroupPBD2:
+	class XRWY_DLL GroupPBD2:
 		public IHairCorrection
 	{
 		friend class TbbPbdItem;

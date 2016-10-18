@@ -1,4 +1,7 @@
 #pragma once
+#ifdef V
+#undef V
+#endif
 #include <CGAL\Polyhedron_3.h>
 #include "ADFOctree.h"
 #include "wrGeo.h"

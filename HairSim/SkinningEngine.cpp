@@ -1,7 +1,7 @@
 #include "precompiled.h"
 #include "LevelSet.h"
 #include "XRwy_h.h"
-#include "wrMath.h"
+#include "xmath.h"
 #include "macros.h"
 
 #include "ReconsReader.h"
@@ -241,7 +241,7 @@ namespace XRwy
 			if (isCollide)
 			{
 				vec3 p;
-				WR::convert3(p, p1);
+				XR::convert3(p, p1);
 				mat4x4_mul_vec3(pos, rigid, p);
 				CopyMemory(skinResult->position + i, pos, sizeof(vec3));
 			}

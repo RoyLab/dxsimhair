@@ -91,13 +91,13 @@ namespace XRwy
         HRESULT hr;
         D3D11_MAPPED_SUBRESOURCE MappedResource;
 
-        V(pd3dImmediateContext->Map(pVB[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+        V_NORETURN(pd3dImmediateContext->Map(pVB[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
         CopyMemory(MappedResource.pData, hair->position, sizeof(XMFLOAT3)* hair->nParticle);
         pd3dImmediateContext->Unmap(pVB[0], 0);
 
 		if (hair->direction)
 		{
-			V(pd3dImmediateContext->Map(pVB[1], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+			V_NORETURN(pd3dImmediateContext->Map(pVB[1], 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
 			CopyMemory(MappedResource.pData, hair->direction, sizeof(XMFLOAT3)* hair->nParticle);
 			pd3dImmediateContext->Unmap(pVB[1], 0);
 		}

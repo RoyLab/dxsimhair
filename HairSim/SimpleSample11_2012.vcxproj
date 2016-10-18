@@ -412,6 +412,7 @@
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SkinningEngine.cpp" />
     <ClCompile Include="SplitLayout.cpp" />
+    <ClCompile Include="test.cpp" />
     <ClCompile Include="TrainingGraph.cpp" />
   </ItemGroup>
   <ItemGroup>

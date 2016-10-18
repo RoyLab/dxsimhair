@@ -2,11 +2,15 @@
 #include <list>
 
 #define CGAL_EIGEN3_ENABLED
+#ifdef V
+#undef V
+#endif
+
 #include <CGAL/Kd_tree.h>
 #include <CGAL/Fuzzy_sphere.h>
 #include <CGAL/Search_traits_3.h>
 #include "CGALKernel.h"
-#include "wrLogger.h"
+#include "xlogger.h"
 #include "HairSampleSelector.h"
 
 namespace XRwy
@@ -97,7 +101,7 @@ namespace XRwy
 				else break;
 			} while (true);
 
-			WR_LOG_INFO << "Select " << output.size() << " strands with radius " << r;
+			XLOG_INFO << "Select " << output.size() << " strands with radius " << r;
 			for (auto& itr : output)
 				initList.push_back(itr.id);
 		}

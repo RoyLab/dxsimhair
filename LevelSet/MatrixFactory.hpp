@@ -238,7 +238,7 @@ namespace Hair
 		//	if (std::isnan(cache[i].LBase.sum()))
 		//		BOOST_LOG_TRIVIAL(error) << i;
 
-		BOOST_LOG_TRIVIAL(info) << "\tupdate cholesky: " << XTIMER_HELPER(milliseconds("solve"));
+		//BOOST_LOG_TRIVIAL(info) << "\tupdate cholesky: " << XTIMER_HELPER(milliseconds("solve"));
 
 		XTIMER_HELPER(setClock("ap"));
 

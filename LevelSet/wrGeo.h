@@ -1,4 +1,7 @@
 ﻿#pragma once
+#ifdef V
+#undef V
+#endif
 #include <CGAL\Point_3.h>
 #include <CGAL\Triangle_3.h>
 #include <CGAL\Vector_3.h>
