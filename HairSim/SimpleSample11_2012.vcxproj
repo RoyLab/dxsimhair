@@ -391,8 +391,6 @@
     <ClCompile Include="BasicRenderer.cpp" />
     <ClCompile Include="CFBXLoader.cpp" />
     <ClCompile Include="CFBXRendererDX11.cpp" />
-    <ClCompile Include="ConfigReader.cpp" />
-    <ClCompile Include="D3D11Tools.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="FollicleRenderer.cpp" />
     <ClCompile Include="GUIManager.cpp" />
@@ -416,8 +414,6 @@
     <ClCompile Include="SkinningEngine.cpp" />
     <ClCompile Include="SplitLayout.cpp" />
     <ClCompile Include="TrainingGraph.cpp" />
-    <ClCompile Include="wrColorGenerator.cpp" />
-    <ClCompile Include="wrLogger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HairShadow.hlsl" />
@@ -426,8 +422,6 @@
     <ClInclude Include="BasicRenderer.h" />
     <ClInclude Include="CFBXLoader.h" />
     <ClInclude Include="CFBXRendererDX11.h" />
-    <ClInclude Include="ConfigReader.h" />
-    <ClInclude Include="D3D11Tools.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairColor.h" />
@@ -438,17 +432,12 @@
     <ClInclude Include="HairRenderer.h" />
     <ClInclude Include="FollicleRenderer.h" />
     <ClInclude Include="IRenderer.h" />
-    <ClInclude Include="macros.h" />
     <ClInclude Include="ReconsReader.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SkinningEngine.h" />
     <ClInclude Include="SplitLayout.h" />
     <ClInclude Include="TrainingGraph.h" />
-    <ClInclude Include="linmath.h" />
-    <ClInclude Include="wrColorGenerator.h" />
-    <ClInclude Include="wrLogger.h" />
-    <ClInclude Include="wrMath.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="XRwy_h.h" />
     <ClInclude Include="ZhouHairLoader.hpp" />

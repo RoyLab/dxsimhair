@@ -6,7 +6,7 @@
 #include <CGAL\Aff_transformation_3.h>
 #include <fstream>
 #include <CGAL\IO\Polyhedron_iostream.h>
-#include "wrLogger.h"
+#include "xlogger.h"
 
 namespace WRG
 {
@@ -76,7 +76,7 @@ namespace WRG
         std::ifstream f(fileName);
         f >> (*P);
         f.close();
-        WR_LOG_INFO << "Read off file: " << fileName << " nVertices: " << P->size_of_vertices();
+        XLOG_INFO << "Read off file: " << fileName << " nVertices: " << P->size_of_vertices();
         return P;
     }
 

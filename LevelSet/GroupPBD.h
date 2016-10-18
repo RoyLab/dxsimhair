@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <deque>
+#include <directxmath.h>
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
 #include <CGAL/Kd_tree.h>
@@ -11,10 +12,11 @@
 #include "CGALKernel.h"
 #include "MatrixFactory.hpp"
 #include "GridRaster.h"
-#include "XR_Struct.hpp"
+#include "XStruct.hpp"
 
 namespace XRwy
 {
+	using DirectX::XMFLOAT3;
 	typedef CGAL::Floatipick KernelPBD;
 
 	class KDSearchPoint :
@@ -70,7 +72,7 @@ namespace XRwy
 
 	struct HairGeometry;
 
-	class XRWY_DLL IHairCorrection
+	class IHairCorrection
 	{
 	public:
 		virtual void solve(HairGeometry* hair) = 0;
@@ -116,7 +118,7 @@ namespace XRwy
 		std::deque<SolveGroupCache> solverCacheBuffer;
 	};
 
-	class XRWY_DLL GroupPBD2:
+	class GroupPBD2:
 		public IHairCorrection
 	{
 		friend class TbbPbdItem;
@@ -129,7 +131,7 @@ namespace XRwy
 
 	private:
 		XRwy::Hair::MatrixFactory<IdContainer> mf;
-		XRwy::GridRaster<DirectX::XMFLOAT3, XRwy::ArrayWrapper<DirectX::XMFLOAT3>> pgrid;
+		XRwy::GridRaster<DirectX::XMFLOAT3, XR::ArrayWrapper<DirectX::XMFLOAT3>> pgrid;
 
 		std::vector<uint32_t> id[8], *id0, *id1, *old0, *old1;
 		float r0;

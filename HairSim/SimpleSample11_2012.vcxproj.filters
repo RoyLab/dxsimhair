@@ -57,9 +57,6 @@
     <ClCompile Include="CFBXLoader.cpp">
       <Filter>Source Files\FBX</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BasicRenderer.cpp">
       <Filter>Source Files\XRwyEngine</Filter>
     </ClCompile>
@@ -105,17 +102,8 @@
     <ClCompile Include="ReconsReader.cpp">
       <Filter>Source Files\Dynamic</Filter>
     </ClCompile>
-    <ClCompile Include="D3D11Tools.cpp">
-      <Filter>Source Files\Miscs</Filter>
-    </ClCompile>
-    <ClCompile Include="wrColorGenerator.cpp">
-      <Filter>Source Files\Miscs</Filter>
-    </ClCompile>
     <ClCompile Include="HairSampleSelector.cpp">
       <Filter>Source Files\StaticHair</Filter>
-    </ClCompile>
-    <ClCompile Include="wrLogger.cpp">
-      <Filter>Source Files\Miscs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -133,9 +121,6 @@
     </ClInclude>
     <ClInclude Include="CFBXLoader.h">
       <Filter>Source Files\FBX</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigReader.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="BasicRenderer.h">
       <Filter>Source Files\XRwyEngine</Filter>
@@ -188,26 +173,8 @@
     <ClInclude Include="ReconsReader.h">
       <Filter>Source Files\Dynamic</Filter>
     </ClInclude>
-    <ClInclude Include="D3D11Tools.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="linmath.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="macros.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrColorGenerator.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
-    <ClInclude Include="wrMath.h">
-      <Filter>Source Files\Miscs</Filter>
-    </ClInclude>
     <ClInclude Include="HairSampleSelector.h">
       <Filter>Source Files\StaticHair</Filter>
-    </ClInclude>
-    <ClInclude Include="wrLogger.h">
-      <Filter>Source Files\Miscs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

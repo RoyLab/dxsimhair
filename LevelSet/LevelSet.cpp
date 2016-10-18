@@ -9,7 +9,7 @@
 #define WR_EXPORTS
 #include "LevelSet.h"
 #include "ADFCollisionObject.h"
-#include "ConfigReader.h"
+#include "XConfigReader.hpp"
 #include "linmath.h"
 #include "GridCollisionObject.h"
 
@@ -93,7 +93,7 @@ namespace WR
 
     void runLevelSetBenchMark(const wchar_t* fileName)
     {
-        ConfigReader reader("..\\config.ini");
+        XR::ConfigReader reader("..\\config.ini");
         int level = std::stoi(reader.getValue("maxlevel"));
         int number = std::stoi(reader.getValue("testnumber"));
         bool loadArray = std::stoi(reader.getValue("loadtest"));

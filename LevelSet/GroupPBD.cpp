@@ -15,12 +15,13 @@
 
 #define WR_EXPORTS
 #include "macros.h"
-#include "ConfigReader.h"
+#include "XConfigReader.hpp"
 #include "LevelSet.h"
 #include "GroupPBD.h"
 
 #include "XTimer.hpp"
 
+using namespace XR;
 
 namespace XRwy
 {
@@ -131,7 +132,7 @@ namespace XRwy
 			x = solver.solve(b);
 		}
 
-		ParamDict g_PBDParas;
+		ParameterDictionary g_PBDParas;
 	}
 
 	extern "C" WR_API IHairCorrection* CreateHairCorrectionObject()
@@ -454,8 +455,8 @@ namespace XRwy
 			tree.build();
 
 			QueryPerformanceCounter(&t2);
-			WR_LOG_TRACE << "Tree initialization: " << (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
-			WR_LOG_TRACE << "Vertex Count: " << points.size();
+			XLOG_TRACE << "Tree initialization: " << (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart;
+			XLOG_TRACE << "Vertex Count: " << points.size();
 		//}
 
 
@@ -487,7 +488,7 @@ namespace XRwy
 			//TbbPbdItem tbbCls(this, &tree, p0, p1, dr, hair, i);
 			//parallel_for(blocked_range<size_t>(0, nHairParticleGroup, chunksize), tbbCls);
 
-			WR_LOG_TRACE << "Iteration: " << i << ", Timer: " << t << "/" << t / nHairParticleGroup;
+			XLOG_TRACE << "Iteration: " << i << ", Timer: " << t << "/" << t / nHairParticleGroup;
 
 			std::swap(p0, p1);
 			if (!bMatrixInited)

@@ -2,20 +2,21 @@
 #include <algorithm>
 #include "GridCollisionObject.h"
 #include "macros.h"
-#include "ConfigReader.h"
-#include "wrLogger.h"
+#include "XConfigReader.hpp"
+#include "xlogger.h"
 #include "linmath.h"
 #include "wrGeo.h"
-#include "wrMath.h"
+#include "xmath.h"
 
 namespace XRwy
 {
 #define VERY_LARGE 1.0e20f
 
+	using namespace XR;
 
 	GridCollisionObject::GridCollisionObject(const char* fileName)
 	{
-		ParamDict gridParas;
+		ParameterDictionary gridParas;
 		ConfigReader reader("../config2.ini");
 		reader.getParamDict(gridParas);
 		reader.close();
@@ -86,7 +87,7 @@ namespace XRwy
 
 	bool GridCollisionObject::exceed_threshhold(const Point_3& p, float thresh) const
 	{
-		UNIMPLEMENTED_DECLARATION;
+		XLOG_ERROR << UNIMPLEMENTED_DECLARATION;
 		return false;
 	}
 

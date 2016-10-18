@@ -1,7 +1,7 @@
 ﻿#include "UnitTest.h"
 #include "ADFOctree.h"
 #include "macros.h"
-#include "wrLogger.h"
+#include "xLogger.h"
 #include "wrGeo.h"
 #include "linmath.h"
 #include "ADFCollisionObject.h"
@@ -68,7 +68,7 @@ namespace WR
         nMaxLevel = maxLvl;
         dt = new Dt;
 
-        WR_LOG_INFO << "constructing...";
+        XLOG_INFO << "constructing...";
 
         // contruct all the triangles
         nTriangles = geom.size_of_facets();
@@ -96,7 +96,7 @@ namespace WR
 		auto* tester = CGAL::Ext::createDistanceTester2<Polyhedron_3_FaceWithId, K>(*pModel);
 		constructChildren(pRoot, tester);
 		delete tester;
-        WR_LOG_INFO << "constructed: depth, " << maxLvl;
+        XLOG_INFO << "constructed: depth, " << maxLvl;
         return true;
     }
 
@@ -362,7 +362,7 @@ namespace WR
 
         Cube_3 bbox = CGAL::bounding_box(geom.points_begin(), geom.points_end());
         box = bbox.bbox();
-        WR_LOG_INFO << "Bbox size: " << bbox;
+        XLOG_INFO << "Bbox size: " << bbox;
 
         WRG::enlarge(bbox, m_box_enlarge_size); // 不希望贴的太紧
         node->vertices[0] = dt->insert(Point_3(bbox.xmin(), bbox.ymin(), bbox.zmax()));

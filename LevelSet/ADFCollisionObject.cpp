@@ -1,13 +1,15 @@
 #include "UnitTest.h"// must be the first
 
-#include "ADFCollisionObject.h"
-#include "macros.h"
 #include <fstream>
-#include "wrLogger.h"
-#include "wrMath.h"
+#include "xlogger.h"
+#include "macros.h"
+#include "xmath.h"
+
+#include "XConfigReader.hpp"
+
+#include "ADFCollisionObject.h"
 #include "ADFOctree.h"
 #include "LevelSet.h"
-#include "ConfigReader.h"
 
 namespace
 {
@@ -42,7 +44,7 @@ namespace
 
         if (std::isnan(sum))
         {
-            WR_LOG_DEBUG << std::endl << vals[0] << ", " << vals[1]
+            XLOG_DEBUG << std::endl << vals[0] << ", " << vals[1]
                 << ", " << vals[2] << ", " << vals[3]
                 << ", " << numer << ", " << sum;
         }
@@ -199,14 +201,14 @@ namespace WR
 
     float ADFCollisionObject::query_squared_distance(const Point_3& p) const
     {
-        UNIMPLEMENTED_DECLARATION;
+        XLOG_ERROR << UNIMPLEMENTED_DECLARATION;
         return 0.f;
     }
 
 
     bool ADFCollisionObject::exceed_threshhold(const Point_3& p, float thresh) const
     {
-        UNIMPLEMENTED_DECLARATION;
+		XLOG_ERROR << UNIMPLEMENTED_DECLARATION;
         return false;
     }
 
@@ -312,7 +314,7 @@ namespace WR
         simplex3d_interpolation(pts, grads, p, g);
 
         float rawStep = cur_value - thresh;
-        float step = sgn(rawStep) * std::min(m_max_step, std::abs(rawStep));
+        float step = XR::sgn(rawStep) * std::min(m_max_step, std::abs(rawStep));
         newPos = p - g * step * 0.8f;
 
         //WR_LOG_DEBUG << "correlation iteration: " << g_count <<
@@ -356,7 +358,7 @@ namespace WR
         const wchar_t *pch;
         ADD_SUFFIX_IF_NECESSARYW(fileName, ADF_SUFFIXW, fullName);
 
-        WR_LOG_INFO << "load Model: " << fullName;
+        XLOG_INFO << "load Model: " << fullName;
 
         std::ifstream file(fullName);
         assert(file);
@@ -376,7 +378,7 @@ namespace WR
         {
             if (!file.good())
             {
-                WR_LOG_ERROR << "fatal error! point " << count << ", " << p;
+                XLOG_ERROR << "fatal error! point " << count << ", " << p;
                 return false;
             }
 
@@ -390,7 +392,7 @@ namespace WR
         }
         file.close();
 
-        WR_LOG_INFO << "load succeded! " << fullName;
+        XLOG_INFO << "load succeded! " << fullName;
         return true;
     }
 
@@ -405,7 +407,7 @@ namespace WR
         step[1] = Vector_3(0, coef * (m_bbox.ymax() - m_bbox.ymin()), 0);
         step[2] = Vector_3(0, 0, coef * (m_bbox.zmax() - m_bbox.zmin()));
 
-		ConfigReader reader("..\\config.ini");
+		XR::ConfigReader reader("..\\config.ini");
 
 		assert(pModel);
 		auto* tester = CGAL::Ext::createDistanceTester<Polyhedron_3_FaceWithId, K>(*pModel);
@@ -421,7 +423,7 @@ namespace WR
 
                 if (dist1 > 1e6 && dist2 > 1e6)
                 {
-                    WR_LOG_ERROR << "\ndual large distance, cannot interpolate. "
+                    XLOG_ERROR << "\ndual large distance, cannot interpolate. "
                         << pos << " direction: " << i;
                 }
 
@@ -434,7 +436,7 @@ namespace WR
 
                 if (std::isnan(v[i]))
                 {
-                    WR_LOG_ERROR << "\ninvalid gradient. "
+                    XLOG_ERROR << "\ninvalid gradient. "
                         << pos << " direction: " << i 
                         << ", " << dist1 << ", " << dist2;
                 }

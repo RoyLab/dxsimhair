@@ -1,6 +1,6 @@
 #pragma once
 #include <Eigen\Sparse>
-#include "wrMath.h"
+#include "xmath.h"
 #include <iostream>
 #include <vector>
 #include <set>
@@ -8,7 +8,7 @@
 #include "HairStructs.h"
 #include "EigenTypes.h"
 #include "XTimer.hpp"
-#include "XSparseMatrix.h"
+#include "XSparseMatrix.hpp"
 #include "SparseCholeskyUpdate.hpp"
 
 namespace XRwy
@@ -19,7 +19,7 @@ namespace Hair
 	class MatrixFactory
 	{
 		typedef WR::SparseMat SparseMatrix;
-		typedef XRwy::core::SPDLowerMatrix XSparseMatrix;
+		typedef XR::SPDLowerMatrix<float> XSparseMatrix;
 		typedef WR::VecX Vector;
 		typedef uint8_t gid_t;
 		typedef Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> LLTSolver;

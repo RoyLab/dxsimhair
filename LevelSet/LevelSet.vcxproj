@@ -93,7 +93,6 @@
   <ItemGroup>
     <ClInclude Include="ADFCollisionObject.h" />
     <ClInclude Include="CGALKernel.h" />
-    <ClInclude Include="LinkVector.h" />
     <ClInclude Include="SparseCholeskyUpdate.hpp" />
     <ClInclude Include="CholeskyUpdate.hpp" />
     <ClInclude Include="EigenTypes.h" />
@@ -107,18 +106,13 @@
     <ClInclude Include="UnitTest.h" />
     <ClInclude Include="wrGeo.h" />
     <ClInclude Include="wrTripleMatrix.h" />
-    <ClInclude Include="XSparseMatrix.h" />
-    <ClInclude Include="XTimer.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\HairSim\ConfigReader.cpp" />
     <ClCompile Include="ADFCollisionObject.cpp" />
     <ClCompile Include="ADFOctree.cpp" />
-    <ClCompile Include="ConfigReader.cpp" />
     <ClCompile Include="GridCollisionObject.cpp" />
     <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="LevelSet.cpp" />
-    <ClCompile Include="XSparseMatrix.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

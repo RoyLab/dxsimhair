@@ -60,16 +60,7 @@
     <ClInclude Include="MatrixFactory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XTimer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SparseCholeskyUpdate.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LinkVector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XSparseMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -80,22 +71,13 @@
     <ClCompile Include="ADFOctree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\HairSim\ConfigReader.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="ADFCollisionObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GroupPBD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GridCollisionObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XSparseMatrix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

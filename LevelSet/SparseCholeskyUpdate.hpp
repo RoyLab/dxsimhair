@@ -12,10 +12,10 @@
 
 #include <Eigen/Sparse>
 #include <Eigen/Jacobi>
-#include "XSparseMatrix.h"
+#include "XSparseMatrix.hpp"
 
-typedef Eigen::SparseMatrix<float> SparseMatrix;
-typedef Eigen::SparseVector<float> SparseVector;
+typedef Eigen::SparseMatrix<float> EigenSparseMatrix;
+typedef Eigen::SparseVector<float> EigenSparseVector;
 
 template <class Index = int, class T = float>
 struct XTriplet { XTriplet(const Index& a, const T& b) :r(a), val(b) {} Index r; T val; };
@@ -88,15 +88,15 @@ void rot_compute(std::vector<Triplet2>& xs, std::vector<Triplet2>& ys, IteratorX
 	}
 }
 
-static void apply_jacobi_rotation(int after, SparseMatrix& x, size_t col, SparseVector& y, const Eigen::JacobiRotation<float>& rot)
+static void apply_jacobi_rotation(int after, EigenSparseMatrix& x, size_t col, EigenSparseVector& y, const Eigen::JacobiRotation<float>& rot)
 {
 	static std::vector<Triplet2> xs;
 	static std::vector<Triplet2> ys;
 	xs.clear();
 	ys.clear();
 
-	auto itrx = SparseMatrix::InnerIterator(x, col);
-	auto itry = SparseVector::InnerIterator(y);
+	auto itrx = EigenSparseMatrix::InnerIterator(x, col);
+	auto itry = EigenSparseVector::InnerIterator(y);
 
 	while (itrx && itrx.row() <= after) ++itrx;
 	while (itry && itry.row() <= after) ++itry;
@@ -110,15 +110,15 @@ static void apply_jacobi_rotation(int after, SparseMatrix& x, size_t col, Sparse
 		y.coeffRef(triplet.r) = triplet.val;
 }
 
-static void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const Eigen::JacobiRotation<float>& rot)
+static void apply_jacobi_rotation2(EigenSparseVector& x, EigenSparseMatrix& y, size_t col, const Eigen::JacobiRotation<float>& rot)
 {
 	static std::vector<Triplet2> xs;
 	static std::vector<Triplet2> ys;
 	xs.clear();
 	ys.clear();
 
-	auto itrx = SparseVector::InnerIterator(x);
-	auto itry = SparseMatrix::InnerIterator(y, col);
+	auto itrx = EigenSparseVector::InnerIterator(x);
+	auto itry = EigenSparseMatrix::InnerIterator(y, col);
 
 	rot_compute(xs,  ys, itrx, itry, rot);
 
@@ -129,9 +129,9 @@ static void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col,
 		y.coeffRef(triplet.r, col) = triplet.val;
 }
 
-static void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col,
-	XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& y, 
-	const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
+template <class T>
+void apply_jacobi_rotation(int after, XR::SPDLowerMatrix<T>& x, size_t col,
+	XR::SparseVector<T>& y, const Eigen::JacobiRotation<T>& rot)
 {
 	static std::vector<Triplet2> xs;
 	static std::vector<Triplet2> ys;
@@ -150,9 +150,9 @@ static void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size
 		y.coeffRef(triplet.r) = triplet.val;
 }
 
-
-static void apply_jacobi_rotation2(XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& x,
-	XRwy::core::SPDLowerMatrix& y, size_t col, const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
+template <class T>
+void apply_jacobi_rotation2(XR::SparseVector<T>& x,
+	XR::SPDLowerMatrix<T>& y, size_t col, const Eigen::JacobiRotation<T>& rot)
 {
 	static std::vector<Triplet2> xs;
 	static std::vector<Triplet2> ys;
@@ -294,10 +294,9 @@ void applyRotInPlace(MA& va, MB& vb, IteratorX& itrx,
 	}
 }
 
-static void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
-	Eigen::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
+template<class T>
+void sparse_cholesky_update(XR::SPDLowerMatrix<T>& L, Eigen::SparseVector<T>& v) {
 
-	typedef XRwy::core::SPDLowerMatrix::T T;
 	Eigen::JacobiRotation<T> rot;
 	const size_t N = v.rows();
 	std::remove_reference<decltype(v)>::type::Storage& data = v.data();
@@ -362,12 +361,12 @@ static void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
 	}
 }
 
-static void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
-	Eigen::SparseVector<typename XRwy::core::SPDLowerMatrix::T>& p) {
+template<class T>
+void sparse_cholesky_downdate(XR::SPDLowerMatrix<T>& L,
+	Eigen::SparseVector<T>& p) {
 
 	typedef std::remove_reference<decltype(L)>::type SparseMatrix;
 	typedef std::remove_reference<decltype(p)>::type SparseVector;
-	typedef typename SparseMatrix::T T;
 
 	L.forwardSubstitution(p);
 	const size_t N = p.rows();
@@ -441,11 +440,10 @@ static void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
 	}
 }
 
+template <class T>
+void sparse_cholesky_update(XR::SPDLowerMatrix<T>& L,
+	XR::SparseVector<T>& v) {
 
-static void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
-	XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
-
-	typedef XRwy::core::SPDLowerMatrix::T T;
 	Eigen::JacobiRotation<T> rot;
 	const size_t N = v.rows();
 	std::remove_reference<decltype(v)>::type::Storage& data = v.data();
@@ -463,12 +461,12 @@ static void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
 	}
 }
 
-static void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
-	XRwy::core::SparseVector<typename XRwy::core::SPDLowerMatrix::T>& p) {
+template <class T>
+static void sparse_cholesky_downdate(XR::SPDLowerMatrix<T>& L,
+	XR::SparseVector<T>& p) {
 
 	typedef std::remove_reference<decltype(L)>::type SparseMatrix;
 	typedef std::remove_reference<decltype(p)>::type SparseVector;
-	typedef typename SparseMatrix::T T;
 
 	L.forwardSubstitution(p);
 	const size_t N = p.rows();

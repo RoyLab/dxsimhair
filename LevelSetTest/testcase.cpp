@@ -18,7 +18,7 @@
 #include <MatrixFactory.hpp>
 #include "SparseCholeskyUpdate.hpp"
 #include "CholeskyUpdate.hpp"
-#include "wrMath.h"
+#include "xmath.h"
 
 
 // macros
@@ -142,11 +142,11 @@ WR::SparseMat genUpperSPD(const int N = 6)
 
 bool check_chelosky_update()
 {
-	typedef XRwy::core::SparseVector<float> XSparseVec;
-	typedef XRwy::core::SPDLowerMatrix XSparseMat;
+	typedef XR::SparseVector<float> XSparseVec;
+	typedef XR::SPDLowerMatrix<float> XSparseMat;
 	Eigen::JacobiRotation<float> rot;
 
-	Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> llt;
+	Eigen::SimplicialLLT<WR::SparseMat, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> llt;
 	const int N = 6;
 
 	auto A = genUpperSPD(N);
@@ -185,7 +185,7 @@ bool check_chelosky_update()
 
 	//a += v*v.transpose();
 	Eigen::MatrixXf LDense;
-	XRwy::core::assign(LDense, L);
+	XR::assign(LDense, L);
 	Eigen::Matrix<float, N, N> diff = LDense - Lp;
 
 	Eigen::MatrixXf recons = (LDense*LDense.transpose()).triangularView<Eigen::Upper>();
@@ -302,7 +302,7 @@ bool check_matrix_update()
 			points.emplace_back(pos[0], pos[1], pos[2]);
 		}
 
-		XRwy::tool::Timer::getTimer().setClock("iterstart");
+		XR::Timer::getTimer().setClock("iterstart");
 
 		BOOST_LOG_TRIVIAL(info) << "Frame: " << j;
 
@@ -634,7 +634,7 @@ bool check_spd_lower_matrix()
 
 	x0 = solver.solve(b);
 
-	XRwy::core::SPDLowerMatrix L = solver.matrixL();
+	XR::SPDLowerMatrix<float> L = solver.matrixL();
 	L.forwardSubstitution(b);
 	L.backwardSubstitution(b);
 
