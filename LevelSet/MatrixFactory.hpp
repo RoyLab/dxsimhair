@@ -1,8 +1,8 @@
 #pragma once
 #include <Eigen\Sparse>
-#include <linmath.h>
+#include "wrMath.h"
 #include <iostream>
-#include <deque>
+#include <vector>
 #include <set>
 #include <boost\log\trivial.hpp>
 #include "HairStructs.h"
@@ -40,7 +40,7 @@ namespace Hair
 		};
 	public:
 		MatrixFactory(const char*, double k, int skipFactor = 0);
-		MatrixFactory(int* gids, int np, double k, int skipFactor = 0);
+		MatrixFactory(const int* gids, int np, double k, int skipFactor = 0);
 		~MatrixFactory();
 
 		void update(Container & id0, Container & id1, Container & id0p, Container & id1p, Container & id0n, Container & id1n, float* pos, uint32_t npos, double dr);
@@ -76,7 +76,7 @@ namespace Hair
 	};
 
 	template<class Container>
-	MatrixFactory<Container>::MatrixFactory(int* gids, int np, double k, int skipFactor)
+	MatrixFactory<Container>::MatrixFactory(const int* gids, int np, double k, int skipFactor)
 	{
 		k_ = k;
 
@@ -234,9 +234,9 @@ namespace Hair
 			//updateL(id0, id1);
 		}
 
-		for (int i = 0; i < nGroup; i++)
-			if (std::isnan(cache[i].LBase.sum()))
-				BOOST_LOG_TRIVIAL(error) << i;
+		//for (int i = 0; i < nGroup; i++)
+		//	if (std::isnan(cache[i].LBase.sum()))
+		//		BOOST_LOG_TRIVIAL(error) << i;
 
 		BOOST_LOG_TRIVIAL(info) << "\tupdate cholesky: " << XTIMER_HELPER(milliseconds("solve"));
 

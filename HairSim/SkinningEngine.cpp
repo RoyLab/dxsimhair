@@ -1,9 +1,10 @@
 #include "LevelSet.h"
-#include "macros.h"
 #include "XRwy_h.h"
-#include "SkinningEngine.h"
-#include "ReconsReader.h"
 #include "wrMath.h"
+#include "macros.h"
+
+#include "ReconsReader.h"
+#include "SkinningEngine.h"
 #include "HairSampleSelector.h"
 
 #ifdef _DEBUG
@@ -24,7 +25,6 @@ namespace XRwy
 		else bHairBody = false;
 
 		skinning = new SkinningAndHairBodyCollisionEngineCPU(bHairBody);
-		pPDB = CreateHairCorrectionObject();
 	}
 
 	ReducedModel::~ReducedModel()
@@ -46,6 +46,8 @@ namespace XRwy
 
 		int *gid = new int[ngi];
 		ReadNBytes(file, gid, ngi * sizeof(4));
+		pPDB = new GroupPBD2(hairGeom, std::stof(g_paramDict["dr"]),
+			std::stof(g_paramDict["balance"]), gid, ngi, std::stoi(g_paramDict["npbdgroup"]));
 		V_RETURN(pPDB->initialize(hairGeom, std::stof(g_paramDict["dr"]),
 			std::stof(g_paramDict["balance"]), gid, ngi, std::stoi(g_paramDict["npbdgroup"])));
 		delete[]gid;

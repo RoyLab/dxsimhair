@@ -8,6 +8,14 @@
 #include "ADFOctree.h"
 #include <string.h>
 
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
 namespace WR
 {
 	class ADFCollisionObject :

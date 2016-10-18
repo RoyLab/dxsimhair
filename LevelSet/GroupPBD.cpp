@@ -1,4 +1,6 @@
 #define CGAL_EIGEN3_ENABLED
+#define XTIMER_INSTANCE
+#define XRWY_EXPORTS
 #include <CGAL/Kd_tree.h>
 #include <CGAL/Fuzzy_sphere.h>
 #include <CGAL/Search_traits_3.h>
@@ -16,6 +18,8 @@
 #include "ConfigReader.h"
 #include "LevelSet.h"
 #include "GroupPBD.h"
+
+#include "XTimer.hpp"
 
 
 namespace XRwy
@@ -498,5 +502,30 @@ namespace XRwy
 			std::swap(allocMem, hair->position);
 
 		SAFE_DELETE_ARRAY(allocMem);
+	}
+
+	GroupPBD2::GroupPBD2(HairGeometry * hair, float dr, float balance, const int * groupInfo, size_t ngi, int nGroup):
+		mf(groupInfo, nGroup, 3, 25), pgrid(dr)
+	{
+		ConfigReader reader("../config2.ini");
+		reader.getParamDict(g_PBDParas);
+		reader.close();
+
+		id0 = &id[0]; id1 = &id[1];
+		old0 = &id[2]; old1 = &id[3];
+
+		r0 = dr;
+	}
+
+	void GroupPBD2::solve(HairGeometry * hair)
+	{
+		ArrayWrapper<DirectX::XMFLOAT3> wrapper(hair->position, hair->nParticle);
+		pgrid.initialize(wrapper);
+		pgrid.query(*id0, *id1, true, old0, old1, id[4], id[5], id[6], id[7]);
+		mf.update(*id0, *id1, id[4], id[5], id[6], id[7], reinterpret_cast<float*>(hair->position), hair->nParticle, r0);
+
+		std::swap(id0, old0);
+		std::swap(id1, old1);
+		id0->clear(); id1->clear();
 	}
 }

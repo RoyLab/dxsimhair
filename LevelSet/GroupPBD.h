@@ -9,6 +9,9 @@
 #include "HairStructs.h"
 #include "EigenTypes.h"
 #include "CGALKernel.h"
+#include "MatrixFactory.hpp"
+#include "GridRaster.h"
+#include "XR_Struct.hpp"
 
 namespace XRwy
 {
@@ -67,7 +70,7 @@ namespace XRwy
 
 	struct HairGeometry;
 
-	class IHairCorrection
+	class XRWY_DLL IHairCorrection
 	{
 	public:
 		virtual void solve(HairGeometry* hair) = 0;
@@ -111,5 +114,24 @@ namespace XRwy
 		};
 
 		std::deque<SolveGroupCache> solverCacheBuffer;
+	};
+
+	class XRWY_DLL GroupPBD2:
+		public IHairCorrection
+	{
+		friend class TbbPbdItem;
+		typedef std::vector<uint32_t> IdContainer;
+	public:
+		GroupPBD2(HairGeometry* hair, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup);
+		~GroupPBD2() {}
+		bool initialize(HairGeometry* hair, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup) { return true; }
+		void solve(HairGeometry* hair);
+
+	private:
+		XRwy::Hair::MatrixFactory<IdContainer> mf;
+		XRwy::GridRaster<DirectX::XMFLOAT3, XRwy::ArrayWrapper<DirectX::XMFLOAT3>> pgrid;
+
+		std::vector<uint32_t> id[8], *id0, *id1, *old0, *old1;
+		float r0;
 	};
 }

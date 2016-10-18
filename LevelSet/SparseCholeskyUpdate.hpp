@@ -88,7 +88,7 @@ void rot_compute(std::vector<Triplet2>& xs, std::vector<Triplet2>& ys, IteratorX
 	}
 }
 
-void apply_jacobi_rotation(int after, SparseMatrix& x, size_t col, SparseVector& y, const Eigen::JacobiRotation<float>& rot)
+static void apply_jacobi_rotation(int after, SparseMatrix& x, size_t col, SparseVector& y, const Eigen::JacobiRotation<float>& rot)
 {
 	static std::vector<Triplet2> xs;
 	static std::vector<Triplet2> ys;
@@ -110,7 +110,7 @@ void apply_jacobi_rotation(int after, SparseMatrix& x, size_t col, SparseVector&
 		y.coeffRef(triplet.r) = triplet.val;
 }
 
-void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const Eigen::JacobiRotation<float>& rot)
+static void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const Eigen::JacobiRotation<float>& rot)
 {
 	static std::vector<Triplet2> xs;
 	static std::vector<Triplet2> ys;
@@ -129,7 +129,7 @@ void apply_jacobi_rotation2(SparseVector& x, SparseMatrix& y, size_t col, const 
 		y.coeffRef(triplet.r, col) = triplet.val;
 }
 
-void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col, 
+static void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col,
 	XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& y, 
 	const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
 {
@@ -151,7 +151,7 @@ void apply_jacobi_rotation(int after, XRwy::core::SPDLowerMatrix& x, size_t col,
 }
 
 
-void apply_jacobi_rotation2(XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& x,
+static void apply_jacobi_rotation2(XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& x,
 	XRwy::core::SPDLowerMatrix& y, size_t col, const Eigen::JacobiRotation<XRwy::core::SPDLowerMatrix::T>& rot)
 {
 	static std::vector<Triplet2> xs;
@@ -294,7 +294,7 @@ void applyRotInPlace(MA& va, MB& vb, IteratorX& itrx,
 	}
 }
 
-void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
+static void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
 	Eigen::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
 
 	typedef XRwy::core::SPDLowerMatrix::T T;
@@ -362,7 +362,7 @@ void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
 	}
 }
 
-void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
+static void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
 	Eigen::SparseVector<typename XRwy::core::SPDLowerMatrix::T>& p) {
 
 	typedef std::remove_reference<decltype(L)>::type SparseMatrix;
@@ -442,7 +442,7 @@ void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
 }
 
 
-void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
+static void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
 	XRwy::core::SparseVector<XRwy::core::SPDLowerMatrix::T>& v) {
 
 	typedef XRwy::core::SPDLowerMatrix::T T;
@@ -463,7 +463,7 @@ void sparse_cholesky_update(XRwy::core::SPDLowerMatrix& L,
 	}
 }
 
-void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
+static void sparse_cholesky_downdate(XRwy::core::SPDLowerMatrix& L,
 	XRwy::core::SparseVector<typename XRwy::core::SPDLowerMatrix::T>& p) {
 
 	typedef std::remove_reference<decltype(L)>::type SparseMatrix;

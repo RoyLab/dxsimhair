@@ -219,6 +219,8 @@ namespace XRwy
 			n0.clear();
 			n1.clear();
 
+			//const int max_neighbor = 2;
+
 			const uint32_t N = this->N;
 
 			T dr2 = r0 * r0;
@@ -235,26 +237,27 @@ namespace XRwy
 				CubeIterator itr(cell, successors_);
 				uint32_t id2;
 
-				if (old0 && old1)
-				{
-					while (oldPtr < old0->size() && old0->at(oldPtr) == i)
-					{
-						auto id2 = old1->at(oldPtr);
-						flag_[id2] = i;
+				//int tmp = max_neighbor;
+				//bool tmpFlag = true;
 
-						if (closeEnough(i, id2, dr2))
-						{
-							res0.push_back(i);
-							res1.push_back(id2);
-						}
-						else
-						{
-							n0.push_back(i);
-							n1.push_back(id2);
-							_count[0]++;
-						}
-						oldPtr++;
+				while (oldPtr < old0->size() && old0->at(oldPtr) == i)
+				{
+					auto id2 = old1->at(oldPtr);
+					flag_[id2] = i;
+
+					if (closeEnough(i, id2, dr2))
+					{
+						res0.push_back(i);
+						res1.push_back(id2);
+						//tmp--;
 					}
+					else
+					{
+						n0.push_back(i);
+						n1.push_back(id2);
+						_count[0]++;
+					}
+					oldPtr++;
 				}
 
 				do
@@ -273,9 +276,17 @@ namespace XRwy
 
 						p0.push_back(i);
 						p1.push_back(*i1);
+
+						//if (--tmp <= 0)
+						//{
+						//	tmpFlag = false;
+						//	break;
+						//}	
 						_count[1]++;
 					}
 				}
+
+				//if (!tmpFlag) continue;
 
 				// 26 neighbor
 				for (int j = 0; j < 26; j++)
@@ -286,25 +297,41 @@ namespace XRwy
 					auto& cell2 = grid_[id(shift)];
 					if (cell2.start != INVALID_U32)
 					{
+						_count[3]++;
 						CubeIterator itr(cell2, successors_);
 						do
 						{
+							_count[4]++;
 							id2 = itr.next();
 							if (id2 == N) break;
 							if ((!filter || validPair(i, id2)) && flag_[id2] != i && closeEnough(i, id2, dr2*0.5))
 							{
+								_count[2]++;
+
 								res0.push_back(i);
 								res1.push_back(id2);
 
 								p0.push_back(i);
 								p1.push_back(id2);
+
+								//if (--tmp <= 0)
+								//{
+								//	tmpFlag = false;
+								//	break;
+								//}
 								_count[1]++;
 							}
 						} while (1);
+
+						//if (!tmpFlag)
+						//{
+						//	break;
+						//}
 					}
 				}
 			}
 			BOOST_LOG_TRIVIAL(info) << "\tUpdate: " << _count[0] << '/' << _count[1] << '/' << res0.size();
+			BOOST_LOG_TRIVIAL(info) << "\t" << _count[2] << '/' << _count[3] << '/' << _count[4];
 
 		}
 

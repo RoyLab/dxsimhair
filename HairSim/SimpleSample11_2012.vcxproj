@@ -132,7 +132,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:/Codes/Common/;..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>_CRTDBG_MAP_ALLOC;WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -222,7 +222,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:/Codes/Common/;..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -308,7 +308,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:/Codes/Common/;..\LevelSet\;..\DirectXTK\Inc;..\3rdparty\include;C:\Program Files (x86)\Visual Leak Detector\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>

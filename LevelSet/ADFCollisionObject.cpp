@@ -15,6 +15,15 @@ namespace
 #define MAX_INTERATION 20
 #define CORRECTION_TOL 3e-4f
 
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
+
     template <class K, class T>
     void simplex3d_interpolation(CGAL::Point_3<K>* cell, T* vals, const CGAL::Point_3<K>& p, T& numer)
     {
