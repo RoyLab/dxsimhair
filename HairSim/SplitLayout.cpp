@@ -1,3 +1,4 @@
+#include "precompiled.h"
 #include <DXUT.h>
 #include "SplitLayout.h"
 

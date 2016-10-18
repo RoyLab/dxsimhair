@@ -1,5 +1,5 @@
-#include <DXUT.h>
-#include "wrMath.h"
+#include "precompiled.h"
+#include "xmath.h"
 #include "HairColor.h"
 
 namespace XRwy
@@ -7,7 +7,7 @@ namespace XRwy
     void genRandLightColor(float* output)
     {
         for (int i = 0; i < 3; i++)
-            output[i] = 0.5 + 0.5 * randf();
+            output[i] = 0.5f + 0.5f * randf();
     }
 
     void genRandSaturatedColor(float* output)

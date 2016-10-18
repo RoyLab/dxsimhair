@@ -6,7 +6,7 @@
 #include "XRwy_h.h"
 #include "CFBXRendererDX11.h"
 #include "HairLoader.h"
-#include "ConfigReader.h"
+#include "XConfigReader.hpp"
 
 class CModelViewerCamera;
 class CDXUTTextHelper;

@@ -1,3 +1,4 @@
+#include "precompiled.h"
 #include "SkinningEngine.h"
 
 #include <DXUT.h>

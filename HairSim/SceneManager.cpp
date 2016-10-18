@@ -1,3 +1,4 @@
+#include "precompiled.h"
 #include <DXUT.h>
 #include <DXUTcamera.h>
 #include <SDKmisc.h>
@@ -15,7 +16,7 @@
 // 所有的全局变量
 namespace XRwy
 {
-    ParamDict g_paramDict;
+    XR::ParameterDictionary g_paramDict;
 }
 
 namespace XRwy
@@ -25,7 +26,7 @@ namespace XRwy
     SceneManager::SceneManager()
     {
         // initialize config parameter
-        ConfigReader reader("../config2.ini");
+        XR::ConfigReader reader("../config2.ini");
         reader.getParamDict(g_paramDict);
         reader.close();
 

@@ -1,3 +1,4 @@
+#include "precompiled.h"
 #include "ReconsReader.h"
 
 namespace XRwy

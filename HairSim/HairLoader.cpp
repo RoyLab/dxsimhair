@@ -1,3 +1,4 @@
+#include "precompiled.h"
 #include "HairLoader.h"
 #include "XRwy_h.h"
 #include "HairSampleSelector.h"

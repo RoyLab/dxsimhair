@@ -1,4 +1,4 @@
-#include <DXUT.h>
+#include "precompiled.h"
 #include "FollicleRenderer.h"
 
 namespace XRwy

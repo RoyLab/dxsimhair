@@ -1,3 +1,4 @@
+#include "precompiled.h"
 #include <list>
 
 #define CGAL_EIGEN3_ENABLED

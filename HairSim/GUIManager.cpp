@@ -1,4 +1,4 @@
-#include <DXUT.h>
+#include "precompiled.h"
 #include "XRwy_h.h"
 #include "GUIManager.h"
 #include "SceneManager.h"

@@ -90,9 +90,6 @@
     <ClCompile Include="HairLoader.cpp">
       <Filter>Source Files\StaticHair</Filter>
     </ClCompile>
-    <ClCompile Include="HairStructs.cpp">
-      <Filter>Source Files\StaticHair</Filter>
-    </ClCompile>
     <ClCompile Include="TrainingGraph.cpp">
       <Filter>Source Files\StaticHair</Filter>
     </ClCompile>

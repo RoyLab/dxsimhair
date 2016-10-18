@@ -2,7 +2,7 @@
 #include <DXUT.h>
 #include <DXUTSettingsDlg.h>
 #include <SDKmisc.h>
-#include "ConfigReader.h"
+#include "XConfigReader.hpp"
 
 class GUIManager;
 
@@ -34,7 +34,7 @@ namespace XRwy
 	class SplitLayout;
     class RenderTextureClass;
 
-	extern ParamDict g_paramDict;
+	extern XR::ParameterDictionary g_paramDict;
 }
 
 extern XRwy::SceneManager*			g_SceneMngr;
