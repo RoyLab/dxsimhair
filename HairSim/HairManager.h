@@ -52,6 +52,7 @@ namespace XRwy
 		void SetActive(int i) { activeContentId = i; }
 		void ChangeDrawBase(bool open, int incre = 0);
 		void toggleDisp(char item);
+		void togglePBD();
 
     private:
 		void SetupContents();

@@ -98,6 +98,10 @@ namespace XRwy
 		case 'S':
 			pHairManager->OnFrameMove(0, 0, &p);
 			break;
+		case 'p':
+		case 'P':
+			pHairManager->togglePBD();
+			break;
 		default:
 			break;
 		}

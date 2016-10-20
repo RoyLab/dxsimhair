@@ -30,6 +30,9 @@
     <ClCompile Include="testcase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hairtest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Octree.hpp">

@@ -432,6 +432,11 @@ namespace XRwy
 		}
 	}
 
+	void HairManager::togglePBD()
+	{
+
+	}
+
 	void HairManager::ChangeDrawBase(bool open, int incre)
 	{
 		if (open)

@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <time.h>
 #include <deque>
+#include <cmath>
 
 #include <windows.h>
 
@@ -19,6 +20,7 @@
 #include "SparseCholeskyUpdate.hpp"
 #include "CholeskyUpdate.hpp"
 #include "xmath.h"
+
 
 
 // macros
@@ -54,36 +56,12 @@ bool check_matrix_update_naive();
 bool check_chelosky_update(); // TODO
 bool check_spd_lower_matrix();
 
+void hairtest();
+
 int trivial()
 {
-	//SparseMatrix mat(10, 10);
-	//mat.coeffRef(0, 0) = 0;
-	//mat.coeffRef(1, 1) = 1;
-	//mat.coeffRef(2, 2) = 2;
-	//mat.coeffRef(3, 3) = 3;
-	//mat.coeffRef(2, 0) = randf();
-	//mat.coeffRef(0, 3) = randf();
-	//mat.coeffRef(8, 1) = randf();
-	//mat.coeffRef(7, 1) = randf();
-	//mat.coeffRef(6, 1) = randf();
-	//mat.coeffRef(3, 1) = randf();
-	//mat.coeffRef(4, 1) = randf();
-	//mat.coeffRef(5, 1) = randf();
-
-	//SparseMatrix::Storage &data = mat.data();
-
-	//Eigen::SimplicialLLT<SparseMatrix, Eigen::Upper, Eigen::NaturalOrdering<WR::SparseMat::Index>> llt;
-	//cout << mat;
-	std::map<int, int> a;
-	a[1] = 1;
-	a[2] = 2;
-	a[3] = 3;
-	for (auto &pair : a)
-	{
-		*const_cast<int*>(&pair.first) = 2;
-	}
-	std::map<int, int>::value_type b(2, 3);
-	a.insert(a.begin(), b);
+	M_PI;
+	hairtest();
 	return 0;
 }
 
@@ -101,9 +79,9 @@ int main(int argc, char** argv)
 {
 	init();
 	trivial();
-	check_spd_lower_matrix();
-	check_chelosky_update();
-	if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
+	//check_spd_lower_matrix();
+	//check_chelosky_update();
+	//if (check_matrix_update()) cout << "All cases are passed! :-)" << endl;
 	//if (testall()) cout << "All cases are passed! :-)" << endl;
 	//bool res0,res;
 	//double r[] = { 0.01, 0.02, 0.03 };
