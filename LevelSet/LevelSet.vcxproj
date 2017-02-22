@@ -15,6 +15,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>LevelSet</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>HairLib</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -49,7 +50,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>XRWY_DEBUG;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>D:/Codes/Common/;..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MYLIB_DIR)/Common/;..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -72,7 +73,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>D:/Codes/Common/;..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MYLIB_DIR)\Common;..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -93,6 +94,9 @@
   <ItemGroup>
     <ClInclude Include="ADFCollisionObject.h" />
     <ClInclude Include="CGALKernel.h" />
+    <ClInclude Include="HairScattering.hpp" />
+    <ClInclude Include="IEMath.h" />
+    <ClInclude Include="Marschner.h" />
     <ClInclude Include="SparseCholeskyUpdate.hpp" />
     <ClInclude Include="CholeskyUpdate.hpp" />
     <ClInclude Include="EigenTypes.h" />
@@ -113,6 +117,10 @@
     <ClCompile Include="GridCollisionObject.cpp" />
     <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="LevelSet.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="IEMath.inl" />
+    <None Include="Marschner.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

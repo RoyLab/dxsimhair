@@ -22,7 +22,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXMesh", "DirectXMesh\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTK_Desktop_2013", "DirectXTK\DirectXTK_Desktop_2013.vcxproj", "{E0B52AE7-E160-4D32-BF3F-910B785E5A8E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LevelSet", "LevelSet\LevelSet.vcxproj", "{9FD2CD8C-B136-421C-BFDE-5BBE2F2AC3B9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HairLib", "LevelSet\LevelSet.vcxproj", "{9FD2CD8C-B136-421C-BFDE-5BBE2F2AC3B9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LevelSetTest", "LevelSetTest\LevelSetTest.vcxproj", "{ECE78133-8BAF-4D41-A9CC-B236C5DF64E5}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -30,8 +30,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LevelSetTest", "LevelSetTes
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CGALTest", "CGALTest\CGALTest.vcxproj", "{DEE94670-1C3A-4B9C-9177-F71F9A354278}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "..\..\Codes\Common\Common.vcxproj", "{4B9BB635-BF1F-458E-8F7E-61C940002C71}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -147,7 +145,6 @@ Global
 		{ECE78133-8BAF-4D41-A9CC-B236C5DF64E5}.Profile|x64.ActiveCfg = Release|x64
 		{ECE78133-8BAF-4D41-A9CC-B236C5DF64E5}.Profile|x64.Build.0 = Release|x64
 		{ECE78133-8BAF-4D41-A9CC-B236C5DF64E5}.Release|Win32.ActiveCfg = Release|Win32
-		{ECE78133-8BAF-4D41-A9CC-B236C5DF64E5}.Release|Win32.Build.0 = Release|Win32
 		{ECE78133-8BAF-4D41-A9CC-B236C5DF64E5}.Release|x64.ActiveCfg = Release|x64
 		{ECE78133-8BAF-4D41-A9CC-B236C5DF64E5}.Release|x64.Build.0 = Release|x64
 		{DEE94670-1C3A-4B9C-9177-F71F9A354278}.Debug|Win32.ActiveCfg = Debug|Win32
@@ -160,18 +157,6 @@ Global
 		{DEE94670-1C3A-4B9C-9177-F71F9A354278}.Release|Win32.ActiveCfg = Release|Win32
 		{DEE94670-1C3A-4B9C-9177-F71F9A354278}.Release|x64.ActiveCfg = Release|x64
 		{DEE94670-1C3A-4B9C-9177-F71F9A354278}.Release|x64.Build.0 = Release|x64
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Debug|Win32.ActiveCfg = Debug|Win32
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Debug|Win32.Build.0 = Debug|Win32
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Debug|x64.ActiveCfg = Debug|x64
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Debug|x64.Build.0 = Debug|x64
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Profile|Win32.ActiveCfg = Release|Win32
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Profile|Win32.Build.0 = Release|Win32
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Profile|x64.ActiveCfg = Release|x64
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Profile|x64.Build.0 = Release|x64
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Release|Win32.ActiveCfg = Release|Win32
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Release|Win32.Build.0 = Release|Win32
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Release|x64.ActiveCfg = Release|x64
-		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

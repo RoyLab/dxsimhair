@@ -63,6 +63,15 @@
     <ClInclude Include="SparseCholeskyUpdate.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HairScattering.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Marschner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IEMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LevelSet.cpp">
@@ -80,5 +89,13 @@
     <ClCompile Include="GridCollisionObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Marschner.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="IEMath.inl">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
