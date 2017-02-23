@@ -39,7 +39,7 @@ namespace
 
 namespace WR
 {
-    float ADFOctree::box_enlarge_size = 0.1f;
+    float ADFOctree::m_box_enlarge_size = 0.1f;
 
     ADFOctree::ADFOctree()
     {
@@ -53,7 +53,7 @@ namespace WR
 
     ADFCollisionObject* ADFOctree::releaseAndCreateCollisionObject()
     {
-        ADFCollisionObject* pCO = new ADFCollisionObject(dt, box, nMaxLevel, box_enlarge_size, pModel);
+        ADFCollisionObject* pCO = new ADFCollisionObject(dt, box, nMaxLevel, m_box_enlarge_size, pModel);
         releaseExceptDt();
         dt = nullptr;
         return pCO;
@@ -364,7 +364,7 @@ namespace WR
         box = bbox.bbox();
         XLOG_INFO << "Bbox size: " << bbox;
 
-        WRG::enlarge(bbox, box_enlarge_size); // 不希望贴的太紧
+        WRG::enlarge(bbox, m_box_enlarge_size); // 不希望贴的太紧
         node->vertices[0] = dt->insert(Point_3(bbox.xmin(), bbox.ymin(), bbox.zmax()));
         node->vertices[1] = dt->insert(Point_3(bbox.xmin(), bbox.ymax(), bbox.zmax()));
         node->vertices[2] = dt->insert(Point_3(bbox.xmax(), bbox.ymax(), bbox.zmax()));

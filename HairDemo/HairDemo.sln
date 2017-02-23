@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HairDemo", "HairDemo.vcxproj", "{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "..\..\..\..\Libs\CommonLibs\Common.vcxproj", "{4B9BB635-BF1F-458E-8F7E-61C940002C71}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}.Debug|Win32.Build.0 = Debug|Win32
+		{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}.Debug|x64.ActiveCfg = Debug|x64
+		{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}.Debug|x64.Build.0 = Debug|x64
+		{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}.Release|Win32.ActiveCfg = Release|Win32
+		{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}.Release|Win32.Build.0 = Release|Win32
+		{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}.Release|x64.ActiveCfg = Release|x64
+		{F426B3F7-E008-4FC6-BB67-A9CC36FC9580}.Release|x64.Build.0 = Release|x64
+		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Debug|Win32.Build.0 = Debug|Win32
+		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Debug|x64.ActiveCfg = Debug|x64
+		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Release|Win32.ActiveCfg = Release|Win32
+		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Release|Win32.Build.0 = Release|Win32
+		{4B9BB635-BF1F-458E-8F7E-61C940002C71}.Release|x64.ActiveCfg = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
