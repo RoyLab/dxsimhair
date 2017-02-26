@@ -75,6 +75,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>D:\Libs\CommonLibs;.\inc;$(BOOST_INCLUDEDIR);..\3rdparty\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -83,6 +84,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>D:\Libs\CommonLibs;.\inc;$(BOOST_INCLUDEDIR);..\3rdparty\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -93,6 +95,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>D:\Libs\CommonLibs;.\inc;$(BOOST_INCLUDEDIR);..\3rdparty\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -107,6 +110,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>D:\Libs\CommonLibs;.\inc;$(BOOST_INCLUDEDIR);..\3rdparty\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -114,6 +118,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GridCollisionObject.cpp" />
+    <ClCompile Include="GridLevelSet.cpp" />
     <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="HairEngine.cpp" />
     <ClCompile Include="HairSampleSelector.cpp" />
@@ -124,17 +130,20 @@
     <ClInclude Include="inc\CGALKernel.h" />
     <ClInclude Include="inc\CholeskyUpdate.hpp" />
     <ClInclude Include="inc\EigenTypes.h" />
+    <ClInclude Include="inc\GridCollisionObject.h" />
     <ClInclude Include="inc\GridRaster.h" />
     <ClInclude Include="inc\GroupPBD.h" />
     <ClInclude Include="inc\HairEngine.h" />
     <ClInclude Include="inc\HairSampleSelector.h" />
-    <ClInclude Include="inc\HairStructs.h" />
+    <ClInclude Include="inc\ICollisionObject.h" />
     <ClInclude Include="inc\MatrixFactory.hpp" />
     <ClInclude Include="inc\ReconsReader.h" />
     <ClInclude Include="inc\SkinningEngine.h" />
     <ClInclude Include="inc\SparseCholeskyUpdate.hpp" />
+    <ClInclude Include="inc\UnitTest.h" />
     <ClInclude Include="inc\wrTripleMatrix.h" />
     <ClInclude Include="inc\xhair.h" />
+    <ClInclude Include="inc\XSparseMatrix.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

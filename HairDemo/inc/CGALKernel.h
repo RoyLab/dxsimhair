@@ -18,9 +18,7 @@ namespace CGAL {
 #endif
 	{};
 
-	typedef Epickf FloatEpick;
-
-	typedef Simple_cartesian<float> Floatipick;
+	typedef Simple_cartesian<float> Ipickf;
 
 } //namespace CGAL
 

@@ -13,6 +13,9 @@
       <UniqueIdentifier>{74b5af1d-bf97-46fd-be6e-a1e49be51cf2}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Header Files\headonly">
+      <UniqueIdentifier>{17a01b42-5d88-46de-8fad-a86fe11b7e68}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HairEngine.cpp">
@@ -30,15 +33,15 @@
     <ClCompile Include="HairSampleSelector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GridCollisionObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GridLevelSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\HairSampleSelector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\HairStructs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\MatrixFactory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\ReconsReader.h">
@@ -47,32 +50,47 @@
     <ClInclude Include="inc\SkinningEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\SparseCholeskyUpdate.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\wrTripleMatrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\xhair.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\CGALKernel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\CholeskyUpdate.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\EigenTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\GridRaster.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\GroupPBD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\HairEngine.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\CGALKernel.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\CholeskyUpdate.hpp">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\MatrixFactory.hpp">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\SparseCholeskyUpdate.hpp">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\xhair.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\wrTripleMatrix.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\EigenTypes.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\GridRaster.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ICollisionObject.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\GridCollisionObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\XSparseMatrix.hpp">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\UnitTest.h">
+      <Filter>Header Files\headonly</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

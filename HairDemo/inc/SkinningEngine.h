@@ -1,7 +1,6 @@
 #pragma once
 #include "GroupPBD.h"
 #include "macros.h"
-#include "HairStructs.h"
 
 namespace WR
 {
@@ -11,7 +10,7 @@ namespace WR
 namespace xhair
 {
 	class SkinningAndHairBodyCollisionEngine:
-		public HairLoader
+		public IHairLoader
 	{
 	public:
 		SkinningAndHairBodyCollisionEngine();
@@ -47,7 +46,7 @@ namespace xhair
 	};
 
 	class ReducedModel :
-		public HairLoader
+		public IHairLoader
 	{
 	public:
 		ReducedModel(int para);
@@ -59,7 +58,7 @@ namespace xhair
 		void jumpTo(int frameNo);
 
 	private:
-		HairLoader*			skinning = nullptr;
+		IHairLoader*			skinning = nullptr;
 		IHairCorrection*	pPDB = nullptr;
 		bool				bHairBody, bPDB;
 

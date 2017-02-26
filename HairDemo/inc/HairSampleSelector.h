@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <macros.h>
-#include "HairStructs.h"
+#include "xhair.h"
 
 namespace xhair
 {

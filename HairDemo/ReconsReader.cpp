@@ -5,7 +5,14 @@ namespace xhair
 {
 	namespace
 	{
-		enum { iGuideHair, iInitialFrame, iWeights, iGroup, iNeighboring, iInterpolation };
+		enum { 
+            iGuideHair,
+            iInitialFrame,
+            iWeights, 
+            iGroup, 
+            iNeighboring, 
+            iInterpolation 
+        };
 	}
 
 	ReconsReader::ReconsReader()
@@ -91,9 +98,12 @@ namespace xhair
 			hair->global2local[id] = i;
 		}
 
-		guide->allocMemory();
-		ReadNBytes(file, guide->position, sizeof(Point3)*guide->nParticle);
-		ReadNBytes(file, guide->direction, sizeof(Point3)*guide->nParticle);
+        guide->position.reset(new Point3[guide->nParticle]);
+        guide->direction.reset(new Point3[guide->nParticle]);
+        guide->trans.resize(guide->nParticle);
+
+		ReadNBytes(file, guide->position.get(), sizeof(Point3)*guide->nParticle);
+		ReadNBytes(file, guide->direction.get(), sizeof(Point3)*guide->nParticle);
 
 	}
 
@@ -101,11 +111,14 @@ namespace xhair
 	{
 		file.seekg(fileShortcut[iInitialFrame]);
 		auto rest = hair->restState;
-		rest->allocMemory();
-		ReadNBytes(file, rest->position, sizeof(Point3)*rest->nParticle);
-		ReadNBytes(file, rest->direction, sizeof(Point3)*rest->nParticle);
-		DirectX::XMStoreFloat4x4(&rest->worldMatrix, DirectX::XMMatrixIdentity());
-		ZeroMemory(rest->rigidTrans, sizeof(rest->rigidTrans));
+
+        rest->position.reset(new Point3[rest->nParticle]);
+        rest->direction.reset(new Point3[rest->nParticle]);
+
+		ReadNBytes(file, rest->position.get(), sizeof(Point3)*rest->nParticle);
+		ReadNBytes(file, rest->direction.get(), sizeof(Point3)*rest->nParticle);
+		//DirectX::XMStoreFloat4x4(&rest->worldMatrix, DirectX::XMMatrixIdentity());
+		ZeroMemory(&rest->rigidTrans, sizeof(rest->rigidTrans));
 	}
 
 	void ReconsReader::setupWeights()
@@ -181,7 +194,7 @@ namespace xhair
 		Read4Bytes(file, frameNo);
 		assert(frameNo == get_curFrame());
 
-		ReadNBytes(file, hair->guidances->rigidTrans, sizeof(float) * 16);
+		ReadNBytes(file, &hair->guidances->rigidTrans, sizeof(float) * 16);
 		for (int i = 0; i < hair->guidances->nParticle; i++)
 		{
 			file.seekg(sizeof(float) * 9, std::ios_base::cur);

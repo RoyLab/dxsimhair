@@ -7,6 +7,11 @@
 
 namespace xhair
 {
+    /// region: forward declaration
+    class HairEngine;
+
+    /// region: auxilliary structs and classes
+
     template< typename T >
     struct array_deleter
     {
@@ -59,6 +64,8 @@ namespace xhair
         int i, number;
     };
 
+    /// region: interface and basic hair structs
+
     struct HairGeometry
     {
         Matrix4                 rigidTrans;
@@ -70,26 +77,34 @@ namespace xhair
         size_t                  particlePerStrand = 0;
     };
 
+    struct BlendHairGeometry :
+        public HairGeometry
+    {
+        std::vector<Point3> trans;
+    };
+
+    class IFilter
+    {
+    public:
+        virtual void filter(HairGeometry* hair) = 0;
+        virtual ~IFilter() {}
+    };
+
     // all interfaces are sync method
     // do not require specific hair reps since hair anim reps may change
-    class HairLoader
+    class IHairLoader: public IFilter
     {
         COMMON_PROPERTY(int, nFrame);
         COMMON_PROPERTY(int, curFrame);
     public:
-        virtual bool loadFile(const char* fileName, HairGeometry * geom) = 0;
-        virtual void rewind() {}
-        virtual void nextFrame() {}
-        virtual void jumpTo(int frameNo) {}
+        virtual int nextframe(HairGeometry* hair) = 0;
+        virtual void jumpTo(int frameNo) = 0;
+        virtual void rewind() { jumpTo(0); }
 
-        virtual ~HairLoader() {}
+        virtual ~IHairLoader() {}
     };
 
-    class IHairCorrection
-    {
-    public:
-        virtual void solve(HairGeometry* hair) = 0;
-        virtual bool initialize(HairGeometry* hair, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup) = 0;
-        virtual ~IHairCorrection() {}
-    };
+    /// region: globals
+
+    extern HairEngine* _engine_instance;
 }

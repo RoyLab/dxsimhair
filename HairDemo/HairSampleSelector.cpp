@@ -74,7 +74,7 @@ namespace xhair
 			pts.reserve(pHair->nStrand);
 			for (int i = 0; i < pHair->nStrand; i++)
 			{
-				auto ptr = pHair->position + i*factor;
+				auto ptr = pHair->position.get() + i*factor;
 				pts.emplace_back(ptr->x, ptr->y, ptr->z, i);
 			}
 

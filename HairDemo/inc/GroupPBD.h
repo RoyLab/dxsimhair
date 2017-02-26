@@ -9,7 +9,6 @@
 #include <CGAL/Search_traits_3.h>
 
 #include "xhair.h"
-#include "HairStructs.h"
 #include "EigenTypes.h"
 #include "CGALKernel.h"
 #include "MatrixFactory.hpp"

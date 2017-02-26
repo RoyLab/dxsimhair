@@ -4,12 +4,13 @@
 #include <xlogger.h>
 
 #define XTIMER_INSTANCE
-#include "xtimer.hpp"
+#include <xtimer.hpp>
 
 #define XRWY_EXPORTS
 #include "HairEngine.h"
-#include "HairStructs.h"
 
+#include "xhair.h"
+#include "SkinningEngine.h"+
 
 using std::string;
 
@@ -18,13 +19,17 @@ namespace xhair
     class HairEngine
     {
     public:
-        HairEngine(
-            const char* static_hair_filename,
-            const char* head_collision_filename,
-            const char* guide_hair_parameter
-        );
+        HairEngine() {}
         ~HairEngine() {}
 
+        int initialize(const char* static_hair_filename,
+            const char* head_collision_filename,
+            const char* guide_hair_parameter);
+
+        int update(const float head_matrix[16],
+            // used for check if the geometry is the same
+            const char* static_hair_filename,
+            float *particle_position);
 
     private:
         string static_hair_name_;
@@ -32,7 +37,6 @@ namespace xhair
 
         HairGeometry hair_geometry_;
     };
-
 
     HairEngine *_engine_instance;
 }
@@ -51,8 +55,16 @@ extern "C"
             ReleaseHairEngine();
         }
 
-        _engine_instance = new HairEngine(static_hair_filename,
-            head_collision_filename, guide_hair_parameter);
+        _engine_instance = new HairEngine;
+        int ret = 0;
+        if (_engine_instance)
+        {
+            ret = _engine_instance->initialize(static_hair_filename,
+                head_collision_filename, guide_hair_parameter);
+
+            if (ret != 0) return ret;
+        }
+        else return -1;
 
         return 0;
     }
@@ -63,7 +75,8 @@ extern "C"
         const char* static_hair_filename,
         float *particle_position)
     {
-        return 0;
+        return _engine_instance->update(head_matrix,
+            static_hair_filename, particle_position);
     }
 
     XRWY_DLL void ReleaseHairEngine()
@@ -73,13 +86,22 @@ extern "C"
 
 }
 
-
 namespace xhair
 {
-    HairEngine::HairEngine(const char * static_hair_filename, 
+    int HairEngine::initialize(const char * static_hair_filename, 
         const char * head_collision_filename,
         const char * guide_hair_parameter)
     {
+        HairGeometry* hair = load_hair_geometry(static_hair_filename);
+        if (!hair) return -1;
 
+        ICollision
+    }
+
+    int HairEngine::update(const float head_matrix[16], 
+        const char * static_hair_filename, 
+        float * particle_position)
+    {
+        return 0;
     }
 }

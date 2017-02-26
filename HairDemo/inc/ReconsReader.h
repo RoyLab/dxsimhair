@@ -2,27 +2,15 @@
 
 #include <fstream>
 #include <map>
+#include <vector>
 
 #include <macros.h>
 #include <cy\cyPoint.h>
 
 #include "xhair.h"
-#include "HairStructs.h"
 
 namespace xhair
 {
-	struct BlendHairGeometry:
-		public HairGeometry
-	{
-		std::vector<Point3> trans;
-
-		void allocMemory()
-		{
-			HairGeometry::allocMemory();
-			trans.resize(nParticle);
-		}
-	};
-
 	struct WeightItem
 	{
 		static const int MAX_GUIDANCE = 10;
@@ -48,10 +36,8 @@ namespace xhair
 		size_t						curFrame = -1;
 	};
 
-	class ReconsReader
+	class ReconsReader: public IHairLoader
 	{
-		COMMON_PROPERTY(size_t, nFrame);
-		COMMON_PROPERTY(size_t, curFrame);
 	public:
 		ReconsReader();
 		~ReconsReader();
@@ -59,13 +45,8 @@ namespace xhair
 		// not a hairloader since it load other things like weights
 		bool loadFile(const char* fileName, SkinningInfo* skinHair);
 
-		// do not interpolate here!
-		void rewind();
-		void nextFrame();
+		int nextframe(HairGeometry* hair);
 		void jumpTo(int frameNo);
-
-		HairColorsPerStrand* GetGroupColor() const;
-		HairColorsPerStrand* GetGuidanceColor() const;
 
 	private:
 		static const int NUM_SECTION = 6;

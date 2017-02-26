@@ -5,7 +5,6 @@
 #include <vector>
 #include <set>
 #include <boost\log\trivial.hpp>
-#include "HairStructs.h"
 #include "EigenTypes.h"
 #include "XTimer.hpp"
 #include "XSparseMatrix.hpp"
