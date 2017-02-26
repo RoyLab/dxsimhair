@@ -13,7 +13,7 @@ void hairtest()
 	IECore::MarschnerBCSDF<float> C(1.55f, 0.8f, 1.0f, -8 * d1, -4 * d1, -12 * d1, 8 * d1, 4 * d1, 16 * d1, 0.4f, 1.5*d1, 0.1f, 0.5f);
 
 	LightScattering l;
-	const int c = 500;
+	const int c = 20;
 
 	int w = c, h = c;
 	float **r = new float*[h];
@@ -28,18 +28,21 @@ void hairtest()
 
 		for (int j = 0; j < w; j++)
 		{
-			float x = M_PI * 2 * i / c;
+			float x = M_PI*2 * i / c;
 			float y =  M_PI * j / c - M_PI /2.0f;
 
 			std::array<float, 2> a, b1;
-			a[0] = 0; a[1] = M_PI / 4;
-			b1[0] = x; b1[1] = y;
+			b1[0] = 0; b1[1] = M_PI / 4;
+			a[0] = x; a[1] = y;
 
 			//l.scattering(0, 0, thetai, thetao, 0);
 
-			r[i][j] = A(a, b1);
-			g[i][j] = 0;
-			b[i][j] = 0;
+			r[i][j] = A.NR(a, b1);//A.MR(a, b1);//* +A.MTT(a, b1)*A.NTT(a, b1), A.MTRT(a, b1)*A.NTRT(a, b1);
+			if (j == 0)
+				std::cout << r[i][j] << '\t' << a[0] << '\t' << a[1] << '\n';
+			//g[i][j] = B(a, b1) * 0;
+			//b[i][j] = C(a, b1) * 0;
+			//std::cout << r[i][j] << '\t' << x << '\t' << y << std::endl;
 		}
 	}
 

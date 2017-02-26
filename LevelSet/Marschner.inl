@@ -315,7 +315,8 @@ namespace IECore
 				V h = sin(gammaI);			// from [1] right before equation 3.
 				T finalAbsorption = marschnerA(p, gammaI, refraction, etaPerp, etaParal, light);
 				V denom = std::max(1e-5, (2.0 * fabs(dExitAngle(p, etaPerp, h))));
-				result += finalAbsorption / denom;
+
+				result += finalAbsorption;
 			}
 		}
 		return result;
