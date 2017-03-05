@@ -39,6 +39,9 @@
     <ClCompile Include="GridLevelSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inc\ICollisionObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\HairSampleSelector.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files\headonly</Filter>
     </ClInclude>
     <ClInclude Include="inc\UnitTest.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\wrgeo.h">
       <Filter>Header Files\headonly</Filter>
     </ClInclude>
   </ItemGroup>

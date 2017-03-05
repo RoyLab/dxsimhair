@@ -5,7 +5,7 @@
 
 #include "macros.h"
 
-namespace XRwy
+namespace xhair
 {
 	static uint32_t stat1, stat2;
 	const uint32_t INVALID_U32 = 0xffffffff;

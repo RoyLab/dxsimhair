@@ -8,7 +8,7 @@
 #include "macros.h"
 #include "XException.hpp"
 
-namespace xhair
+namespace XR
 {
 	template <class T>
 	class SparseVector

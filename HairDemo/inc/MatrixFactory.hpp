@@ -1,18 +1,18 @@
 #pragma once
 #include <Eigen\Sparse>
-#include "xmath.h"
+#include <boost\log\trivial.hpp>
 #include <iostream>
 #include <vector>
 #include <set>
-#include <boost\log\trivial.hpp>
-#include "EigenTypes.h"
+
 #include "XTimer.hpp"
+
+#include "xmath.h"
+#include "EigenTypes.h"
 #include "XSparseMatrix.hpp"
 #include "SparseCholeskyUpdate.hpp"
 
-namespace XRwy
-{
-namespace Hair
+namespace xhair
 {
 	template <class Container>
 	class MatrixFactory
@@ -755,5 +755,4 @@ namespace Hair
 	}
 
 
-} /// Hair
-} /// XRwy
+} /// xhair

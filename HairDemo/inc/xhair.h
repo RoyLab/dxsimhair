@@ -5,9 +5,12 @@
 #include <cy\cyPoint.h>
 #include <cy\cyMatrix.h>
 
+#include <macros.h>
+
 namespace xhair
 {
     /// region: forward declaration
+
     class HairEngine;
 
     /// region: auxilliary structs and classes
@@ -102,6 +105,12 @@ namespace xhair
         virtual void rewind() { jumpTo(0); }
 
         virtual ~IHairLoader() {}
+    };
+
+    class ISkinning
+    {
+    public:
+        virtual void skinning(HairGeometry* hair0, HairGeometry* hair1) = 0;
     };
 
     /// region: globals

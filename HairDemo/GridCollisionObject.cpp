@@ -1,29 +1,25 @@
 #include <fstream>
 #include <algorithm>
-#include "GridCollisionObject.h"
+
 #include "macros.h"
-#include "XConfigReader.hpp"
 #include "xlogger.h"
 #include "linmath.h"
-//#include "wrGeo.h"
 #include "xmath.h"
+
+#include "GridCollisionObject.h"
+#include "wrGeo.h"
 
 namespace xhair
 {
 #define VERY_LARGE 1.0e20f
 
-	GridCollisionObject::GridCollisionObject(const char* fileName)
+	GridCollisionObject::GridCollisionObject(const CollisionEngineParameter& param)
 	{
-		XR::ConfigReader gridParas;
-		ConfigReader reader("../config2.ini");
-		reader.getParamDict(gridParas);
-		reader.close();
+        tolerance = param.over_correction_tol;
+		correctionRate = param.iter_rate;
+        maxstep = param.max_step;
 
-		tolerance = std::stof(gridParas["overcorrectiontol"]);
-		correctionRate = std::stof(gridParas["correctionrate"]);
-		maxstep = std::stof(gridParas["maxstep"]);
-
-		std::ifstream gridFile(fileName, std::ios::binary);
+		std::ifstream gridFile(param.obj_filename, std::ios::binary);
 		if (!gridFile.is_open()) throw std::exception("file not found!");
 
 		Read4Bytes(gridFile, x);
@@ -36,8 +32,8 @@ namespace xhair
 		for (int i = 0; i < 3; i++)
 			diag[i] = bbox[3 + i] - bbox[i];
 
-		data = new WR::LevelSetVData[x*yz];
-		ReadNBytes(gridFile, data, sizeof(WR::LevelSetVData)*x*yz);
+		data = new LevelSetVData[x*yz];
+		ReadNBytes(gridFile, data, sizeof(LevelSetVData)*x*yz);
 
 		gridFile.close();
 	}
@@ -47,14 +43,12 @@ namespace xhair
 		SAFE_DELETE_ARRAY(data);
 	}
 
-
 	void GridCollisionObject::computeIdx(const Point_3& p, float& i, float& j, float& k) const
 	{
-		i = (p.x() - bbox[0]) / step;
-		j = (p.y() - bbox[1]) / step;
-		k = (p.z() - bbox[2]) / step;
+		i = (p.x - bbox[0]) / step;
+		j = (p.y - bbox[1]) / step;
+		k = (p.z - bbox[2]) / step;
 	}
-
 
 	float GridCollisionObject::query_distance(const Point_3& p) const
 	{
@@ -73,7 +67,7 @@ namespace xhair
 			query(i, j + 1, k + 1)->value, query(i + 1, j + 1, k + 1)->value};
 
 		float dist;
-		WRG::trilinear_intp(dists, localcoord, &dist);
+		xhair::trilinear_intp(dists, localcoord, &dist);
 
 		return dist;
 	}
@@ -91,9 +85,9 @@ namespace xhair
 
 	bool GridCollisionObject::position_correlation(const Point_3& p, Point_3* pCorrect, float thresh) const
 	{
-		if (p.x() > bbox[3] || p.x() < bbox[0] ||
-			p.y() > bbox[4] || p.y() < bbox[1] ||
-			p.z() > bbox[5] || p.z() < bbox[2])
+		if (p.x > bbox[3] || p.x < bbox[0] ||
+			p.y > bbox[4] || p.y < bbox[1] ||
+			p.z > bbox[5] || p.z < bbox[2])
 			return false;
 
 		float i, j, k, dist;
@@ -123,7 +117,7 @@ namespace xhair
 					query(i, j + 1, k)->value, query(i + 1, j + 1, k)->value,
 					query(i, j, k + 1)->value, query(i + 1, j, k + 1)->value,
 					query(i, j + 1, k + 1)->value, query(i + 1, j + 1, k + 1)->value };
-				WRG::trilinear_intp(dists, localcoord, &dist);
+				xhair::trilinear_intp(dists, localcoord, &dist);
 			}
 
 			if (dist > thresh)
@@ -158,12 +152,34 @@ namespace xhair
 			float corr[3];
 			vec3_scale(corr, igrad, corrStep);
 
-			*pCorrect = Point_3(pCorrect->x() + corr[0], pCorrect->y() + corr[1], pCorrect->z() + corr[2]);
+			*pCorrect = Point_3(pCorrect->x + corr[0], pCorrect->y + corr[1], pCorrect->z + corr[2]);
 			bChanged = true;
 		}
 		//std::cout << "iter: " << 9 - n << " ";
 		return bChanged;
 	}
+
+    ICollisionEngine * xhair::CreateCollisionEngine(const CollisionEngineParameter & param)
+    {
+        CGridCollisionEngine* ret = new CGridCollisionEngine(param);
+        return ret;
+    }
+
+    CGridCollisionEngine::CGridCollisionEngine(const CollisionEngineParameter & param)
+    {
+        collision_obj = new GridCollisionObject(param);
+    }
+
+    CGridCollisionEngine::~CGridCollisionEngine()
+    {
+        SAFE_DELETE(collision_obj);
+    }
+
+    void CGridCollisionEngine::filter(HairGeometry * hair)
+    {
+
+    }
+
 }
 
 

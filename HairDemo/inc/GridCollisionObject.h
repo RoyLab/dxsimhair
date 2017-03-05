@@ -3,8 +3,9 @@
 
 namespace xhair
 {
-	class GridCollisionObject :
-		public ICollisionObject
+    typedef Point3 Point_3;
+
+	class GridCollisionObject
 	{
     public:
         struct LevelSetVData
@@ -14,7 +15,7 @@ namespace xhair
         };
 
 	public:
-		GridCollisionObject(const char*);
+		GridCollisionObject(const CollisionEngineParameter& param);
 		virtual ~GridCollisionObject();
 
 		float query_distance(const Point_3& p) const;
@@ -33,5 +34,18 @@ namespace xhair
 		float tolerance, step, correctionRate, maxstep;
 		LevelSetVData* data = nullptr;
 	};
+
+    class CGridCollisionEngine :
+        public ICollisionEngine
+    {
+    public:
+        CGridCollisionEngine(const CollisionEngineParameter& param);
+        virtual ~CGridCollisionEngine();
+
+        void filter(HairGeometry* hair);
+
+    private:
+        GridCollisionObject* collision_obj = nullptr;
+    };
 }
 

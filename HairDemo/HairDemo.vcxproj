@@ -123,6 +123,7 @@
     <ClCompile Include="GroupPBD.cpp" />
     <ClCompile Include="HairEngine.cpp" />
     <ClCompile Include="HairSampleSelector.cpp" />
+    <ClCompile Include="inc\ICollisionObject.cpp" />
     <ClCompile Include="ReconsReader.cpp" />
     <ClCompile Include="SkinningEngine.cpp" />
   </ItemGroup>
@@ -141,6 +142,7 @@
     <ClInclude Include="inc\SkinningEngine.h" />
     <ClInclude Include="inc\SparseCholeskyUpdate.hpp" />
     <ClInclude Include="inc\UnitTest.h" />
+    <ClInclude Include="inc\wrgeo.h" />
     <ClInclude Include="inc\wrTripleMatrix.h" />
     <ClInclude Include="inc\xhair.h" />
     <ClInclude Include="inc\XSparseMatrix.hpp" />
