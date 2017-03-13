@@ -43,7 +43,6 @@ namespace xhair
         virtual ~CGridCollisionEngine();
 
         void filter(HairGeometry* hair);
-
     private:
         GridCollisionObject* collision_obj = nullptr;
     };

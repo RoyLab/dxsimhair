@@ -1,4 +1,5 @@
 #include "precompiled.h"
+#include <afxwin.h>
 #include "ReconsReader.h"
 
 namespace xhair

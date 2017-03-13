@@ -74,7 +74,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>D:\Libs\CommonLibs;.\inc;$(BOOST_INCLUDEDIR);..\3rdparty\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\CommonLibs;.\inc;..\boost_1_59_0;..\3rdparty\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -83,7 +83,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>D:\Libs\CommonLibs;.\inc;$(BOOST_INCLUDEDIR);..\3rdparty\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\CommonLibs;.\inc;..\boost_1_59_0;..\3rdparty\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -94,7 +94,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>D:\Libs\CommonLibs;.\inc;$(BOOST_INCLUDEDIR);..\3rdparty\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\CommonLibs;.\inc;..\boost_1_59_0;..\3rdparty\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -109,7 +109,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>D:\Libs\CommonLibs;.\inc;$(BOOST_INCLUDEDIR);..\3rdparty\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\CommonLibs;.\inc;..\boost_1_59_0;..\3rdparty\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -120,26 +120,33 @@
   <ItemGroup>
     <ClCompile Include="GridCollisionObject.cpp" />
     <ClCompile Include="GridLevelSet.cpp" />
-    <ClCompile Include="GroupPBD.cpp" />
+    <ClCompile Include="CGroupPbd.cpp" />
     <ClCompile Include="HairEngine.cpp" />
-    <ClCompile Include="HairSampleSelector.cpp" />
-    <ClCompile Include="inc\ICollisionObject.cpp" />
+    <ClCompile Include="HairSampleSelector.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="ReconsReader.cpp" />
-    <ClCompile Include="SkinningEngine.cpp" />
+    <ClCompile Include="CSkinningEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\CGALKernel.h" />
+    <ClInclude Include="inc\CGroupPbd.h" />
     <ClInclude Include="inc\CholeskyUpdate.hpp" />
     <ClInclude Include="inc\EigenTypes.h" />
-    <ClInclude Include="inc\GridCollisionObject.h" />
+    <ClInclude Include="inc\CGridCollisionEngine.h" />
     <ClInclude Include="inc\GridRaster.h" />
-    <ClInclude Include="inc\GroupPBD.h" />
+    <ClInclude Include="inc\IGroupPBD.h" />
     <ClInclude Include="inc\HairEngine.h" />
     <ClInclude Include="inc\HairSampleSelector.h" />
     <ClInclude Include="inc\ICollisionObject.h" />
+    <ClInclude Include="inc\ISkinningEngine.h" />
     <ClInclude Include="inc\MatrixFactory.hpp" />
+    <ClInclude Include="inc\precompiled.h" />
     <ClInclude Include="inc\ReconsReader.h" />
-    <ClInclude Include="inc\SkinningEngine.h" />
+    <ClInclude Include="inc\CSkinningEngine.h" />
     <ClInclude Include="inc\SparseCholeskyUpdate.hpp" />
     <ClInclude Include="inc\UnitTest.h" />
     <ClInclude Include="inc\wrgeo.h" />

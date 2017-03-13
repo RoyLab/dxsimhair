@@ -107,10 +107,10 @@ namespace xhair
         virtual ~IHairLoader() {}
     };
 
-    class ISkinning
+    class IHairTransport
     {
     public:
-        virtual void skinning(HairGeometry* hair0, HairGeometry* hair1) = 0;
+        virtual void transport(HairGeometry* hair0, HairGeometry* hair1) = 0;
     };
 
     /// region: globals

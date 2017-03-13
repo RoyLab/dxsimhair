@@ -4,44 +4,23 @@
 #include <CGAL/Search_traits_3.h>
 
 #include <fstream>
-#include <tbb/tbb.h>
 
+#include <macros.h>
 #include <xtimer.hpp>
 #include <xstruct.hpp>
+#include <xlogger.h>
+#include <XConfigReader.hpp>
 
 #include "EigenTypes.h"
 #include "wrTripleMatrix.h"
-
 #include "CGALKernel.h"
 
-#include "macros.h"
-#include <xlogger.h>
-#include "XConfigReader.hpp"
-#include "GroupPBD.h"
-#include "HairSampleSelector.h"
-
-#include "MatrixFactory.hpp"
-#include "GridRaster.h"
+#include "CGroupPbd.h"
 
 using namespace XR;
 
 namespace xhair
 {
-    class CGroupPbd : public IGroupPbd
-    {
-        typedef std::vector<uint32_t> IdContainer;
-    public:
-        CGroupPbd(int nparticle, int pps, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup);
-        ~CGroupPbd() {}
-
-        void filter(HairGeometry* hair);
-    private:
-        MatrixFactory<IdContainer> mf;
-        GridRaster<Point3, XR::ArrayWrapper<Point3>> pgrid;
-        std::vector<uint32_t> id[8], *id0, *id1, *old0, *old1;
-        float r0;
-    };
-
     CGroupPbd::CGroupPbd(
         int nparticle, 
         int pps,

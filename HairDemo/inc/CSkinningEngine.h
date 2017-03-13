@@ -1,14 +1,37 @@
 #pragma once
-#include "GroupPBD.h"
-#include "macros.h"
-
-namespace WR
-{
-	class ICollisionObject;
-}
+#include "ISkinningEngine.h"
+//#include "GroupPBD.h
 
 namespace xhair
 {
+    struct SkinningInfo
+    {
+        BlendHairGeometry*			guidances = nullptr;
+        HairGeometry*				restState = nullptr;
+
+        std::vector<int>						groupId;
+        std::vector<std::vector<int>*>			neighbor;
+        char									anim2[128];
+
+
+        std::vector<WeightItem>		weights;
+        std::map<int, int>			global2local;
+        size_t						nFrame = 0;
+        size_t						curFrame = -1;
+    };
+
+    class CSkinningEngine : public ISkinningEngine
+    {
+    public:
+        CSkinningEngine(const SkinningEngineParameter& param) {}
+        ~CSkinningEngine() {}
+
+        void transport(HairGeometry* hair0, HairGeometry* hair1);
+
+    private:
+        SkinningInfo*	skinInfo = nullptr;
+    };
+
 	class SkinningAndHairBodyCollisionEngine:
 		public IHairLoader
 	{

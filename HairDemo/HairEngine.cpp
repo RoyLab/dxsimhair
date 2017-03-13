@@ -10,7 +10,7 @@
 #include "HairEngine.h"
 
 #include "xhair.h"
-#include "SkinningEngine.h"+
+#include "SkinningEngine.h"
 
 using std::string;
 

@@ -21,13 +21,7 @@
     <ClCompile Include="HairEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SkinningEngine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ReconsReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GroupPBD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HairSampleSelector.cpp">
@@ -39,7 +33,10 @@
     <ClCompile Include="GridLevelSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\ICollisionObject.cpp">
+    <ClCompile Include="CSkinningEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CGroupPbd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -48,12 +45,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\ReconsReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\SkinningEngine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\GroupPBD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\HairEngine.h">
@@ -86,9 +77,6 @@
     <ClInclude Include="inc\ICollisionObject.h">
       <Filter>Header Files\headonly</Filter>
     </ClInclude>
-    <ClInclude Include="inc\GridCollisionObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\XSparseMatrix.hpp">
       <Filter>Header Files\headonly</Filter>
     </ClInclude>
@@ -97,6 +85,24 @@
     </ClInclude>
     <ClInclude Include="inc\wrgeo.h">
       <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\IGroupPBD.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ISkinningEngine.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\precompiled.h">
+      <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\CSkinningEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\CGridCollisionEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\CGroupPbd.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

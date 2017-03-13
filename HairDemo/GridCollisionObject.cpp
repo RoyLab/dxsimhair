@@ -177,7 +177,23 @@ namespace xhair
 
     void CGridCollisionEngine::filter(HairGeometry * hair)
     {
-
+        mat4x4 rigid, rigidInv;
+        mat4x4_transpose(rigid, reinterpret_cast<vec4*>(&hair->rigidTrans));
+        mat4x4_invert(rigidInv, rigid);
+        for (size_t i = 0; i < hair->nParticle; i++)
+        {
+            if (i % hair->particlePerStrand == 0) continue;
+            vec3 pos; mat4x4_mul_vec3(pos, rigidInv, reinterpret_cast<float*>(hair->position.get() + i));
+            Point_3 p1, p0 = Point_3(pos[0], pos[1], pos[2]);
+            bool isCollide = collision_obj->position_correlation(p0, &p1, 6e-2f);
+            if (isCollide)
+            {
+                vec3 p;
+                XR::convert3(p, p1);
+                mat4x4_mul_vec3(pos, rigid, p);
+                memcpy(hair->position.get() + i, pos, sizeof(vec3));
+            }
+        }
     }
 
 }
