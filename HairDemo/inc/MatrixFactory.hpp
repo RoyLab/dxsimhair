@@ -2,6 +2,7 @@
 #include <Eigen\Sparse>
 #include <boost\log\trivial.hpp>
 #include <iostream>
+#include <deque>
 #include <vector>
 #include <set>
 

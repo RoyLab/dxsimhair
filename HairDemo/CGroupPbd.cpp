@@ -1,8 +1,4 @@
 #define CGAL_EIGEN3_ENABLED
-#include <CGAL/Kd_tree.h>
-#include <CGAL/Fuzzy_sphere.h>
-#include <CGAL/Search_traits_3.h>
-
 #include <fstream>
 
 #include <macros.h>
@@ -26,11 +22,11 @@ namespace xhair
         int pps,
         float dr,
         float balance,
-        const int * groupInfo,
-        size_t ngi,
-        int nGroup): 
-        mf(groupInfo, nparticle, balance, pps), pgrid(dr)
+        const std::string& groups):
+        pgrid(dr)
 	{
+        const int * groupInfo;
+        mf = new MatrixFactory<IdContainer>(groupInfo, nparticle, balance, pps);
 		id0 = &id[0]; id1 = &id[1];
 		old0 = &id[2]; old1 = &id[3];
 
@@ -39,10 +35,10 @@ namespace xhair
 
 	void CGroupPbd::filter(HairGeometry * hair)
 	{
-		ArrayWrapper<Point3> wrapper(hair->position.get(), hair->nParticle);
+		ArrayWrapper<Point3> wrapper(hair->position, hair->nParticle);
 		pgrid.initialize(wrapper);
 		pgrid.query(*id0, *id1, true, old0, old1, id[4], id[5], id[6], id[7]);
-		mf.update(*id0, *id1, id[4], id[5], id[6], id[7], reinterpret_cast<float*>(hair->position.get()), hair->nParticle, r0);
+		mf->update(*id0, *id1, id[4], id[5], id[6], id[7], reinterpret_cast<float*>(hair->position), hair->nParticle, r0);
 
 		std::swap(id0, old0);
 		std::swap(id1, old1);
@@ -52,13 +48,11 @@ namespace xhair
     IGroupPbd * CreateGroupPdb(const ParamDict & param)
     {
         CGroupPbd* ret = new CGroupPbd(
-            param.nparticle,
-            param.particle_per_strand,
-            param.detect_range,
-            param.solve_balance_factor,
-            param.group_ids.data(),
-            param.group_ids.size(),
-            param.number_of_groups);
+            param.at(P_nparticle).intval,
+            param.at(P_pps).intval,
+            param.at(P_detectRange).floatval,
+            param.at(P_lambda).floatval,
+            param.at(P_groupFile).stringval);
         return ret;
     }
 }

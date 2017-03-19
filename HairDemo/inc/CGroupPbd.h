@@ -11,12 +11,13 @@ namespace xhair
     {
         typedef std::vector<uint32_t> IdContainer;
     public:
-        CGroupPbd(int nparticle, int pps, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup);
-        ~CGroupPbd() {}
+        CGroupPbd(int nparticle, int pps, float dr, float balance, 
+            const std::string& groups);
+        ~CGroupPbd() { SAFE_DELETE(mf); }
 
         void filter(HairGeometry* hair);
     private:
-        MatrixFactory<IdContainer> mf;
+        MatrixFactory<IdContainer>* mf = nullptr;
         GridRaster<Point3, XR::ArrayWrapper<Point3>> pgrid;
         std::vector<uint32_t> id[8], *id0, *id1, *old0, *old1;
         float r0;

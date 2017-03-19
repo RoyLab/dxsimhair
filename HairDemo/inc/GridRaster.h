@@ -184,7 +184,7 @@ namespace xhair
 			for (uint32_t i = 0; i < 3; ++i)
 				extent[i] = 0.5f * (max[i] - min[i]);
 
-			if (!grid_ || extent[0] > extent_[0] |
+			if (!grid_ || extent[0] > extent_[0] ||
 				extent[1] > extent_[1] || extent[2] > extent_[2])
 			{
 				const double boxfactor = 1.1;

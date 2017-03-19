@@ -11,7 +11,7 @@ extern "C"
         bool b_collision;
         bool b_pbd;
 
-        char root[MAX_PATH_LENGTH]; // default main.hair
+        char root[MAX_PATH_LENGTH];
     };
 
     struct CollisionParameter
@@ -23,11 +23,12 @@ extern "C"
 
     struct SkinningParameter
     {
-        bool b_simulateGuid;
+        bool simulateGuide;
     };
 
     struct PbdParameter
     {
+        float detectrange;
         float lambda; // for solving optimization
         float chunksize; // parallel computing chunk
         int maxiteration;

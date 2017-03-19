@@ -42,6 +42,9 @@
     <ClCompile Include="empty.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Anim2Loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\HairSampleSelector.h">
@@ -106,6 +109,9 @@
     </ClInclude>
     <ClInclude Include="inc\ICollisionEngine.h">
       <Filter>Header Files\headonly</Filter>
+    </ClInclude>
+    <ClInclude Include="Anim2Loader.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

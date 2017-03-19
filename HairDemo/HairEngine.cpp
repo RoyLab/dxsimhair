@@ -18,6 +18,8 @@
 #include "ICollisionEngine.h"
 #include "IGroupPbd.h"
 
+#include "Anim2Loader.h"
+
 using std::string;
 
 namespace xhair
@@ -36,7 +38,7 @@ namespace xhair
             float *particle_position,
             float *particle_direction);
 
-        const HairGeometry* getHair() const { return hair_geometry_; }
+        const HairGeometry* getHair() const { return hair_; }
 
     private:
         HairGeometry* loadHairGeometry(const string& file);
@@ -49,13 +51,15 @@ namespace xhair
         string static_hair_name_;
         string head_collision_name_;
 
-        HairGeometry *guide_geometry_ = nullptr;
-        HairGeometry *hair_geometry_ = nullptr;
+        HairGeometry *guide_geometry_ = nullptr, *guide_geometry0_ = nullptr;
+        HairGeometry *hair_ = nullptr, *hair0_ = nullptr;
 
         IFilter* guide_simulator_ = nullptr;
         ISkinningEngine *skinning_engine_ = nullptr;
         ICollisionEngine *collision_engine_ = nullptr;
         IGroupPbd* group_pbd_ = nullptr;
+
+        IHairLoader* mainloader_ = nullptr, *guideloader_ = nullptr;
     };
 
     HairEngine *_engine_instance;
@@ -64,6 +68,56 @@ namespace xhair
 extern "C"
 {
     using namespace xhair;
+
+    void initializeParameters(
+        HairEngine* _engine_instance,
+        const HairParameter* param,
+        const CollisionParameter* col,
+        const SkinningParameter* skin,
+        const PbdParameter* pbd)
+    {
+        // hair parameters
+        _engine_instance->params[P_bGuide].boolval = param->b_guide;
+        _engine_instance->params[P_bCollision].boolval = param->b_collision;
+        _engine_instance->params[P_bPbd].boolval = param->b_pbd;
+        _engine_instance->params[P_root].stringval = param->root;
+
+        // file register
+        XR::ConfigReader reader(std::string(param->root) + "hair.ini"); // default main.hair
+        XR::ParameterDictionary files;
+        reader.getParamDict(files);
+        reader.close();
+
+        _engine_instance->params[P_hairFile].stringval = files["main"];
+        _engine_instance->params[P_hairAnim].stringval = files["animation"];
+        _engine_instance->params[P_guideAnim].stringval = files["ganimation"];
+        _engine_instance->params[P_groupFile].stringval = files["pbdgourp"];
+        _engine_instance->params[P_weightFile].stringval = files["weight"];
+        _engine_instance->params[P_collisionFile].stringval = files["collision"];
+
+
+        if (col)
+        {
+            // collision parameters
+            _engine_instance->params[P_correctionTolerance].floatval = col->correction_tolerance;
+            _engine_instance->params[P_correctionRate].floatval = col->correction_rate;
+            _engine_instance->params[P_maxStep].floatval = col->maxstep;
+        }
+
+        if (skin)
+        {
+            // skinning parameters
+            _engine_instance->params[P_simulateGuide].boolval = skin->simulateGuide;
+        }
+
+        if (pbd)
+        {
+            // pbd parameters
+            _engine_instance->params[P_lambda].floatval = pbd->lambda;
+            _engine_instance->params[P_chunkSize].floatval = pbd->chunksize;
+            _engine_instance->params[P_maxIteration].intval = pbd->maxiteration;
+        }
+    }
 
     XRWY_DLL int InitializeHairEngine(
         const HairParameter* param,
@@ -78,39 +132,10 @@ extern "C"
         if (!_engine_instance)
             return -1;
 
-        // init
-
-        // record all the parameters
-        // record hair parameters
-        _engine_instance->params[P_bGuide].boolval = param->b_guide;
-        _engine_instance->params[P_bCollision].boolval = param->b_collision;
-        _engine_instance->params[P_bPbd].boolval = param->b_pbd;
-        _engine_instance->params[P_root].stringval = param->root;
-
-        // record collision parameters
-        _engine_instance->params[P_correctionTolerance].floatval = col->correction_tolerance;
-        _engine_instance->params[P_correctionRate].floatval = col->correction_rate;
-        _engine_instance->params[P_maxStep].floatval = col->maxstep;
-
-        // record skinning parameters
-
-        // record pbd parameters
-        _engine_instance->params[P_lambda].floatval = pbd->lambda;
-        _engine_instance->params[P_chunkSize].floatval = pbd->chunksize;
-        _engine_instance->params[P_maxIteration].intval = pbd->maxiteration;
-
-        // file register
-        XR::ConfigReader reader(std::string(param->root)+"hair.ini");
-        _engine_instance->params[P_groupFile].stringval = pbd->groupfile;
-        _engine_instance->params[P_weightFile].stringval = skin->weightfile;
-        _engine_instance->params[P_collisionFile].stringval = col->collisionfile;
-
-        // initialize 
+        initializeParameters(_engine_instance, param, col, skin, pbd);
         int ret = _engine_instance->initialize();
 
-        if (ret != 0) return ret;
-
-        return 0;
+        return ret;
     }
 
     XRWY_DLL int UpdateParameter(int key, const char* value, char type)
@@ -167,8 +192,14 @@ namespace xhair
 {
     HairEngine::~HairEngine()
     {
+        SAFE_DELETE(hair_);
         SAFE_DELETE(guide_geometry_);
-        SAFE_DELETE(hair_geometry_);
+
+        releaseHair(hair0_);
+        SAFE_DELETE(hair0_);
+
+        releaseHair(guide_geometry0_);
+        SAFE_DELETE(guide_geometry0_);
 
         SAFE_DELETE(guide_simulator_);
         SAFE_DELETE(collision_engine_);
@@ -179,37 +210,68 @@ namespace xhair
     int HairEngine::initialize()
     {
         // create
-        HairGeometry* hair = loadHairGeometry(getStringParameter(P_root));
-        if (!hair) return -1;
+        hair0_ = loadHairGeometry(getStringParameter(P_root));
+        if (!hair0_) return -1;
 
-        group_pbd_ = CreateGroupPdb(params);
-        if (!group_pbd_) return -1;
+        hair_ = new HairGeometry;
+        hair_->nParticle = hair0_->nParticle;
 
-        collision_engine_ = CreateCollisionEngine(params);
-        if (!collision_engine_) return -1;
+        string anim = getStringParameter(P_hairAnim);
+        if (anim.size())
+        {
+            mainloader_ = new Anim2Loader(anim.c_str(), hair_);
+            if (hair_->nParticle != hair0_->nParticle)
+                return -1;
+        }
 
-        skinning_engine_ = CreateSkinningEngine(params);
-        if (!skinning_engine_) return -1;
+        if (getBoolParameter(P_bPbd))
+        {
+            group_pbd_ = CreateGroupPdb(params);
+            if (!group_pbd_) return -1;
+        }
+
+        if (getBoolParameter(P_bCollision))
+        {
+            collision_engine_ = CreateCollisionEngine(params);
+            if (!collision_engine_) return -1;
+        }
+
+        if (getBoolParameter(P_bGuide))
+        {
+            skinning_engine_ = CreateSkinningEngine(params);
+            if (!skinning_engine_) return -1;
+        }
     }
 
     int HairEngine::update(const Matrix4& mat,
         float *particle_position,
         float *particle_direction)
     {
-        if (guide_geometry_ && skinning_engine_)
-        {
-            guide_simulator_->filter(guide_geometry_);
-            skinning_engine_->transport(guide_geometry_, hair_geometry_);
-        }
+        hair_->position = reinterpret_cast<Point3*>(particle_position);
+        hair_->direction = reinterpret_cast<Point3*>(particle_direction);
 
-        if (collision_engine_ && getBoolParameter(P_bCollision))
+        if (!params.at(P_bGuide).boolval)
         {
-            collision_engine_->filter(hair_geometry_);
-        }
+            if (false /*TODO*/ && guide_geometry_ && skinning_engine_)
+            {
+                guide_simulator_->filter(guide_geometry_);
+                skinning_engine_->transport(guide_geometry_, hair_);
+            }
 
-        if (group_pbd_ && getBoolParameter(P_bPbd))
+            if (false /*TODO*/ && collision_engine_ && getBoolParameter(P_bCollision))
+            {
+                collision_engine_->filter(hair_);
+            }
+
+            if (false /*TODO*/ && group_pbd_ && getBoolParameter(P_bPbd))
+            {
+                group_pbd_->filter(hair_);
+            }
+        }
+        else
         {
-            group_pbd_->filter(hair_geometry_);
+            // no skinning, load anim2 directly
+            mainloader_->filter(hair_);
         }
 
         return 0;
@@ -217,7 +279,10 @@ namespace xhair
 
     HairGeometry * HairEngine::loadHairGeometry(const string & file)
     {
-        return nullptr;
+        HairGeometry* hair = new HairGeometry;
+        auto tmpptr = new Anim2Loader(file.c_str(), hair);
+        delete tmpptr;
+        return hair;
     }
 
     string HairEngine::getStringParameter(int key) const

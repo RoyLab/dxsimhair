@@ -8,8 +8,8 @@ namespace xhair
     class StrandWeight
     {
     public:
-        int getNumberOfGuides(int id) const;
-        std::pair<int, float> getWeights(int id, int pid, int gid) const;
+        int getNumberOfGuides(int id) const { throw 1; }
+        std::pair<int, float> getWeights(int id, int pid, int gid) const { throw 1; }
     };
 
     //struct SkinningInfo

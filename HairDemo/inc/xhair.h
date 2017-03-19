@@ -86,22 +86,40 @@ namespace xhair
 
     enum ParameterEnum
     {
+        // hair geometry
+        P_nparticle,
+        P_pps, // particle per strand
+        P_nstrand,
+
+        // global setup
         P_bGuide,
         P_bCollision,
         P_bPbd,
         P_root,
 
-        P_collisionFile,
+        // collision
         P_correctionTolerance,
         P_correctionRate,
         P_maxStep,
 
-        P_weightFile,
+        // skinning
+        P_simulateGuide,
 
-        P_groupFile,
+        // group pbd
+        P_detectRange,
         P_lambda,
         P_chunkSize,
         P_maxIteration,
+
+        // file paths
+        P_hairFile,
+
+        P_hairAnim,
+        P_guideAnim,
+
+        P_collisionFile,
+        P_groupFile,
+        P_weightFile,
 
         ParameterCount
     };
@@ -109,13 +127,31 @@ namespace xhair
     struct HairGeometry
     {
         Matrix4                 rigidTrans;
-        UniqueArray<Point3>     position;
-        UniqueArray<Point3>     direction;
+        Point3*                 position = nullptr;
+        Point3*                 direction = nullptr;
 
-        size_t                  nParticle = 0;
-        size_t                  nStrand = 0;
-        size_t                  particlePerStrand = 0;
+        int                     nParticle = 0;
+        int                     nStrand = 0;
+        int                     particlePerStrand = 0;
     };
+
+    inline void allocateHair(HairGeometry * hair)
+    {
+        if (hair)
+        {
+            hair->position = new Point3[hair->nParticle];
+            hair->direction = new Point3[hair->nParticle];
+        }
+    }
+
+    inline void releaseHair(HairGeometry* hair)
+    {
+        if (hair)
+        {
+            SAFE_DELETE_ARRAY(hair->position);
+            SAFE_DELETE_ARRAY(hair->direction);
+        }
+    }
 
     struct BlendHairGeometry :
         public HairGeometry
@@ -137,11 +173,25 @@ namespace xhair
         COMMON_PROPERTY(int, nFrame);
         COMMON_PROPERTY(int, curFrame);
     public:
-        virtual int nextframe(HairGeometry* hair) = 0;
-        virtual void jumpTo(int frameNo) = 0;
-        virtual void rewind() { jumpTo(0); }
+        enum FilterParam { Next, Jump };
+
+        int nextframe(HairGeometry* hair)
+        {
+            setFilter(Next);
+            filter(hair);
+        };
+
+        void jumpTo(HairGeometry* hair, int frameNo)
+        {
+            setFilter(Jump+frameNo);
+            filter(hair);
+        }
 
         virtual ~IHairLoader() {}
+
+    protected:
+        virtual void setFilter(int param) = 0;
+
     };
 
     class IHairTransport
@@ -151,6 +201,5 @@ namespace xhair
     };
 
     /// region: globals
-
     extern HairEngine* _engine_instance;
 }
