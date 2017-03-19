@@ -4,13 +4,6 @@
 
 #include "CSkinningEngine.h"
 
-//#ifdef _DEBUG
-//#define ADF_FILE L"../../models/head_d"
-////#include <vld.h>
-//#else
-//#define ADF_FILE L"../../models/head"
-//#endif
-
 namespace xhair
 {
     void CSkinningEngine::transport(HairGeometry * hair0, HairGeometry * hair1)
@@ -76,7 +69,7 @@ namespace xhair
     }
 
 
-    ISkinningEngine* CreateSkinningEngine(const SkinningEngineParameter& param)
+    ISkinningEngine* CreateSkinningEngine(const ParamDict& param)
     {
         CSkinningEngine* ret = new CSkinningEngine(param);
         return ret;

@@ -23,5 +23,5 @@ namespace xhair
         virtual void filter(HairGeometry* hair) = 0;
 	};
 
-    IGroupPbd* CreateGroupPdb(const GroupPbdParameter& param);
+    IGroupPbd* CreateGroupPdb(const ParamDict& param);
 }

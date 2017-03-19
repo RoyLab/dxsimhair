@@ -1,5 +1,4 @@
 #include "precompiled.h"
-#include <afxwin.h>
 #include "ReconsReader.h"
 
 namespace xhair
@@ -83,7 +82,7 @@ namespace xhair
 
 	void ReconsReader::readShortcut()
 	{
-		ZeroMemory(fileShortcut, sizeof(size_t) * NUM_SECTION);
+		memset(fileShortcut, 0, sizeof(size_t) * NUM_SECTION);
 		for (int i = 0; i < NUM_SECTION; i++)
 			Read4Bytes(file, fileShortcut[i]);
 	}
@@ -119,7 +118,7 @@ namespace xhair
 		ReadNBytes(file, rest->position.get(), sizeof(Point3)*rest->nParticle);
 		ReadNBytes(file, rest->direction.get(), sizeof(Point3)*rest->nParticle);
 		//DirectX::XMStoreFloat4x4(&rest->worldMatrix, DirectX::XMMatrixIdentity());
-		ZeroMemory(&rest->rigidTrans, sizeof(rest->rigidTrans));
+		memset(&rest->rigidTrans, 0, sizeof(rest->rigidTrans));
 	}
 
 	void ReconsReader::setupWeights()
@@ -173,7 +172,7 @@ namespace xhair
 	void ReconsReader::setupInplSection()
 	{
 		file.seekg(fileShortcut[iInterpolation]);
-		ZeroMemory(hair->anim2, sizeof(char) * 128);
+		memset(hair->anim2, 0, sizeof(char) * 128);
 		file.read(hair->anim2, 128);
 	}
 

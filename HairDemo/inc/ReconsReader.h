@@ -45,6 +45,11 @@ namespace xhair
 		// not a hairloader since it load other things like weights
 		bool loadFile(const char* fileName, SkinningInfo* skinHair);
 
+        // do not interpolate here!
+        void rewind();
+        void nextFrame();
+        void jumpTo(int frameNo);
+
 		int nextframe(HairGeometry* hair);
 		void jumpTo(int frameNo);
 

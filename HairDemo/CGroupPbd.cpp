@@ -49,7 +49,7 @@ namespace xhair
 		id0->clear(); id1->clear();
 	}
 
-    IGroupPbd * CreateGroupPdb(const GroupPbdParameter & param)
+    IGroupPbd * CreateGroupPdb(const ParamDict & param)
     {
         CGroupPbd* ret = new CGroupPbd(
             param.nparticle,

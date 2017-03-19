@@ -31,7 +31,7 @@ namespace xhair
     class CSkinningEngine : public ISkinningEngine
     {
     public:
-        CSkinningEngine(const SkinningEngineParameter& param) {}
+        CSkinningEngine(const ParamDict& param) {}
         ~CSkinningEngine() {}
 
         void transport(HairGeometry* hair0, HairGeometry* hair1);

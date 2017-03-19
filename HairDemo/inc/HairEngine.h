@@ -12,12 +12,10 @@ extern "C"
         bool b_pbd;
 
         char root[MAX_PATH_LENGTH]; // default main.hair
-        //char hairfile[MAX_PATH_LENGTH];
     };
 
     struct CollisionParameter
     {
-        //char collisionfile[MAX_PATH_LENGTH];
         float correction_tolerance;
         float correction_rate;
         float maxstep;
@@ -26,13 +24,10 @@ extern "C"
     struct SkinningParameter
     {
         bool b_simulateGuid;
-        //char guideFile[MAX_PATH_LENGTH];
-        //char weightfile[MAX_PATH_LENGTH];
     };
 
     struct PbdParameter
     {
-        //char groupfile[MAX_PATH_LENGTH];
         float lambda; // for solving optimization
         float chunksize; // parallel computing chunk
         int maxiteration;

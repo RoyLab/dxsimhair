@@ -8,7 +8,7 @@
 #include <cmath>
 #include "UnitTest.h"
 #include "linmath.h"
-#include "GridCollisionObject.h"
+#include "CGridCollisionEngine.h"
 #include "macros.h"
 
 using namespace CGAL;

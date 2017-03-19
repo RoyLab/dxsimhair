@@ -14,5 +14,5 @@ namespace xhair
         virtual void transport(HairGeometry* hair0, HairGeometry* hair1) = 0;
     };
 
-    ISkinningEngine* CreateSkinningEngine(const SkinningEngineParameter& param);
+    ISkinningEngine* CreateSkinningEngine(const ParamDict& param);
 }
