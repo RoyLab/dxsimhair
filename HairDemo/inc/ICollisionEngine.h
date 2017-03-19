@@ -20,5 +20,6 @@ namespace xhair
         virtual void filter(HairGeometry* hair) = 0;
     };
 
-    ICollisionEngine* CreateCollisionEngine(const CollisionEngineParameter& param);
+    //ICollisionEngine* CreateCollisionEngine(const CollisionEngineParameter& param);
+    ICollisionEngine* CreateCollisionEngine(const ParamDict& param);
 }

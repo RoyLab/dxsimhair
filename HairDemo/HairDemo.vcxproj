@@ -118,7 +118,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GridCollisionObject.cpp" />
+    <ClCompile Include="CGridCollisionEngine.cpp" />
+    <ClCompile Include="empty.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="GridLevelSet.cpp" />
     <ClCompile Include="CGroupPbd.cpp" />
     <ClCompile Include="HairEngine.cpp" />
@@ -141,7 +145,7 @@
     <ClInclude Include="inc\IGroupPBD.h" />
     <ClInclude Include="inc\HairEngine.h" />
     <ClInclude Include="inc\HairSampleSelector.h" />
-    <ClInclude Include="inc\ICollisionObject.h" />
+    <ClInclude Include="inc\ICollisionEngine.h" />
     <ClInclude Include="inc\ISkinningEngine.h" />
     <ClInclude Include="inc\MatrixFactory.hpp" />
     <ClInclude Include="inc\precompiled.h" />

@@ -1,5 +1,5 @@
 #pragma once
-#include "ICollisionObject.h"
+#include "ICollisionEngine.h"
 
 namespace xhair
 {
@@ -15,7 +15,7 @@ namespace xhair
         };
 
 	public:
-		GridCollisionObject(const CollisionEngineParameter& param);
+		GridCollisionObject(const ParamDict& param);
 		virtual ~GridCollisionObject();
 
 		float query_distance(const Point_3& p) const;
@@ -39,7 +39,7 @@ namespace xhair
         public ICollisionEngine
     {
     public:
-        CGridCollisionEngine(const CollisionEngineParameter& param);
+        CGridCollisionEngine(const ParamDict& param);
         virtual ~CGridCollisionEngine();
 
         void filter(HairGeometry* hair);

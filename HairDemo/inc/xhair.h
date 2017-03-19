@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include <cy\cyPoint.h>
 #include <cy\cyMatrix.h>
@@ -14,6 +16,19 @@ namespace xhair
     class HairEngine;
 
     /// region: auxilliary structs and classes
+
+    struct Notype
+    {
+        union
+        {
+            long long intval;
+            double floatval;
+            bool boolval;
+        };
+        std::string stringval;
+    };
+
+    typedef std::unordered_map<int, Notype> ParamDict;
 
     template< typename T >
     struct array_deleter
@@ -68,6 +83,28 @@ namespace xhair
     };
 
     /// region: interface and basic hair structs
+
+    enum ParameterEnum
+    {
+        P_bGuide,
+        P_bCollision,
+        P_bPbd,
+        P_root,
+
+        P_collisionFile,
+        P_correctionTolerance,
+        P_correctionRate,
+        P_maxStep,
+
+        P_weightFile,
+
+        P_groupFile,
+        P_lambda,
+        P_chunkSize,
+        P_maxIteration,
+
+        ParameterCount
+    };
 
     struct HairGeometry
     {

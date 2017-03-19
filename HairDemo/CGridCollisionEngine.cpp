@@ -6,20 +6,20 @@
 #include "linmath.h"
 #include "xmath.h"
 
-#include "GridCollisionObject.h"
+#include "CGridCollisionEngine.h"
 #include "wrGeo.h"
 
 namespace xhair
 {
 #define VERY_LARGE 1.0e20f
 
-	GridCollisionObject::GridCollisionObject(const CollisionEngineParameter& param)
+	GridCollisionObject::GridCollisionObject(const ParamDict& param)
 	{
-        tolerance = param.over_correction_tol;
-		correctionRate = param.iter_rate;
-        maxstep = param.max_step;
+        tolerance = param.at(P_correctionTolerance).floatval;
+		correctionRate = param.at(P_correctionRate).floatval;
+        maxstep = param.at(P_maxStep).floatval;
 
-		std::ifstream gridFile(param.obj_filename, std::ios::binary);
+		std::ifstream gridFile(param.at(P_collisionFile).stringval, std::ios::binary);
 		if (!gridFile.is_open()) throw std::exception("file not found!");
 
 		Read4Bytes(gridFile, x);
@@ -159,13 +159,7 @@ namespace xhair
 		return bChanged;
 	}
 
-    ICollisionEngine * xhair::CreateCollisionEngine(const CollisionEngineParameter & param)
-    {
-        CGridCollisionEngine* ret = new CGridCollisionEngine(param);
-        return ret;
-    }
-
-    CGridCollisionEngine::CGridCollisionEngine(const CollisionEngineParameter & param)
+    CGridCollisionEngine::CGridCollisionEngine(const ParamDict& param)
     {
         collision_obj = new GridCollisionObject(param);
     }
@@ -194,6 +188,13 @@ namespace xhair
                 memcpy(hair->position.get() + i, pos, sizeof(vec3));
             }
         }
+    }
+
+
+    ICollisionEngine * xhair::CreateCollisionEngine(const ParamDict& param)
+    {
+        CGridCollisionEngine* ret = new CGridCollisionEngine(param);
+        return ret;
     }
 
 }

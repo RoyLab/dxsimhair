@@ -27,9 +27,6 @@
     <ClCompile Include="HairSampleSelector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GridCollisionObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GridLevelSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,6 +34,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CGroupPbd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CGridCollisionEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="empty.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,9 +77,6 @@
     <ClInclude Include="inc\GridRaster.h">
       <Filter>Header Files\headonly</Filter>
     </ClInclude>
-    <ClInclude Include="inc\ICollisionObject.h">
-      <Filter>Header Files\headonly</Filter>
-    </ClInclude>
     <ClInclude Include="inc\XSparseMatrix.hpp">
       <Filter>Header Files\headonly</Filter>
     </ClInclude>
@@ -103,6 +103,9 @@
     </ClInclude>
     <ClInclude Include="inc\CGroupPbd.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ICollisionEngine.h">
+      <Filter>Header Files\headonly</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
