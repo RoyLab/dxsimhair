@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cmdline.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="linmath.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="macros.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xgeometry.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xheader.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xlogger.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xmath.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="bitmapwriter.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xcolorgenerator.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xconfigreader.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xd3d11tools.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xexception.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xstruct.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xtimer.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="xoffreader.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="test.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

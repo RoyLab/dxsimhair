@@ -241,6 +241,8 @@ namespace xhair
             skinning_engine_ = CreateSkinningEngine(params);
             if (!skinning_engine_) return -1;
         }
+
+        return 0;
     }
 
     int HairEngine::update(const Matrix4& mat,
