@@ -209,6 +209,10 @@ GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
 
+# Unity cache and library
+HairUnity/.vs/
+HairUnity/Library/
+
 # User Defined
 HairSim/SimHair.exe
 boost*
