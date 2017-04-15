@@ -41,6 +41,7 @@ namespace XRwy
 		
 		V_RETURN(skinning->loadFile(fileName, hairGeom));
 
+		
 		std::ifstream file(g_paramDict["pbdfile"], std::ios::binary);
 		int ngi;
 		Read4Bytes(file, ngi);
@@ -55,6 +56,7 @@ namespace XRwy
 
 		set_nFrame(skinning->get_nFrame());
 		set_curFrame(-1);
+		
 
 		return true;
 	}
