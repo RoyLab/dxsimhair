@@ -14,7 +14,7 @@ class CDXUTTextHelper;
 namespace XRwy
 {
     class SceneManager:
-        public IUnknown
+        public IUnknown_
     {
         typedef std::unique_ptr<DirectX::BasicEffect> EffectPtr;
 

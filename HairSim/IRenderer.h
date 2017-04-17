@@ -5,7 +5,7 @@
 namespace XRwy
 {
     class IRenderer :
-        public IUnknown
+        public IUnknown_
     {
     public:
         typedef DirectX::XMFLOAT4X4 Matrix;

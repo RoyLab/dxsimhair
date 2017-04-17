@@ -14,10 +14,10 @@ extern GUIManager					g_HUD;                  // dialog for standard controls
 
 namespace XRwy
 {
-    class IUnknown
+    class IUnknown_
     {
     public:
-        virtual ~IUnknown(){}
+        virtual ~IUnknown_(){}
 
         virtual bool Initialize() = 0;
         virtual void Release() = 0;

@@ -211,6 +211,10 @@
     <PostBuildEvent>
       <Command>copy /Y "$(SolutionDir)3rdparty\dll64\*.*" "$(TargetDir)"</Command>
     </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>libgmp-10.lib;libfbxsdk-md.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;usp10.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\3rdparty\lib64;$(FBX_DIR)\lib\vs2015\x64\debug;$(BOOST_LIBRARYDIR_64)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

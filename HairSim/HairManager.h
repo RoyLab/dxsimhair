@@ -20,7 +20,7 @@ namespace XRwy
 	};
 
     class HairManager:
-        public IUnknown
+        public IUnknown_
     {
         typedef void(*FPDraw)(ID3D11DeviceContext*, int, int, void*);
 
