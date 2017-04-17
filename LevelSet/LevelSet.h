@@ -7,10 +7,11 @@
 #include "wrGeo.h"
 #include "GroupPBD.h"
 
+
 #ifdef WR_EXPORTS
-#define WR_API __declspec(dllexport)
+#define WR_API
 #else
-#define WR_API __declspec(dllimport)
+#define WR_API
 #endif
 
 namespace WR
