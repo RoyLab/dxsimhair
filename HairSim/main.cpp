@@ -65,45 +65,49 @@ void InitApp();
 void RenderText();
 void CreateConsole();
 
+#ifndef SIMHAIR_EXPORTS
+
 //--------------------------------------------------------------------------------------
 // Entry point to the program. Initializes everything and goes into a message processing 
 // loop. Idle time is used to render the scene.
 //--------------------------------------------------------------------------------------
-int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow )
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
-    
-    // Enable run-time memory check for debug builds.
+
+	// Enable run-time memory check for debug builds.
 #ifdef _DEBUG
-    _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-    // Set DXUT callbacks
-    DXUTSetCallbackMsgProc( MsgProc );
-    DXUTSetCallbackKeyboard( OnKeyboard );
-    DXUTSetCallbackFrameMove( OnFrameMove );
-    DXUTSetCallbackDeviceChanging( ModifyDeviceSettings );
+	// Set DXUT callbacks
+	DXUTSetCallbackMsgProc(MsgProc);
+	DXUTSetCallbackKeyboard(OnKeyboard);
+	DXUTSetCallbackFrameMove(OnFrameMove);
+	DXUTSetCallbackDeviceChanging(ModifyDeviceSettings);
 
-    DXUTSetCallbackD3D11DeviceAcceptable( IsD3D11DeviceAcceptable );
-    DXUTSetCallbackD3D11DeviceCreated( OnD3D11CreateDevice );
-    DXUTSetCallbackD3D11SwapChainResized( OnD3D11ResizedSwapChain );
-    DXUTSetCallbackD3D11SwapChainReleasing( OnD3D11ReleasingSwapChain );
-    DXUTSetCallbackD3D11DeviceDestroyed( OnD3D11DestroyDevice );
-    DXUTSetCallbackD3D11FrameRender( OnD3D11FrameRender );
+	DXUTSetCallbackD3D11DeviceAcceptable(IsD3D11DeviceAcceptable);
+	DXUTSetCallbackD3D11DeviceCreated(OnD3D11CreateDevice);
+	DXUTSetCallbackD3D11SwapChainResized(OnD3D11ResizedSwapChain);
+	DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
+	DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
+	DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
 
-    InitApp();
+	InitApp();
 
 	g_SceneMngr = new XRwy::SceneManager;
 	g_SceneMngr->Initialize();
 
-    DXUTInit( true, true, nullptr ); // Parse the command line, show msgboxes on error, no extra command line params
-    DXUTSetCursorSettings( true, true );
-    DXUTCreateWindow( L"XRwy-Demo" );
-    DXUTCreateDevice( D3D_FEATURE_LEVEL_10_1, true, 800, 600 );
-    DXUTMainLoop(); // Enter into the DXUT render loop
+	DXUTInit(true, true, nullptr); // Parse the command line, show msgboxes on error, no extra command line params
+	DXUTSetCursorSettings(true, true);
+	DXUTCreateWindow(L"XRwy-Demo");
+	DXUTCreateDevice(D3D_FEATURE_LEVEL_10_1, true, 800, 600);
+	DXUTMainLoop(); // Enter into the DXUT render loop
 
 	SAFE_RELEASE(g_SceneMngr);
 
-    return DXUTGetExitCode();
+	return DXUTGetExitCode();
 }
+
+#endif // !SIMHAIR_EXPORTS
 
 
 //--------------------------------------------------------------------------------------
