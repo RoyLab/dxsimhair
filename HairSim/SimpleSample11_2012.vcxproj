@@ -47,6 +47,7 @@
     <ProjectGuid>{D3D11105-96D0-4629-88B8-122C0256058C}</ProjectGuid>
     <RootNamespace>SimpleSample11</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -67,7 +68,7 @@
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugDll|X64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
@@ -90,7 +91,7 @@
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDll|X64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v140</PlatformToolset>
@@ -304,7 +305,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalIncludeDirectories>C:\local\CGAL_4_9_1_64\include;..\..\wr\common;..\LevelSet;..\DirectXTK\Inc;..\3rdparty\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;USE_EXE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
@@ -473,7 +474,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalIncludeDirectories>C:\local\CGAL_4_9_1_64\include;..\..\wr\common;..\LevelSet;..\DirectXTK\Inc;..\3rdparty\include;..\DXUT\Core;..\DXUT\Optional;$(BOOST_INCLUDEDIR);..\DirectXMesh\Meshconvert;..\DirectXMesh\DirectXMesh;..\FBX2015Loader4DX11;$(FBX_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0600;USE_EXE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -640,6 +641,7 @@
     <ClCompile Include="CFBXLoader.cpp" />
     <ClCompile Include="CFBXRendererDX11.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="DllExports.cpp" />
     <ClCompile Include="FollicleRenderer.cpp" />
     <ClCompile Include="GUIManager.cpp" />
     <ClCompile Include="HairColor.cpp" />
@@ -675,6 +677,7 @@
     <ClInclude Include="CFBXLoader.h" />
     <ClInclude Include="CFBXRendererDX11.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="DllExports.h" />
     <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairColor.h" />
     <ClInclude Include="HairManager.h" />

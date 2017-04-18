@@ -65,7 +65,7 @@ void InitApp();
 void RenderText();
 void CreateConsole();
 
-#ifndef SIMHAIR_EXPORTS
+#ifdef USE_EXE
 
 //--------------------------------------------------------------------------------------
 // Entry point to the program. Initializes everything and goes into a message processing 
@@ -107,7 +107,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	return DXUTGetExitCode();
 }
 
-#endif // !SIMHAIR_EXPORTS
+#endif // USE_EXE
 
 
 //--------------------------------------------------------------------------------------

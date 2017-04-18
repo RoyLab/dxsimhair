@@ -26,6 +26,9 @@
     <Filter Include="Source Files\StaticHair">
       <UniqueIdentifier>{bea39297-8e57-4a89-bdd2-22824b1d2672}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\DllExports">
+      <UniqueIdentifier>{c5095e72-ddde-45bf-831f-26e72b59b595}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\DXUT\Optional\directx.ico">
@@ -102,6 +105,9 @@
     <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DllExports.cpp">
+      <Filter>Source Files\DllExports</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -172,6 +178,9 @@
     </ClInclude>
     <ClInclude Include="HairSampleSelector.h">
       <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="DllExports.h">
+      <Filter>Source Files\DllExports</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
