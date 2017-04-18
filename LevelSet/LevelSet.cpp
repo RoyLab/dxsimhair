@@ -6,7 +6,6 @@
 #include <fstream>
 #include <DirectXMath.h>
 
-#define WR_EXPORTS
 #include "LevelSet.h"
 #include "ADFCollisionObject.h"
 #include "XConfigReader.hpp"

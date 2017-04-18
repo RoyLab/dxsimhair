@@ -115,7 +115,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>XRWY_DEBUG;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>XRWY_DEBUG;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);WR_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>C:\local\CGAL_4_9_1_64\include;..\..\wr\common;..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -136,7 +136,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>XRWY_DEBUG;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>XRWY_DEBUG;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);WR_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>C:\local\CGAL_4_9_1_64\include;..\..\wr\common;..\3rdparty\tbb44\include;$(BOOST_INCLUDEDIR);..\3rdparty\include;..\HairSim;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
