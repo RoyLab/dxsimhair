@@ -1,6 +1,5 @@
 #pragma once
 
-#include "precompiled.h"
 
 //The "DebugDll" and "ReleaseDll" configuration define "SIMHAIR_EXPORTS"
 //The "Debug" and "Release" configuration define "USE_EXE"
