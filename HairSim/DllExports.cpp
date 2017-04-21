@@ -18,7 +18,7 @@ namespace XRwy {
 	HairLoader *loader;
 	HairGeometry *hair;
 
-	HairLoader* create_hair_loader(const char* fileName, HairGeometry* geom, void* para)
+	HairLoader* create_hair_loader(const char* fileName, HairGeometry* geom)
 	{
 		std::string name(fileName);
 		int last = name.rfind('.');
@@ -30,8 +30,11 @@ namespace XRwy {
 			result = new HairAnimationLoader;
 		else if (posfix == ".hair")
 			result = new ZhouHairLoader;
-		else if (posfix == ".recons")
-			result = new ReducedModel(*reinterpret_cast<int*>(para));
+		else if (posfix == ".recons") {
+			//since for now we only use one instance of hair loader, the "para" will always be para0 in g_paramDict
+			int reduced_init_param = stoi(g_paramDict["para0"], 0, 2);
+			result = new ReducedModel(reduced_init_param);
+		}
 
 		if (result)
 			result->loadFile(fileName, geom);
@@ -42,18 +45,29 @@ namespace XRwy {
 	int InitializeHairEngine(const HairParameter* param, const CollisionParameter* col, const SkinningParameter* skin, const PbdParameter* pbd
 	) {
 		//for now only hair parameter root is used, others are ignored
-		ConfigReader conf_reader(param->root);
+		ConfigReader conf_reader(param->root, ConfigReader::ConfigReaderConfiguration::CONFIG_READ_AS_DESCRIPTION);
 		conf_reader.getParamDict(g_paramDict);
 		conf_reader.close();
+
+		hair = new HairGeometry;
+
+		//we now use reffile only since there's only one instance
+		loader = create_hair_loader((g_paramDict.find("reffile")->second).c_str(), hair);
+
 		return 0;
 	}
 
-	int UpdateParameter(int key, const char* value, char type) {
-		return 2;
+	int UpdateParameter(const char* key, const char* value) {
+		g_paramDict[key] = value;
+		return 0;
 	}
 
 	int UpdateHairEngine(const float head_matrix[16], float *particle_positions, float *particle_directions) {
-		return 3;
+		loader->nextFrame();
+		memcpy(particle_positions, hair->position, sizeof(float) * 3 * hair->nParticle);
+		memcpy(particle_directions, hair->direction, sizeof(float) * 3 * hair->nParticle);
+
+		return 0;
 	}
 
 	void ReleaseHairEngine() {
@@ -62,10 +76,10 @@ namespace XRwy {
 	}
 
 	int GetHairParticleCount() {
-		return 4;
+		return hair->nParticle;
 	}
 
 	int GetParticlePerStrandCount() {
-		return 5;
+		return hair->particlePerStrand;
 	}
 }

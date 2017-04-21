@@ -57,7 +57,7 @@ namespace XRwy {
 			const PbdParameter* pbd
 		);
 
-		SIMHAIR_DLL int UpdateParameter(int key, const char* value, char type);
+		SIMHAIR_DLL int UpdateParameter(const char* key, const char* value);
 
 		SIMHAIR_DLL int UpdateHairEngine(
 			const float head_matrix[16],
