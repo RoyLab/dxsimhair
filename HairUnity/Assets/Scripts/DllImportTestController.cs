@@ -9,45 +9,66 @@ public class DllImportTestController : MonoBehaviour {
 
     public Material material;
 
-    Vector3[] positions, directions;
+    Vector3[] positions = null, directions = null;
     float[] headMatrix = new float[16];
-    bool hasLoad = false;
 
     // Use this for initialization
     void Start () {
-        HairParameter hair = new HairParameter(false, false, false, "C:\\Users\\vivid\\Desktop\\Test\\0425.anim2");
-        CollisionParameter col = new CollisionParameter("collisionfiletest", 1.234f, 3.456f, 5.789f);
-        SkinningParameter skin = new SkinningParameter("weightfiletest");
-        PbdParameter pbd = new PbdParameter("groupfiletest", 1.234f, 3.456f, 7890);
-        Debug.Log(Func.InitializeHairEngine(hair, col, skin, pbd));
 
-        var particleCount = Func.GetHairParticleCount();
-        var particlePerStrandCount = Func.GetParticlePerStrandCount();
-        var strandCount = particleCount / particlePerStrandCount;
-        var particlePerStrand = new int[strandCount];
-        for (int i = 0; i < strandCount; ++i)
-            particlePerStrand[i] = particlePerStrandCount;
+        string configDescription = System.IO.File.ReadAllText("C:\\Users\\vivid\\Desktop\\newconfig.ini");
+        HairParameter param = new HairParameter(false, false, false, configDescription);
 
+        CollisionParameter col = new CollisionParameter("", 0.0f, 0.0f, 0.0f); //ignore
+        SkinningParameter skin = new SkinningParameter(""); //ignore
+        PbdParameter pbd = new PbdParameter("", 0.0f, 0.0f, 0); //ignore
+        Func.InitializeHairEngine(param, col, skin, pbd);
+
+        int particleCount = Func.GetHairParticleCount();
+        int particlePerStrandCount = Func.GetParticlePerStrandCount();
+        int strandCount = particleCount / particlePerStrandCount;
         positions = new Vector3[particleCount];
         directions = new Vector3[particleCount];
 
         Func.UpdateHairEngine(headMatrix, positions, directions);
-        foreach (var gameObject in HairLoader.Load(positions, particlePerStrand)) {
+        foreach (var gameObject in HairLoader.LoadFixedParticlePerStrand(positions, strandCount, particlePerStrandCount))
+        {
             gameObject.transform.parent = this.transform;
             gameObject.GetComponent<MeshRenderer>().material = material;
         }
 
-        hasLoad = true;
-        Debug.Log("Success");
+        /* use for testing */
+        //HairParameter param = new HairParameter(true, false, true, "hairfilepath");
+        //CollisionParameter col = new CollisionParameter("collisionfile", 1.23f, 4.56f, 7.89f);
+        //SkinningParameter skin = new SkinningParameter("weightfile");
+        //PbdParameter pbd = new PbdParameter("groupfile", 1.34f, 4.67f, 8);
+        //Func.InitializeHairEngine(param, col, skin, pbd);
+
+        //Func.UpdateParameter("testkey", "testvalue");
+
+        //float[] rigids = new float[16];
+        //for (int i = 0; i < 4; ++i)
+        //    for (int j = 0; j < 4; ++j)
+        //        rigids[i * 4 + j] = i * i + j * j;
+
+        //Vector3[] vecPositions = new Vector3[1];
+        //Vector3[] vecDirections = new Vector3[1];
+
+        //Func.UpdateHairEngine(rigids, vecPositions, vecDirections);
+
+        //int a = Func.GetHairParticleCount();
+        //int b = Func.GetParticlePerStrandCount();
+
+        //Func.ReleaseHairEngine();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        if (hasLoad == false)
+        if (positions == null || directions == null)
             return;
 
         Func.UpdateHairEngine(headMatrix, positions, directions);
-        foreach (var transform in this.transform) {
+        foreach (var transform in this.transform)
+        {
             var gameObject = (transform as Transform).gameObject;
             var mesh = gameObject.GetComponent<MeshFilter>().mesh;
             var vertices = mesh.vertices;
@@ -56,5 +77,5 @@ public class DllImportTestController : MonoBehaviour {
                 vertices[i] = positions[i + positionOffset];
             mesh.vertices = vertices;
         }
-	}
+    }
 }

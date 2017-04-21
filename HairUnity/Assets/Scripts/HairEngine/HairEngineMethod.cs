@@ -6,7 +6,7 @@ namespace HairEngine
 {
     class Func
     {
-        [DllImport("HairEngineWrapper", EntryPoint = "InitializeHairEngine")]
+        [DllImport("SimHair", EntryPoint = "InitializeHairEngine")]
         private static extern int _InitializeHairEngine(IntPtr HairParameterPtr, IntPtr CollisionParameterPtr, IntPtr SkinningParameterPtr, IntPtr PdbParameterPtr);
 
         public static int InitializeHairEngine(HairParameter hair, CollisionParameter col, SkinningParameter skin, PbdParameter pbd) {
@@ -14,7 +14,7 @@ namespace HairEngine
             return ret;
         }
 
-        [DllImport("HairEngineWrapper", EntryPoint = "UpdateParameter", CharSet = CharSet.Ansi)]
+        [DllImport("SimHair", EntryPoint = "UpdateParameter", CharSet = CharSet.Ansi)]
         private static extern int _UpdateParameter(
             [MarshalAs(UnmanagedType.LPStr)]
             string key,
@@ -26,7 +26,7 @@ namespace HairEngine
             return _UpdateParameter(key, value);
         }
 
-        [DllImport("HairEngineWrapper", EntryPoint = "UpdateHairEngine")]
+        [DllImport("SimHair", EntryPoint = "UpdateHairEngine")]
         private static extern int _UpdateHairEngine(
             [MarshalAs(UnmanagedType.LPArray, SizeConst = 16)]
             float[] headMatrix,
@@ -40,17 +40,17 @@ namespace HairEngine
             return ret;
         }
 
-        [DllImport("HairEngineWrapper", EntryPoint = "ReleaseHairEngine")]
+        [DllImport("SimHair", EntryPoint = "ReleaseHairEngine")]
         private static extern void _ReleaseHairEngine();
 
         public static void ReleaseHairEngine() {
             _ReleaseHairEngine();
         }
 
-        [DllImport("HairEngineWrapper", EntryPoint = "GetHairParticleCount")]
+        [DllImport("SimHair", EntryPoint = "GetHairParticleCount")]
         public static extern int GetHairParticleCount();
 
-        [DllImport("HairEngineWrapper", EntryPoint = "GetParticlePerStrandCount")]
+        [DllImport("SimHair", EntryPoint = "GetParticlePerStrandCount")]
         public static extern int GetParticlePerStrandCount();
     }
 }

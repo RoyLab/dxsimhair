@@ -7,6 +7,6 @@ namespace HairEngine
 {
     static class Constants
     {
-        public const int MAX_PATH_LENGTH = 256;
+        public const int MAX_PATH_LENGTH = 65536;
     }
 }

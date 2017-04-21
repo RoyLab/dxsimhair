@@ -20,15 +20,16 @@ int main()
 	HairParameter param;
 
 	ifstream fin;
-	fin.open("../newconfig.ini", ios::in);
+	fin.open("C:\\Users\\vivid\\Desktop\\newconfig.ini", ios::in);
 
 	fin.read(param.root, 65536);
 
 	InitializeHairEngine(&param, nullptr, nullptr, nullptr);
 
 	float rigid[16];
-	float *positions = new float[3 * GetHairParticleCount()];
-	float *directions = new float[3 * GetHairParticleCount()];
+	int size = GetHairParticleCount();
+	float *positions = new float[3 * size];
+	float *directions = new float[3 * size];
 
 	UpdateHairEngine(rigid, positions, directions);
 	
