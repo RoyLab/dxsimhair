@@ -3,16 +3,19 @@
 
 #include "stdafx.h"
 #include "DllExports.h"
+#include <string>
 
 using namespace XRwy;
+using namespace std;
 
 int main()
 {
-	int a = InitializeHairEngine(nullptr, nullptr, nullptr, nullptr);
-	int b = UpdateParameter(123, "123", 'a');
-	int c = UpdateHairEngine(nullptr, nullptr, nullptr);
-	ReleaseHairEngine( );
-	int d = GetHairParticleCount();
-	int e = GetParticlePerStrandCount();
+	HairParameter param;
+	string test_string =  "this = that\n#this is a comment\nyu=po";
+	for (int i = 0; i < test_string.size(); ++i)
+		param.root[i] = test_string[i];
+	param.root[test_string.size()] = 0;
+
+	int a = InitializeHairEngine(&param, nullptr, nullptr, nullptr);
 }
 
