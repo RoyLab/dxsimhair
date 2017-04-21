@@ -213,6 +213,9 @@ ModelManifest.xml
 HairUnity/.vs/
 HairUnity/Library/
 
+# Big dll generate file
+HairUnity/Assets/Plugins/SimHair*.dll
+
 # User Defined
 HairSim/SimHair.exe
 boost*
