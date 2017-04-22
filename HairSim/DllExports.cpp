@@ -50,19 +50,9 @@ namespace XRwy {
 	int InitializeHairEngine(const HairParameter* param, const CollisionParameter* col, const SkinningParameter* skin, const PbdParameter* pbd
 	) {
 		//for now only hair parameter root is used, others are ignored
-		ofstream fout("C:\\Users\\vivid\\Desktop\\confirmresult-param-root.txt", ios::out);
-		fout << param->root << endl;
-		fout.close();
-
 		ConfigReader conf_reader(param->root, ConfigReader::ConfigReaderConfiguration::CONFIG_READ_AS_DESCRIPTION);
 		conf_reader.getParamDict(g_paramDict);
 		conf_reader.close();
-
-		fout.open("C:\\Users\\vivid\\Desktop\\confirmresult-param-dict.txt", ios::out);
-		for (const auto & item : g_paramDict) {
-			fout << item.first << " " << item.second << endl;
-		}
-		fout.close();
 
 		hair = new HairGeometry;
 
@@ -117,6 +107,8 @@ namespace XRwy {
 	int UpdateParameter(const char* key, const char* value) {
 		g_paramDict[key] = value;
 
+		int d = 4;
+
 		/* use for testing */
 		//ofstream fout;
 		//fout.open(root_path + "UpdateParameter.txt", ios::out);
@@ -162,10 +154,6 @@ namespace XRwy {
 
 	int GetHairParticleCount() {
 		int size = hair->nParticle;
-
-		ofstream fout("C:\\Users\\vivid\\Desktop\\confirmresult-get-hair-particle-count.txt", ios::out);
-		fout << size << endl;
-		fout.close();
 
 		return size;
 

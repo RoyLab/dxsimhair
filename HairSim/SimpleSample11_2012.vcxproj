@@ -372,7 +372,8 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)3rdparty\dll64\*.*" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)3rdparty\dll64\*.*" "$(TargetDir)";
+python "$(SolutionDir)Scripts\copydll.py" debug</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -544,7 +545,8 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)3rdparty\dll64\*.*" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)3rdparty\dll64\*.*" "$(TargetDir)";
+python "$(SolutionDir)Scripts\copydll.py" release</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
