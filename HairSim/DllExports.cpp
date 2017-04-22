@@ -7,6 +7,8 @@
 #include "ZhouHairLoader.hpp"
 #include "SkinningEngine.h"
 #include "HairLoader.h"
+#include "HairSimulator.h"
+#include "HairLoaderSimulator.h"
 
 #include <iostream>
 #include <string>
@@ -15,157 +17,140 @@ using namespace std;
 
 using XR::ConfigReader;
 
+//#define USE_DEBUG_MODE
+
 namespace XRwy {
 
-	HairLoader *loader;
-	HairGeometry *hair;
+	HairSimulator *simulator = nullptr;
 
-	/* use for testing */
-	//string root_path = "C:\\Users\\vivid\\Desktop\\";
-
-	HairLoader* create_hair_loader(const char* fileName, HairGeometry* geom)
-	{
-		std::string name(fileName);
-		int last = name.rfind('.');
-		std::string posfix = name.substr(last);
-		std::transform(posfix.begin(), posfix.end(), posfix.begin(), [](unsigned char c) { return std::tolower(c); });
-
-		HairLoader* result = nullptr;
-		if (posfix == ".anim2")
-			result = new HairAnimationLoader;
-		else if (posfix == ".hair")
-			result = new ZhouHairLoader;
-		else if (posfix == ".recons") {
-			//since for now we only use one instance of hair loader, the "para" will always be para0 in g_paramDict
-			int reduced_init_param = stoi(g_paramDict["para0"], 0, 2);
-			result = new ReducedModel(reduced_init_param);
-		}
-
-		if (result)
-			result->loadFile(fileName, geom);
-
-		return result;
-	}
+#ifdef USE_DEBUG_MODE
+	string root_path = "C:\\Users\\vivid\\Desktop\\";
+#endif
 
 	int InitializeHairEngine(const HairParameter* param, const CollisionParameter* col, const SkinningParameter* skin, const PbdParameter* pbd
 	) {
+#ifndef USE_DEBUG_MODE
 		//for now only hair parameter root is used, others are ignored
 		ConfigReader conf_reader(param->root, ConfigReader::ConfigReaderConfiguration::CONFIG_READ_AS_DESCRIPTION);
 		conf_reader.getParamDict(g_paramDict);
 		conf_reader.close();
 
-		hair = new HairGeometry;
-
-		//we now use reffile only since there's only one instance
-		loader = create_hair_loader((g_paramDict.find("reffile")->second).c_str(), hair);
-
+		simulator = new HairLoaderSimulator;
+#else
 		/* use for testing */
-		//ofstream fout;
-		//fout.open(root_path + "InitializeHairEngine.txt", ios::out);
-		//
-		//fout << "HairParameter" << endl;
-		//fout << "collision: " << param->b_collision << endl;
-		//fout << "pbd: " << param->b_pbd << endl;
-		//fout << "guide: " << param->b_guide << endl;
-		//fout << "root: " << param->root << endl;
+		ofstream fout;
+		fout.open(root_path + "InitializeHairEngine.txt", ios::out);
 
-		//fout << endl;
-		//fout << "CollisionParameter" << endl;
-		//if (col) {
-		//	fout << "correction rate: " << col->correction_rate << endl;
-		//	fout << "correction tolerance: " << col->correction_tolerance << endl;
-		//	fout << "maxstep: " << col->maxstep << endl;
-		//}
-		//else {
-		//	fout << "null" << endl;
-		//}
-		//
-		//fout << endl;
-		//fout << "SkinningParameter" << endl;
-		//if (skin) {
-		//	fout << "simulate guide: " << skin->simulateGuide << endl;
-		//}
-		//else {
-		//	fout << "null" << endl;
-		//}
+		fout << "HairParameter" << endl;
+		fout << "collision: " << param->b_collision << endl;
+		fout << "pbd: " << param->b_pbd << endl;
+		fout << "guide: " << param->b_guide << endl;
+		fout << "root: " << param->root << endl;
 
-		//fout << endl;
-		//fout << "PbdParameter" << endl;
-		//if (pbd) {
-		//	fout << "chunksize: " << pbd->chunksize << endl;
-		//	fout << "detect range: " << pbd->detectrange << endl;
-		//	fout << "lambda: " << pbd->lambda << endl;
-		//	fout << "max iteration" << pbd->maxiteration << endl;
-		//}
-		//else {
-		//	fout << "null" << endl;
-		//}
-			
+		fout << endl;
+		fout << "CollisionParameter" << endl;
+		if (col) {
+			fout << "correction rate: " << col->correction_rate << endl;
+			fout << "correction tolerance: " << col->correction_tolerance << endl;
+			fout << "maxstep: " << col->maxstep << endl;
+		}
+		else {
+			fout << "null" << endl;
+		}
+
+		fout << endl;
+		fout << "SkinningParameter" << endl;
+		if (skin) {
+			fout << "simulate guide: " << skin->simulateGuide << endl;
+		}
+		else {
+			fout << "null" << endl;
+		}
+
+		fout << endl;
+		fout << "PbdParameter" << endl;
+		if (pbd) {
+			fout << "chunksize: " << pbd->chunksize << endl;
+			fout << "detect range: " << pbd->detectrange << endl;
+			fout << "lambda: " << pbd->lambda << endl;
+			fout << "max iteration" << pbd->maxiteration << endl;
+		}
+		else {
+			fout << "null" << endl;
+		}
+#endif // !USE_DEBUG_MODE
 		return 0;
 	}
 
 	int UpdateParameter(const char* key, const char* value) {
+#ifndef USE_DEBUG_MODE
 		g_paramDict[key] = value;
-
-		int d = 4;
-
+#else
 		/* use for testing */
-		//ofstream fout;
-		//fout.open(root_path + "UpdateParameter.txt", ios::out);
-		//fout << "key: " << key << endl;
-		//fout << "value: " << value << endl;
+		ofstream fout;
+		fout.open(root_path + "UpdateParameter.txt", ios::out);
+		fout << "key: " << key << endl;
+		fout << "value: " << value << endl;
+#endif // !USE_DEBUG_MODE
+
 		return 0;
 	}
 
 	int UpdateHairEngine(const float head_matrix[16], float *particle_positions, float *particle_directions) {
-		loader->nextFrame();
-		memcpy(particle_positions, hair->position, sizeof(float) * 3 * hair->nParticle);
-		memcpy(particle_directions, hair->direction, sizeof(float) * 3 * hair->nParticle);
+#ifndef USE_DEBUG_MODE
+		simulator->on_frame(head_matrix);
 
+		const auto &hair = simulator->hair;
+		memcpy(particle_positions, hair.position, sizeof(float) * 3 * hair.nParticle);
+		memcpy(particle_directions, hair.direction, sizeof(float) * 3 * hair.nParticle);
+#else
 		/* use for testing */
-		//ofstream fout;
-		//fout.open(root_path + "UpdateHairEngine.txt", ios::out);
-		//fout << "head_matrix: " << endl;
-		//for (int i = 0; i < 4; ++i) {
-		//	for (int j = 0; j < 4; ++j)
-		//		fout << head_matrix[i * 4 + j] << " ";
-		//	fout << endl;
-		//}
+		ofstream fout;
+		fout.open(root_path + "UpdateHairEngine.txt", ios::out);
+		fout << "head_matrix: " << endl;
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j)
+				fout << head_matrix[i * 4 + j] << " ";
+			fout << endl;
+		}
 
-		//particle_positions[0] = 1.0;
-		//particle_positions[1] = 2.0;
-		//particle_positions[2] = 3.0;
-		//particle_directions[0] = 4.0;
-		//particle_directions[1] = 5.0;
-		//particle_directions[2] = 6.0;
+		particle_positions[0] = 1.0;
+		particle_positions[1] = 2.0;
+		particle_positions[2] = 3.0;
+		particle_directions[0] = 4.0;
+		particle_directions[1] = 5.0;
+		particle_directions[2] = 6.0;
+#endif // !USE_DEBUG_MODE
 
 		return 0;
 	}
 
 	void ReleaseHairEngine() {
-		SAFE_DELETE(hair);
-		SAFE_DELETE(loader);
-
+#ifndef USE_DEBUG_MODE
+		SAFE_DELETE(simulator);
+#else
 		/* use for testing */
-		//ofstream fout;
-		//fout.open(root_path + "ReleaseHairEngine.txt", ios::out);
-		//fout << "Release Hair Engine" << endl;
+		ofstream fout;
+		fout.open(root_path + "ReleaseHairEngine.txt", ios::out);
+		fout << "Release Hair Engine" << endl;
+#endif // !USE_DEBUG_MODE
 	}
 
 	int GetHairParticleCount() {
-		int size = hair->nParticle;
-
-		return size;
-
+#ifndef USE_DEBUG_MODE
+		return simulator->hair.nParticle;
+#else
 		/* use for testing */
-		//return 2147483646;
+		return 12345;
+#endif // !USE_DEBUG_MODE
 	}
 
 	int GetParticlePerStrandCount() {
-		int size = hair->particlePerStrand;
-		return size;
-
+#ifndef USE_DEBUG_MODE
+		return simulator->hair.particlePerStrand;
+#else
 		/* use for testing */
-		//return 67890;
+		return 67890;
+#endif
 	}
 }

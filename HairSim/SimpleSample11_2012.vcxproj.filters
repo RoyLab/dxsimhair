@@ -108,6 +108,9 @@
     <ClCompile Include="DllExports.cpp">
       <Filter>Source Files\DllExports</Filter>
     </ClCompile>
+    <ClCompile Include="HairSimulator.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -181,6 +184,12 @@
     </ClInclude>
     <ClInclude Include="DllExports.h">
       <Filter>Source Files\DllExports</Filter>
+    </ClInclude>
+    <ClInclude Include="HairSimulator.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="HairLoaderSimulator.h">
+      <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

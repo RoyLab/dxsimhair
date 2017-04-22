@@ -652,6 +652,7 @@ python "$(SolutionDir)Scripts\copydll.py" release</Command>
     <ClCompile Include="HairManager.cpp" />
     <ClCompile Include="HairRenderer.cpp" />
     <ClCompile Include="HairSampleSelector.cpp" />
+    <ClCompile Include="HairSimulator.cpp" />
     <ClCompile Include="main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -683,8 +684,10 @@ python "$(SolutionDir)Scripts\copydll.py" release</Command>
     <ClInclude Include="DllExports.h" />
     <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairColor.h" />
+    <ClInclude Include="HairLoaderSimulator.h" />
     <ClInclude Include="HairManager.h" />
     <ClInclude Include="HairSampleSelector.h" />
+    <ClInclude Include="HairSimulator.h" />
     <ClInclude Include="HairStructs.h" />
     <ClInclude Include="HairLoader.h" />
     <ClInclude Include="HairRenderer.h" />

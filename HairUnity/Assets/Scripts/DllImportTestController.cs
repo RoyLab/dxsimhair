@@ -15,7 +15,7 @@ public class DllImportTestController : MonoBehaviour {
     // Use this for initialization
     void Start () {
 
-        string configDescription = System.IO.File.ReadAllText("C:\\Users\\vivid\\Desktop\\newconfig.ini");
+        string configDescription = System.IO.File.ReadAllText("C:\\Users\\vivid\\Desktop\\newconfig.ini").Replace("\r\n", "\n");
         HairParameter param = new HairParameter(false, false, false, configDescription);
 
         CollisionParameter col = new CollisionParameter("", 0.0f, 0.0f, 0.0f); //ignore

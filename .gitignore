@@ -212,6 +212,7 @@ ModelManifest.xml
 # Unity cache and library
 HairUnity/.vs/
 HairUnity/Library/
+HairUnity/Temp/
 
 # Big dll generate file
 HairUnity/Assets/Plugins/SimHair*.dll
