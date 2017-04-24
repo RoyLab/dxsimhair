@@ -86,6 +86,7 @@
     <Compile Include="Assets\Scripts\HairIndexer.cs" />
     <Compile Include="Assets\Scripts\HairLoader.cs" />
     <Compile Include="Assets\Scripts\PointSizeEnabler.cs" />
+    <Compile Include="Assets\Scripts\SimpleSmoothMouseLook.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Material\HairPointShader.shader" />

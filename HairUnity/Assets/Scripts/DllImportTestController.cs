@@ -8,6 +8,7 @@ using HairEngine;
 public class DllImportTestController : MonoBehaviour {
 
     public Material material;
+    public Transform headTransform;
 
     Vector3[] positions = null, directions = null;
     float[] headMatrix = new float[16]
@@ -35,7 +36,7 @@ public class DllImportTestController : MonoBehaviour {
         positions = new Vector3[particleCount];
         directions = new Vector3[particleCount];
 
-        Func.UpdateHairEngine(headMatrix, positions, directions);
+        Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions);
         foreach (var gameObject in HairLoader.LoadFixedParticlePerStrand(positions, strandCount, particlePerStrandCount))
         {
             gameObject.transform.parent = this.transform;
@@ -66,13 +67,20 @@ public class DllImportTestController : MonoBehaviour {
 
         //Func.ReleaseHairEngine();
 	}
+
+    float[] ApplyTranformToWorldMatrix() {
+        for (int i = 0; i < 4; ++i)
+            for (int j = 0; j < 4; ++j)
+                headMatrix[i * 4 + j] = (headTransform == null) ? ((i == j) ? 1.0f : 0.0f) : headTransform.localToWorldMatrix[i, j];
+        return headMatrix;
+    }
 	
 	// Update is called once per frame
 	void Update () {
         if (positions == null || directions == null)
             return;
 
-        Func.UpdateHairEngine(headMatrix, positions, directions);
+        Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions);
         foreach (var transform in this.transform)
         {
             var gameObject = (transform as Transform).gameObject;
