@@ -26,7 +26,11 @@ int main()
 
 	InitializeHairEngine(&param, nullptr, nullptr, nullptr);
 
+	//identity matrix
 	float rigid[16];
+	for (int i = 0; i < 16; ++i)
+		rigid[i] = 1.0f;
+
 	int size = GetHairParticleCount();
 	float *positions = new float[3 * size];
 	float *directions = new float[3 * size];

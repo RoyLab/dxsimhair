@@ -9,6 +9,7 @@
 #include "HairLoader.h"
 #include "HairSimulator.h"
 #include "HairLoaderSimulator.h"
+#include "HairFullModelSimulator.h"
 
 #include <iostream>
 #include <string>
@@ -35,7 +36,13 @@ namespace XRwy {
 		conf_reader.getParamDict(g_paramDict);
 		conf_reader.close();
 
-		simulator = new HairLoaderSimulator;
+		const string hairmodel_type = g_paramDict.find("hairmodel")->second;
+		if (hairmodel_type == "loader")
+			simulator = new HairLoaderSimulator;
+		else if (hairmodel_type == "full")
+			simulator = new HairFullModelSimulator;
+		else
+			assert(false);
 #else
 		/* use for testing */
 		ofstream fout;
@@ -98,11 +105,7 @@ namespace XRwy {
 
 	int UpdateHairEngine(const float head_matrix[16], float *particle_positions, float *particle_directions) {
 #ifndef USE_DEBUG_MODE
-		simulator->on_frame(head_matrix);
-
-		const auto &hair = simulator->hair;
-		memcpy(particle_positions, hair.position, sizeof(float) * 3 * hair.nParticle);
-		memcpy(particle_directions, hair.direction, sizeof(float) * 3 * hair.nParticle);
+		simulator->on_frame(head_matrix, particle_positions, particle_directions);
 #else
 		/* use for testing */
 		ofstream fout;
@@ -138,7 +141,7 @@ namespace XRwy {
 
 	int GetHairParticleCount() {
 #ifndef USE_DEBUG_MODE
-		return simulator->hair.nParticle;
+		return simulator->get_particle_count();
 #else
 		/* use for testing */
 		return 12345;
@@ -147,7 +150,7 @@ namespace XRwy {
 
 	int GetParticlePerStrandCount() {
 #ifndef USE_DEBUG_MODE
-		return simulator->hair.particlePerStrand;
+		return simulator->get_particle_per_strand_count();
 #else
 		/* use for testing */
 		return 67890;

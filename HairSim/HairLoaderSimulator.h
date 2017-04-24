@@ -5,13 +5,15 @@
 #include "HairLoader.h"
 #include "SkinningEngine.h"
 #include "HairSimulator.h"
+#include "macros.h"
 #include <string>
 using namespace std;
 
 namespace XRwy {
 	class HairLoaderSimulator : public HairSimulator {
 	public:
-		HairLoader* loader;
+		HairLoader *loader;
+		HairGeometry *hair;
 
 		HairLoaderSimulator() : HairSimulator() {
 			assert(g_paramDict.find("hairmodel")->second == "loader");
@@ -28,16 +30,34 @@ namespace XRwy {
 				this->loader = new ReducedModel(reduced_init_param);
 			}
 
-			this->loader->loadFile(filepath.c_str(), &this->hair);
+			hair = new HairGeometry;
+			this->loader->loadFile(filepath.c_str(), this->hair);
 		}
 
-		virtual void on_frame(const float rigids[16]) {
+		virtual void on_frame(const float rigids[16], float *pos, float *dir) {
 			loader->nextFrame();
+
+			size_t size = sizeof(float) * 3 * hair->nParticle;
+			if (pos)
+				memcpy(pos, hair->position, size);
+			if (dir)
+				memcpy(dir, hair->direction, size);
+		}
+
+		virtual int get_particle_count() {
+			return hair->nParticle;
+		}
+
+		virtual int get_particle_per_strand_count() {
+			return hair->particlePerStrand;
 		}
 
 		virtual ~HairLoaderSimulator() {
 			delete loader;
 			loader = nullptr;
+
+			delete hair;
+			hair = nullptr;
 		}
 	};
 }

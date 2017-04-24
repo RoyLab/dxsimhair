@@ -29,6 +29,9 @@
     <Filter Include="Source Files\DllExports">
       <UniqueIdentifier>{c5095e72-ddde-45bf-831f-26e72b59b595}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Wr">
+      <UniqueIdentifier>{ff9d8ecd-c1a2-4d50-b527-82ee68ba31bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\DXUT\Optional\directx.ico">
@@ -111,6 +114,18 @@
     <ClCompile Include="HairSimulator.cpp">
       <Filter>Source Files\StaticHair</Filter>
     </ClCompile>
+    <ClCompile Include="wrSpring.cpp">
+      <Filter>Source Files\Wr</Filter>
+    </ClCompile>
+    <ClCompile Include="wrConstants.cpp">
+      <Filter>Source Files\Wr</Filter>
+    </ClCompile>
+    <ClCompile Include="wrHair.cpp">
+      <Filter>Source Files\Wr</Filter>
+    </ClCompile>
+    <ClCompile Include="HairFullModelSimulator.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -189,6 +204,18 @@
       <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
     <ClInclude Include="HairLoaderSimulator.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="wrHair.h">
+      <Filter>Source Files\Wr</Filter>
+    </ClInclude>
+    <ClInclude Include="wrConstants.h">
+      <Filter>Source Files\Wr</Filter>
+    </ClInclude>
+    <ClInclude Include="wrSpring.h">
+      <Filter>Source Files\Wr</Filter>
+    </ClInclude>
+    <ClInclude Include="HairFullModelSimulator.h">
       <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
   </ItemGroup>

@@ -10,7 +10,13 @@ public class DllImportTestController : MonoBehaviour {
     public Material material;
 
     Vector3[] positions = null, directions = null;
-    float[] headMatrix = new float[16];
+    float[] headMatrix = new float[16]
+    {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
 
     // Use this for initialization
     void Start () {
