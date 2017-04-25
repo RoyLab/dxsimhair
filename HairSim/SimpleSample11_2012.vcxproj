@@ -372,8 +372,7 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)3rdparty\dll64\*.*" "$(TargetDir)";
-python "$(SolutionDir)Scripts\copydll.py" debug</Command>
+      <Command>copy /Y "$(SolutionDir)3rdparty\dll64\*.*" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -8,6 +8,7 @@ namespace XRwy {
 		assert(g_paramDict.find("hairmodel")->second == "full");
 
 		N_PARTICLES_PER_STRAND = stoi(g_paramDict.find("particleperstrand")->second);
+		COMPRESS_RATIO = stoi(g_paramDict.find("full_compressratio")->second);
 
 		this->wr_hair = WR::loadFile(g_paramDict.find("reffile")->second.c_str());
 
@@ -23,6 +24,7 @@ namespace XRwy {
 		}
 
 		//initialize parameter
+		//dynamic parts
 		K_SPRINGS[1] = stof(g_paramDict.find("full_spring1")->second);
 		K_SPRINGS[2] = stof(g_paramDict.find("full_spring2")->second);
 		K_SPRINGS[3] = stof(g_paramDict.find("full_spring3")->second);
@@ -38,14 +40,17 @@ namespace XRwy {
 		APPLY_COLLISION = stoi(g_paramDict.find("full_collision")->second);
 		APPLY_STRAINLIMIT = stoi(g_paramDict.find("full_strainlimit")->second);
 
-		//this->register_item("full_spring1", &K_SPRINGS[1]);
-		//this->register_item("full_spring2", &K_SPRINGS[2]);
-		//this->register_item("full_spring3", &K_SPRINGS[3]);
-		//this->register_item("full_particlemass", &PARTICLE_MASS);
-		//this->register_item("full_springdamping", &DAMPING_COEF);
-		//this->register_item("full_winddamping", &WIND_DAMPING_COEF);
-		//this->register_item("full_collision", &APPLY_COLLISION);
-		//this->register_item("full_strainlimit", &APPLY_STRAINLIMIT);
+		TIME_STEP = stof(g_paramDict.find("full_timestep")->second);
+		N_PASS_PER_STEP = stoi(g_paramDict.find("full_npassperstep")->second);
+
+		this->register_item("full_spring1", &K_SPRINGS[1]);
+		this->register_item("full_spring2", &K_SPRINGS[2]);
+		this->register_item("full_spring3", &K_SPRINGS[3]);
+		this->register_item("full_particlemass", &PARTICLE_MASS);
+		this->register_item("full_springdamping", &DAMPING_COEF);
+		this->register_item("full_winddamping", &WIND_DAMPING_COEF);
+		this->register_item("full_collision", &APPLY_COLLISION);
+		this->register_item("full_strainlimit", &APPLY_STRAINLIMIT);
 
 		WR::HairStrand::set_hair(this->wr_hair);
 		WR::HairParticle::set_hair(this->wr_hair);
@@ -56,7 +61,8 @@ namespace XRwy {
 		WR::Mat3 rigid_mat;
 		rigid_mat << rigids[0], rigids[1], rigids[2], rigids[4], rigids[5], rigids[6], rigids[8], rigids[9], rigids[10];
 
-		this->wr_hair->step(rigid_mat, 0.0f, delta_time);
+		for (int i = 0; i < N_PASS_PER_STEP; ++i)
+			this->wr_hair->step(rigid_mat, 0.0f, TIME_STEP / N_PASS_PER_STEP);
 		
 		int cur = 0;
 		for (int i = 0; i < this->wr_hair->n_strands(); ++i)

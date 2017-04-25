@@ -38,6 +38,7 @@ int main()
 	float *positions = new float[3 * size];
 	float *directions = new float[3 * size];
 
+	UpdateParameter("full_spring1", "5e-5");
 	UpdateHairEngine(rigid, positions, directions, 0.03f);
 	for (int i = 0; i < 3 * size; i += 3)
 		cout << '(' << positions[i] << ',' << positions[i + 1] << ',' << positions[i + 2] << ')' << endl;

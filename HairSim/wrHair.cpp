@@ -402,9 +402,9 @@ namespace WR
 
 		float tStep = fTimeElapsed;
 		int nPass = 1;
-		if (fTimeElapsed > MAX_TIME_STEP)
+		if (fTimeElapsed > TIME_STEP)
 		{
-			nPass = static_cast<int>(fTimeElapsed / MAX_TIME_STEP) + 1;
+			nPass = static_cast<int>(fTimeElapsed / TIME_STEP) + 1;
 			tStep = fTimeElapsed / static_cast<float>(nPass);
 		}
 

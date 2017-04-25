@@ -43,12 +43,16 @@ namespace XRwy {
 				switch (t) {
 				case 'i':
 					*(reinterpret_cast<int*>(ptr)) = stoi(value);
+					break;
 				case 'f':
-					*(reinterpret_cast<int*>(ptr)) = stof(value);
+					*(reinterpret_cast<float*>(ptr)) = stof(value);
+					break;
 				case 's':
 					*(reinterpret_cast<string*>(ptr)) = value;
+					break;
 				case 'b':
 					*(reinterpret_cast<bool*>(ptr)) = static_cast<bool>(stoi(value));
+					break;
 				default:
 					break;
 				}

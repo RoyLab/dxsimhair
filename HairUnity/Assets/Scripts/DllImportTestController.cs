@@ -81,8 +81,7 @@ public class DllImportTestController : MonoBehaviour {
             return;
 
         var deltaTime = Time.deltaTime;
-        for (int i = 0; i < 5; ++i)
-            Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 0.006f);
+        Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 0.03f);
 
         foreach (var transform in this.transform)
         {

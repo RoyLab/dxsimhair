@@ -6,12 +6,13 @@ float PARTICLE_MASS = 5.0e-7f;  // kg
 float DAMPING_COEF = 1.0e-4f;
 float WIND_DAMPING_COEF = 1.e-6f;
 
-float         MAX_TIME_STEP = 0.03f;
 int           MAX_PASS_NUMBER = 1;
 
 float          GRAVITY[3] = { 0.0f, -9.8f, 0.0f };
 
 int COMPRESS_RATIO = 1000;
+float TIME_STEP = 0.03f;
+int N_PASS_PER_STEP = 5;
 
 float K_ALTITUDE_SPRING = 0.e-6f;
 bool APPLY_COLLISION = false;

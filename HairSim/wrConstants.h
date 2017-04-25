@@ -14,7 +14,9 @@ extern float PARTICLE_MASS;  // kg
 extern float DAMPING_COEF;
 extern float WIND_DAMPING_COEF;
 
-extern float         MAX_TIME_STEP;
+extern float TIME_STEP;
+extern int N_PASS_PER_STEP;
+
 extern int           MAX_PASS_NUMBER;
 
 extern float          GRAVITY[3];

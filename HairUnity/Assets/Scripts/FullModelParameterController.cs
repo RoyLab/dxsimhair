@@ -39,14 +39,14 @@ public class FullModelParameterController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        //Func.UpdateParameter("full_spring1", GetFloatValue(k1, k1Exp));
-        //Func.UpdateParameter("full_spring2", GetFloatValue(k2, k2Exp));
-        //Func.UpdateParameter("full_spring3", GetFloatValue(k3, k3Exp));
-        //Func.UpdateParameter("full_particlemass", GetFloatValue(mass, massExp));
-        //Func.UpdateParameter("full_springdamping", GetFloatValue(damping, dampingExp));
-        //Func.UpdateParameter("full_collision", (collision ? 1 : 0).ToString());
-        //Func.UpdateParameter("full_strainlimit", (strainlimit ? 1 : 0).ToString());
- 	}
+        Func.UpdateParameter("full_spring1", GetFloatValue(k1, k1Exp));
+        Func.UpdateParameter("full_spring2", GetFloatValue(k2, k2Exp));
+        Func.UpdateParameter("full_spring3", GetFloatValue(k3, k3Exp));
+        Func.UpdateParameter("full_particlemass", GetFloatValue(mass, massExp));
+        Func.UpdateParameter("full_springdamping", GetFloatValue(damping, dampingExp));
+        Func.UpdateParameter("full_collision", (collision ? 1 : 0).ToString());
+        Func.UpdateParameter("full_strainlimit", (strainlimit ? 1 : 0).ToString());
+    }
 
     string GetFloatValue(float value, int exp)
     {
