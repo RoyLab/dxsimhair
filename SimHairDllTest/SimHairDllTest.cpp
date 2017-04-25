@@ -5,6 +5,8 @@
 #include "DllExports.h"
 #include <string>
 #include <fstream>
+#include <iostream>
+using namespace std;
 
 using namespace XRwy;
 using namespace std;
@@ -28,15 +30,18 @@ int main()
 
 	//identity matrix
 	float rigid[16];
-	for (int i = 0; i < 16; ++i)
-		rigid[i] = 1.0f;
+	for (int i = 0; i < 4; ++i)
+		for (int j = 0; j < 4; ++j)
+			rigid[i * 4 + j] = (i == j ? 1.0 : 0.0);
 
 	int size = GetHairParticleCount();
 	float *positions = new float[3 * size];
 	float *directions = new float[3 * size];
 
-	UpdateHairEngine(rigid, positions, directions);
-	
+	UpdateHairEngine(rigid, positions, directions, 0.03f);
+	for (int i = 0; i < 3 * size; i += 3)
+		cout << '(' << positions[i] << ',' << positions[i + 1] << ',' << positions[i + 2] << ')' << endl;
+	 
 	ReleaseHairEngine();
 }
 

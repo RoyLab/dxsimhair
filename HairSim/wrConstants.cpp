@@ -11,7 +11,7 @@ int           MAX_PASS_NUMBER = 1;
 
 float          GRAVITY[3] = { 0.0f, -9.8f, 0.0f };
 
-int COMPRESS_RATIO = 300;
+int COMPRESS_RATIO = 1000;
 
 float K_ALTITUDE_SPRING = 0.e-6f;
 bool APPLY_COLLISION = false;

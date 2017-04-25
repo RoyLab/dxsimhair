@@ -4,6 +4,8 @@
 #include "xlogger.h"
 #include "wrSpring.h"
 #include "EigenTypes.h"
+#include <iostream>
+using namespace std;
 
 #define FULL_IMPLICIT
 using namespace WR;
@@ -172,16 +174,15 @@ namespace WR
 		m_strands.emplace_back();
 		auto &strand = m_strands.back();
 		strand.reserve(nParticles);
-		const float mass_1 = 1.f / PARTICLE_MASS;
 
 		// apply the memory, two extra virtual particles for the root
 		// generate 2 virtual (but with [isVirtual] = false) hair root particles
 		vec3 p[2];
 		vec3_sub(p[0], pos[0], edgeSprings[0]);
-		add_particle(strand, p[0], mass_1, false, true, false);
+		add_particle(strand, p[0], &PARTICLE_MASS, false, true, false);
 
 		genRandParticle(p[1], p[0], pos[0]);
-		add_particle(strand, p[1], mass_1, false, true, false);
+		add_particle(strand, p[1], &PARTICLE_MASS, false, true, false);
 
 		// copy information into normal particles
 		bool isThisVirtual = false;
@@ -192,12 +193,12 @@ namespace WR
 			{
 				isThisVirtual = false;
 				genRandParticle(p, pos[i1], pos[i1 - 1]);
-				add_particle(strand, p, mass_1, true, false, false);
+				add_particle(strand, p, &PARTICLE_MASS, true, false, false);
 			}
 			else
 			{
-				if (i == 2) add_particle(strand, pos[i1], mass_1, false, true, true);
-				else add_particle(strand, pos[i1], mass_1);
+				if (i == 2) add_particle(strand, pos[i1], &PARTICLE_MASS, false, true, true);
+				else add_particle(strand, pos[i1], &PARTICLE_MASS);
 
 				if (collinearPos.size() > i2 && collinearPos[i2] == i1)
 				{
@@ -209,28 +210,39 @@ namespace WR
 		}
 
 		// the last particle has a half mass
-		m_particles[strand.get_particle(-1)].set_mass_1(mass_1 * 2);
+		//m_particles[strand.get_particle(-1)].set_mass_1(mass_1 * 2);
+		m_particles[strand.get_particle(-1)].setMassPointer(&PARTICLE_MASS);
 
 		SAFE_DELETE_ARRAY(edgeSprings);
 
 		return true;
 	}
 
-	void Hair::add_particle(HairStrand& strand, const vec3& pos, float mass_1, bool isPerturbed, bool isFixedPos, bool isVisible)
+	void Hair::add_particle(HairStrand& strand, const vec3& pos, float *mass, bool isPerturbed, bool isFixedPos, bool isVisible)
 	{
-		size_t idx = add_particle(pos, mass_1, isPerturbed, isFixedPos);
-		strand.push_back(idx, isVisible);
+		//size_t idx = add_particle(pos, mass, isPerturbed, isFixedPos);
+
+		Vec3 posVec3;
+		posVec3 << pos[0], pos[1], pos[2];
+
+		size_t id = m_particles.size();
+		size_t localId = strand.m_parIds.size();
+
+		m_particles.emplace_back(posVec3, id, localId, isPerturbed, isFixedPos);
+		m_particles.back().setMassPointer(mass);
+
+		strand.push_back(id, isVisible);
 	}
 
-	size_t Hair::add_particle(const vec3& p, float mass_1, bool isPerturbed, bool isFixedPos)
-	{
-		Vec3 pos;
-		pos << p[0], p[1], p[2];
-		size_t id = m_particles.size();
-		m_particles.emplace_back(pos, id, isPerturbed, isFixedPos);
-		m_particles.back().set_mass_1(mass_1);
-		return id;
-	}
+	//size_t Hair::add_particle(const vec3& p, float *mass, bool isPerturbed, bool isFixedPos)
+	//{
+	//	Vec3 pos;
+	//	pos << p[0], p[1], p[2];
+	//	size_t id = m_particles.size();
+	//	m_particles.emplace_back(pos, id, isPerturbed, isFixedPos);
+	//	m_particles.back().setMassPointer(mass);
+	//	return id;
+	//}
 
 	void Hair::release()
 	{
@@ -273,7 +285,7 @@ namespace WR
 		m_gravity.resize(3 * n);
 		m_gravity.setZero();
 		for (size_t i = 0; i < n; i++)
-			triple(m_gravity, i) = Vec3(GRAVITY) / m_particles[i].get_mass_1();
+			triple(m_gravity, i) = Vec3(GRAVITY) / m_particles[i].getMass_1();
 
 		m_mass_1.resize(3 * n, 3 * n);
 		m_mass_1.reserve(VecX::Constant(3 * n, 1));
@@ -291,7 +303,7 @@ namespace WR
 		{
 			triple(m_position, i) = m_particles[i].get_ref();
 
-			float mass = 1.f / m_particles[i].get_mass_1();
+			float mass = 1.f / m_particles[i].getMass_1();
 			m_mass.insert(3 * i, 3 * i) = mass;
 			m_mass.insert(3 * i + 1, 3 * i + 1) = mass;
 			m_mass.insert(3 * i + 2, 3 * i + 2) = mass;
@@ -302,7 +314,7 @@ namespace WR
 			}
 			else
 			{
-				float mass_1 = m_particles[i].get_mass_1();
+				float mass_1 = m_particles[i].getMass_1();
 
 				m_mass_1.insert(3 * i, 3 * i) = mass_1;
 				m_mass_1.insert(3 * i + 1, 3 * i + 1) = mass_1;
@@ -353,33 +365,34 @@ namespace WR
 			auto & strand = m_strands[i];
 			size_t np = strand.m_parIds.size();
 			for (size_t i = 3; i < np; i++)
-				push_springs(strand.m_parIds[i]);
+				push_springs(strand, strand.m_parIds[i]);
 		}
 	}
 
-	void Hair::push_springs(int idx)
+	void Hair::push_springs(HairStrand &strand, int idx)
 	{
 		if (m_particles[idx].isPerturbed())
 		{
 			int type = classifyVirtualParticle(&m_particles[idx]);
 			for (int i = 0; i < 3; i++)
-				push_single_spring(idx, VIRTUAL_SPRING_DICT[type][i]);
+				push_single_spring(strand, idx, VIRTUAL_SPRING_DICT[type][i]);
 		}
 		else
 		{
 			int type = classifyRealParticle(&m_particles[idx]);
 			for (int i = 0; i < 4; i++) // TO-DO 可能在第2个粒子上会出问题
-				push_single_spring(idx, REAL_SPRING_DICT[type][i]);
+				push_single_spring(strand, idx, REAL_SPRING_DICT[type][i]);
 		}
 	}
 
-	void Hair::push_single_spring(int idx, int stride)
+	void Hair::push_single_spring(HairStrand &strand, int idx, int stride)
 	{
 		if (stride)
 		{
 			auto spring = new BiSpring;
 			m_springs.push_back(spring);
 			spring->setSpring(stride, &m_particles[idx], &m_particles[idx - stride], &K_SPRINGS[stride]);
+			strand.m_springPointers.push_back(spring);
 		}
 	}
 
@@ -423,73 +436,85 @@ namespace WR
 				Vec3 newVel = (newPos - Vec3(get_particle_position(idx))) / fTimeElapsed;
 				triple(m_velocity, idx) = newVel;
 			}
+
+			VecX dv = extract_dv(strand, fTimeElapsed);
+			//std::cout << "dv=" << std::endl;
+			//for (int i = 0; i < dv.rows(); i += 3) {
+			//	std::cout << '(' << dv(i) << ',' << dv(i + 1) << ',' << dv(i + 2) << ") ";
+			//}
+			//std::cout << std::endl;
+
+			int si = strand.get_particle(0) * 3, sn = strand.m_parIds.size() * 3;
+			auto pos_seg = m_position.segment(si, sn);
+			auto vel_seg = m_velocity.segment(si, sn);
+			vel_seg += dv;
+			pos_seg += vel_seg * fTimeElapsed;
 		}
 
-		size_t dim = m_position.size();
-		SparseMatAssemble K(dim, dim), B(dim, dim);
-		K.reserve(VecX::Constant(dim, 30));
-		B.reserve(VecX::Constant(dim, 30));
+		//size_t dim = m_position.size();
+		//SparseMatAssemble K(dim, dim), B(dim, dim);
+		//K.reserve(VecX::Constant(dim, 30));
+		//B.reserve(VecX::Constant(dim, 30));
 
-		K.reserve_hash_map(10 * m_particles.size());
-		B.reserve_hash_map(10 * m_particles.size());
+		//K.reserve_hash_map(10 * m_particles.size());
+		//B.reserve_hash_map(10 * m_particles.size());
 
-		VecX C(dim);
-		C.setZero();
+		//VecX C(dim);
+		//C.setZero();
 
-		for (auto &spring : m_springs)
-			spring->applyForces(K, B, C);
+		//for (auto &spring : m_springs)
+		//	spring->applyForces(K, B, C);
 
-		K.flush();
-		B.flush();
+		//K.flush();
+		//B.flush();
 
-#ifdef FULL_IMPLICIT
-		SparseMat T = B + m_wind_damping + K * fTimeElapsed;
+		//SparseMat T = B + m_wind_damping + K * fTimeElapsed;
 
-		VecX dv(dim);
+		//VecX dv(dim);
 
-		if (APPLY_PCG)
-		{
-			SparseMat A = m_mass + T * fTimeElapsed;
-			VecX b = -fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity);
-			modified_pcg(A, b, dv);
-		}
-		else
-		{
-			SparseMat A(dim, dim);
-			A.setIdentity();
-			A += m_mass_1 * T * fTimeElapsed;
+		//if (APPLY_PCG)
+		//{
+		//	SparseMat A = m_mass + T * fTimeElapsed;
+		//	VecX b = -fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity);
+		//	modified_pcg(A, b, dv);
+		//}
+		//else
+		//{
+		//	SparseMat A(dim, dim);
+		//	A.setIdentity();
+		//	A += m_mass_1 * T * fTimeElapsed;
 
-			VecX b = m_mass_1 * (-fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity));
-			LU(A, b, dv);
-		}
+		//	VecX b = m_mass_1 * (-fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity));
+		//	LU(A, b, dv);
+		//}
 
 
-		if (APPLY_STRAINLIMIT) {
-			m_position += (m_velocity + dv) * fTimeElapsed;
-			resolve_strain_limits(m_position, m_velocity, fTimeElapsed);
+		//if (APPLY_STRAINLIMIT) {
+		//	m_position += (m_velocity + dv) * fTimeElapsed;
+		//	resolve_strain_limits(m_position, m_velocity, fTimeElapsed);
 
-			if (APPLY_PCG)
-			{
-				SparseMat A = m_mass + T * fTimeElapsed;
-				VecX b = -fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity);
-				modified_pcg(A, b, dv);
-			}
-			else
-			{
-				SparseMat A(dim, dim);
-				A.setIdentity();
-				A += m_mass_1 * T * fTimeElapsed;
+		//	if (APPLY_PCG)
+		//	{
+		//		SparseMat A = m_mass + T * fTimeElapsed;
+		//		VecX b = -fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity);
+		//		modified_pcg(A, b, dv);
+		//	}
+		//	else
+		//	{
+		//		SparseMat A(dim, dim);
+		//		A.setIdentity();
+		//		A += m_mass_1 * T * fTimeElapsed;
 
-				VecX b = m_mass_1 * (-fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity));
-				LU(A, b, dv);
-			}
+		//		VecX b = m_mass_1 * (-fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity));
+		//		LU(A, b, dv);
+		//	}
 
-			m_velocity += dv;
-		}
-		else {
-			m_velocity += dv;
-			m_position += m_velocity * fTimeElapsed;
-		}
+		//	m_velocity += dv;
+		//}
+		//else {
+		//	m_velocity += dv;
+		//	m_position += m_velocity * fTimeElapsed;
+		//}
 
 		//if (APPLY_COLLISION)
 		//resolve_body_collision(mWorld, m_position, m_velocity, fTimeElapsed);
@@ -499,22 +524,95 @@ namespace WR
 		//        std::cout << i << std::endl;
 
 		//m_position = newPos;
+	}
 
-#else
-		const float tdiv2 = fTimeElapsed / 2;
+	//VecX extract_dv(const MatX &K, const MatX &B, const VecX &C, Eigen::VectorBlock<VecX> pos, Eigen::VectorBlock<VecX> vel, const float fTimeElapsed) {
+	//	//SparseMat T = B + m_wind_damping + K * fTimeElapsed;
 
-		SparseMat T = B + m_wind_damping + K * tdiv2;
-		SparseMat A = m_mass + T * tdiv2;
-		VecX b = -tdiv2 * ((K * m_position - C) + T * m_velocity);
+	//	//VecX dv(dim);
 
-		VecX dv(dim);
-		modified_pcg(A, b, dv);
+	//	//if (APPLY_PCG)
+	//	//{
+	//	//	SparseMat A = m_mass + T * fTimeElapsed;
+	//	//	VecX b = -fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity);
+	//	//	modified_pcg(A, b, dv);
+	//	//}
+	//	//else
+	//	//{
+	//	//	SparseMat A(dim, dim);
+	//	//	A.setIdentity();
+	//	//	A += m_mass_1 * T * fTimeElapsed;
 
-		m_velocity += 2 * dv;
-		VecX v_1_2 = m_velocity - dv;
-		//resolve_strain_limits(v_1_2);
-		m_position += v_1_2 * fTimeElapsed;
-#endif
+	//	//	VecX b = m_mass_1 * (-fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity));
+	//	//	LU(A, b, dv);
+	//	//}
+
+	//	int dim = K.rows();
+
+	//	MatX T = B + K * fTimeElapsed + (MatX::Identity(dim, dim) * WIND_DAMPING_COEF);
+
+	//	MatX A = MatX::Identity(dim, dim) + (1.0 / PARTICLE_MASS * fTimeElapsed) * T;
+	//	VecX b = (K * pos - C) + T * vel;
+	//	for (int i = 0; i < dim; i += 3) {
+	//		b(i) -= GRAVITY[0];
+	//		b(i + 1) -= GRAVITY[1];
+	//		b(i + 2) -= GRAVITY[2];
+	//	}
+	//	b *= -(1.0 / PARTICLE_MASS * fTimeElapsed);
+
+	//	return A.ldlt().solve(b);
+	//}
+
+	VecX Hair::extract_dv(const HairStrand &strand, const float fTimeElapsed) const {
+		//SparseMat T = B + m_wind_damping + K * fTimeElapsed;
+
+		//VecX dv(dim);
+
+		//if (APPLY_PCG)
+		//{
+		//	SparseMat A = m_mass + T * fTimeElapsed;
+		//	VecX b = -fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity);
+		//	modified_pcg(A, b, dv);
+		//}
+		//else
+		//{
+		//	SparseMat A(dim, dim);
+		//	A.setIdentity();
+		//	A += m_mass_1 * T * fTimeElapsed;
+
+		//	VecX b = m_mass_1 * (-fTimeElapsed * (((K * m_position - C) + T * m_velocity) - m_gravity));
+		//	LU(A, b, dv);
+		//}
+
+		size_t dim = strand.m_parIds.size() * 3;
+
+		float mass = PARTICLE_MASS;
+		float mass_1 = 1.0 / PARTICLE_MASS;
+		float gravity[3] = { mass * GRAVITY[0], mass * GRAVITY[1], mass * GRAVITY[2] };
+
+		MatX K = MatX::Zero(dim, dim), B = MatX::Zero(dim, dim);
+		VecX C = VecX::Zero(dim);
+
+		Eigen::DenseIndex si = strand.get_particle(0) * 3;
+		auto pos = m_position.segment(si, dim);
+		auto vel = m_velocity.segment(si, dim);
+
+		for (const auto springPtr : strand.m_springPointers) {
+			springPtr->applyForces(K, B, C);
+		}
+
+		MatX T = B + K * fTimeElapsed + (MatX::Identity(dim, dim) * WIND_DAMPING_COEF);
+
+		MatX A = MatX::Identity(dim, dim) + (mass_1 * fTimeElapsed) * T;
+		VecX b = (K * pos - C) + T * vel;
+		for (int i = 0; i < dim; i += 3) {
+			b(i) -= gravity[0];
+			b(i + 1) -= gravity[1];
+			b(i + 2) -= gravity[2];
+		}
+		b *= -(mass_1 * fTimeElapsed);
+
+		return A.ldlt().solve(b);
 	}
 
 	void Hair::simple_solve(const MatX& A, const VecX& b, VecX& x) const

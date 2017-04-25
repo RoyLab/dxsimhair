@@ -16,17 +16,17 @@ namespace WR
 
 	class HairParticle
 	{
-		COMMON_PROPERTY(float, mass_1);
 		COMMON_PROPERTY(Vec3, ref);
 		STATIC_PROPERTY(Hair*, hair);
 
 		friend class Hair;
 	public:
-		HairParticle(const Vec3& pos, size_t id, bool isPerturbed = false, bool isFixedPos = false) :
-			m_ref(pos), m_Id(id),
+		HairParticle(const Vec3& pos, size_t id, size_t localId, bool isPerturbed = false, bool isFixedPos = false) :
+			m_ref(pos), m_Id(id), m_LocalId(localId),
 			mb_perturbed(isPerturbed), mb_fixedPos(isFixedPos) {}
 
 		size_t get_Id() const { return m_Id; }
+		size_t get_LocalId() const { return m_LocalId; }
 		bool isPerturbed() const { return mb_perturbed; }
 		bool isFixedPos() const { return mb_fixedPos; }
 		const Vec3 get_pos() const;
@@ -37,8 +37,16 @@ namespace WR
 			return mat * m_ref;
 		}
 
+		float getMass() { return *mass;  }
+		float getMass_1() { return 1.0f / (*mass); }
+		void setMassPointer(float* massPointer) {
+			mass = massPointer;
+		}
+
 	private:
-		size_t        m_Id;
+		size_t m_Id;
+		size_t m_LocalId; //the local id in strand
+		float *mass;
 
 		// mark only the split nodes, NOT the root ones.
 		bool            mb_perturbed;
@@ -68,6 +76,7 @@ namespace WR
 	private:
 		std::vector<int> m_parIds;
 		std::vector<int> m_visibleParticles;
+		std::vector<ISpring*> m_springPointers;
 	};
 
 	typedef WR::HairParticle* HairSegment[2];
@@ -102,12 +111,12 @@ namespace WR
 		void step(const Mat3& mWorld, float fTime, float fTimeElapsed);
 
 	private:
-		size_t add_particle(const vec3&, float mass_1, bool isPerturbed = false, bool isFixedPos = false);
-		void add_particle(HairStrand& strand, const vec3&, float mass_1, bool isPerturbed = false, bool isFixedPos = false, bool isVisible = true);
+		//size_t add_particle(const vec3&, float *mass, bool isPerturbed = false, bool isFixedPos = false);
+		void add_particle(HairStrand& strand, const vec3&, float *mass, bool isPerturbed = false, bool isFixedPos = false, bool isVisible = true);
 		void init_matrices();
 		void add_inner_springs();
-		void push_springs(int idx);
-		void push_single_spring(int idx, int stride);
+		void push_springs(HairStrand &strand, int idx);
+		void push_single_spring(HairStrand &strand, int idx, int stride);
 
 		// 保证了从发根到发梢的次序！！非常重要
 		void add_strain_limits();
@@ -120,6 +129,7 @@ namespace WR
 		void modified_pcg(const SparseMat& A, const VecX& b, VecX& dv) const;
 		void LU(const SparseMat& A, const VecX& b, VecX& dv) const;
 		void simple_solve(const MatX& A, const VecX& b, VecX& dv) const;
+		VecX extract_dv(const HairStrand &strand, const float fTimeElapsed) const;
 
 		std::vector<HairParticle>       m_particles;
 		std::list<ISpring*>             m_springs;
