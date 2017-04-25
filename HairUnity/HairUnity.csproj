@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\DllImportTestController.cs" />
+    <Compile Include="Assets\Scripts\FullModelParameterController.cs" />
     <Compile Include="Assets\Scripts\HairController.cs" />
     <Compile Include="Assets\Scripts\HairEngine\CollisionParameter.cs" />
     <Compile Include="Assets\Scripts\HairEngine\HairEngineConstants.cs" />

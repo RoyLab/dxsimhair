@@ -92,6 +92,7 @@ namespace XRwy {
 	int UpdateParameter(const char* key, const char* value) {
 #ifndef USE_DEBUG_MODE
 		g_paramDict[key] = value;
+		simulator->on_change_parameter(key, value);
 #else
 		/* use for testing */
 		ofstream fout;
@@ -103,9 +104,9 @@ namespace XRwy {
 		return 0;
 	}
 
-	int UpdateHairEngine(const float head_matrix[16], float *particle_positions, float *particle_directions) {
+	int UpdateHairEngine(const float head_matrix[16], float *particle_positions, float *particle_directions, float delta_time) {
 #ifndef USE_DEBUG_MODE
-		simulator->on_frame(head_matrix, particle_positions, particle_directions);
+		simulator->on_frame(head_matrix, particle_positions, particle_directions, delta_time);
 #else
 		/* use for testing */
 		ofstream fout;

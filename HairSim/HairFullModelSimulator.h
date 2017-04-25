@@ -8,7 +8,7 @@ namespace XRwy {
 		friend class WR::Hair;
 	public:
 		HairFullModelSimulator();
-		virtual void on_frame(const float rigids[16], float *pos, float *dir);
+		virtual void on_frame(const float rigids[16], float *pos, float *dir, float delta_time);
 		virtual int get_particle_count();
 		virtual int get_particle_per_strand_count();
 		virtual ~HairFullModelSimulator();

@@ -114,7 +114,7 @@ Material:
       second: 1
     - first:
         name: _StrokeWidth
-      second: 0.005
+      second: 0.001
     - first:
         name: _UVSec
       second: 0

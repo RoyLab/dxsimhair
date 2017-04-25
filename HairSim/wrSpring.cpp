@@ -12,7 +12,7 @@ namespace WR
 		Vec3 d = (nodes[0]->get_pos() - nodes[1]->get_pos());
 		d.normalize();
 		Mat3 d3x3 = d * d.transpose();
-		Mat3 d3x3K = KdivL0 * d3x3;
+		Mat3 d3x3K = KdivL0() * d3x3;
 		Mat3 d3x3B = DAMPING_COEF * d3x3;
 		Vec3 d3C = K() * d;
 
@@ -33,7 +33,7 @@ namespace WR
 		triple(vC, id1) -= d3C;
 	}
 
-	void BiSpring::setSpring(int type, const Particle* p0, const Particle* p1, float K)
+	void BiSpring::setSpring(int type, const Particle* p0, const Particle* p1, float *K)
 	{
 		type = stride;
 
@@ -43,11 +43,10 @@ namespace WR
 		setCoef(K, (nodes[0]->get_ref() - nodes[1]->get_ref()).norm());
 	}
 
-	void BiSpring::setCoef(float k, float l)
+	void BiSpring::setCoef(float *k, float l)
 	{
 		_K = k;
 		L0 = l;
-		KdivL0 = k / l;
 	}
 
 }

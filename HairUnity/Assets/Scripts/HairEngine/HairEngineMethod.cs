@@ -6,7 +6,7 @@ namespace HairEngine
 {
     class Func
     {
-        [DllImport("SimHair00013", EntryPoint = "InitializeHairEngine")]
+        [DllImport("SimHair00014", EntryPoint = "InitializeHairEngine")]
         private static extern int _InitializeHairEngine(IntPtr HairParameterPtr, IntPtr CollisionParameterPtr, IntPtr SkinningParameterPtr, IntPtr PdbParameterPtr);
 
         public static int InitializeHairEngine(HairParameter hair, CollisionParameter col, SkinningParameter skin, PbdParameter pbd) {
@@ -14,7 +14,7 @@ namespace HairEngine
             return ret;
         }
 
-        [DllImport("SimHair00013", EntryPoint = "UpdateParameter", CharSet = CharSet.Ansi)]
+        [DllImport("SimHair00014", EntryPoint = "UpdateParameter", CharSet = CharSet.Ansi)]
         private static extern int _UpdateParameter(
             [MarshalAs(UnmanagedType.LPStr)]
             string key,
@@ -26,31 +26,32 @@ namespace HairEngine
             return _UpdateParameter(key, value);
         }
 
-        [DllImport("SimHair00013", EntryPoint = "UpdateHairEngine")]
+        [DllImport("SimHair00014", EntryPoint = "UpdateHairEngine")]
         private static extern int _UpdateHairEngine(
             [MarshalAs(UnmanagedType.LPArray, SizeConst = 16)]
             float[] headMatrix,
             [In, Out] Vector3[] particlePositions,
-            [In, Out] Vector3[] particleDirections
+            [In, Out] Vector3[] particleDirections,
+            float deltaTime
             );
 
         //This api will change later
-        public static int UpdateHairEngine(float[] headMatrix, Vector3[] particlePositions, Vector3[] particleDirections) {
-            var ret = _UpdateHairEngine(headMatrix, particlePositions, particleDirections);
+        public static int UpdateHairEngine(float[] headMatrix, Vector3[] particlePositions, Vector3[] particleDirections, float deltaTime) {
+            var ret = _UpdateHairEngine(headMatrix, particlePositions, particleDirections, deltaTime);
             return ret;
         }
 
-        [DllImport("SimHair00013", EntryPoint = "ReleaseHairEngine")]
+        [DllImport("SimHair00014", EntryPoint = "ReleaseHairEngine")]
         private static extern void _ReleaseHairEngine();
 
         public static void ReleaseHairEngine() {
             _ReleaseHairEngine();
         }
 
-        [DllImport("SimHair00013", EntryPoint = "GetHairParticleCount")]
+        [DllImport("SimHair00014", EntryPoint = "GetHairParticleCount")]
         public static extern int GetHairParticleCount();
 
-        [DllImport("SimHair00013", EntryPoint = "GetParticlePerStrandCount")]
+        [DllImport("SimHair00014", EntryPoint = "GetParticlePerStrandCount")]
         public static extern int GetParticlePerStrandCount();
     }
 }

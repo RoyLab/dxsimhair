@@ -36,7 +36,7 @@ public class DllImportTestController : MonoBehaviour {
         positions = new Vector3[particleCount];
         directions = new Vector3[particleCount];
 
-        Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions);
+        Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 30.0e-3f);
         foreach (var gameObject in HairLoader.LoadFixedParticlePerStrand(positions, strandCount, particlePerStrandCount))
         {
             gameObject.transform.parent = this.transform;
@@ -80,7 +80,10 @@ public class DllImportTestController : MonoBehaviour {
         if (positions == null || directions == null)
             return;
 
-        Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions);
+        var deltaTime = Time.deltaTime;
+        for (int i = 0; i < 7; ++i)
+            Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 0.004f);
+
         foreach (var transform in this.transform)
         {
             var gameObject = (transform as Transform).gameObject;

@@ -38,16 +38,25 @@ namespace XRwy {
 		APPLY_COLLISION = stoi(g_paramDict.find("full_collision")->second);
 		APPLY_STRAINLIMIT = stoi(g_paramDict.find("full_strainlimit")->second);
 
+		//this->register_item("full_spring1", &K_SPRINGS[1]);
+		//this->register_item("full_spring2", &K_SPRINGS[2]);
+		//this->register_item("full_spring3", &K_SPRINGS[3]);
+		//this->register_item("full_particlemass", &PARTICLE_MASS);
+		//this->register_item("full_springdamping", &DAMPING_COEF);
+		//this->register_item("full_winddamping", &WIND_DAMPING_COEF);
+		//this->register_item("full_collision", &APPLY_COLLISION);
+		//this->register_item("full_strainlimit", &APPLY_STRAINLIMIT);
+
 		WR::HairStrand::set_hair(this->wr_hair);
 		WR::HairParticle::set_hair(this->wr_hair);
 		this->wr_hair->init_simulation();
 	}
 
-	void HairFullModelSimulator::on_frame(const float rigids[16], float *pos, float *dir) {
+	void HairFullModelSimulator::on_frame(const float rigids[16], float *pos, float *dir, float delta_time) {
 		WR::Mat3 rigid_mat;
 		rigid_mat << rigids[0], rigids[1], rigids[2], rigids[4], rigids[5], rigids[6], rigids[8], rigids[9], rigids[10];
 
-		this->wr_hair->step(rigid_mat, 0.0f, MAX_TIME_STEP);
+		this->wr_hair->step(rigid_mat, 0.0f, delta_time);
 		
 		int cur = 0;
 		for (int i = 0; i < this->wr_hair->n_strands(); ++i)

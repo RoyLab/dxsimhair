@@ -379,7 +379,7 @@ namespace WR
 		{
 			auto spring = new BiSpring;
 			m_springs.push_back(spring);
-			spring->setSpring(stride, &m_particles[idx], &m_particles[idx - stride], K_SPRINGS[stride]);
+			spring->setSpring(stride, &m_particles[idx], &m_particles[idx - stride], &K_SPRINGS[stride]);
 		}
 	}
 

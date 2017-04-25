@@ -34,7 +34,7 @@ namespace XRwy {
 			this->loader->loadFile(filepath.c_str(), this->hair);
 		}
 
-		virtual void on_frame(const float rigids[16], float *pos, float *dir) {
+		virtual void on_frame(const float rigids[16], float *pos, float *dir, float delta_time) {
 			loader->nextFrame();
 
 			size_t size = sizeof(float) * 3 * hair->nParticle;

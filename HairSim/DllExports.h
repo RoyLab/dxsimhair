@@ -62,7 +62,8 @@ namespace XRwy {
 		SIMHAIR_DLL int UpdateHairEngine(
 			const float head_matrix[16],
 			float *particle_positions,
-			float *particle_directions = nullptr
+			float *particle_directions,
+			float delta_time
 		);
 
 		SIMHAIR_DLL void ReleaseHairEngine();
