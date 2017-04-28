@@ -10,6 +10,11 @@
 #include "HairSimulator.h"
 #include "HairLoaderSimulator.h"
 #include "HairFullModelSimulator.h"
+#include "LevelSet.h"
+
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/Polyhedron_incremental_builder_3.h>
+#include <CGAL/Polyhedron_3.h>
 
 #include <iostream>
 #include <string>
@@ -20,9 +25,42 @@ using XR::ConfigReader;
 
 //#define USE_DEBUG_MODE
 
+namespace {
+	template <class HDS>
+	struct PolyhedronBuilder: public CGAL::Modifier_base<HDS> {
+		PolyhedronBuilder(const int nvertices_, const int nfaces_, const float *vertices_, const int *faces_) : nvertices(nvertices_), nfaces(nfaces_), vertices(vertices_), faces(faces_) {}
+
+		void operator() (HDS &hds) {
+			CGAL::Polyhedron_incremental_builder_3<HDS> incr(hds, true);
+
+			incr.begin_surface(nvertices, nfaces);
+			using Vertex = HDS::Vertex;
+			using Point = HDS::Point;
+			for (int i = 0; i < nvertices * 3; i += 3)
+				incr.add_vertex(Point(vertices[i], vertices[i + 1], vertices[i + 2]));
+			for (int i = 0; i < nfaces * 3; i += 3) {
+				incr.begin_facet();
+				incr.add_vertex_to_facet(faces[i]);
+				incr.add_vertex_to_facet(faces[i + 1]);
+				incr.add_vertex_to_facet(faces[i + 2]);
+				incr.end_facet();
+			}
+		}
+
+	private:
+		int nvertices;
+		int nfaces;
+		float *vertices;
+		int *faces;
+	};
+}
+
 namespace XRwy {
 
+	using ICollisionObject = WR::ICollisionObject;
+
 	HairSimulator *simulator = nullptr;
+	ICollisionObject *collision_object = nullptr;
 
 #ifdef USE_DEBUG_MODE
 	string root_path = "C:\\Users\\vivid\\Desktop\\";
@@ -132,6 +170,7 @@ namespace XRwy {
 	void ReleaseHairEngine() {
 #ifndef USE_DEBUG_MODE
 		SAFE_DELETE(simulator);
+		SAFE_DELETE(collision_object);
 #else
 		/* use for testing */
 		ofstream fout;
@@ -156,5 +195,28 @@ namespace XRwy {
 		/* use for testing */
 		return 67890;
 #endif
+	}
+
+	int InitCollisionObject(const int nvertices, const int nfaces, const float *vertices, const int *faces) {
+
+		using Poly3 = WR::Polyhedron_3_FaceWithId;
+		Poly3 poly;
+		PolyhedronBuilder<Poly3::HalfedgeDS> builder(nvertices, nfaces, vertices, faces);
+		poly.delegate(builder);
+
+		collision_object = createCollisionObject(poly);
+		
+
+		/* use for testing */
+		//ofstream fout("C:\\Users\\vivid\\Desktop\\InitCollisionObject.txt", ios::out);
+		//
+		//fout << "vertices: " << endl;
+		//for (int i = 0; i < nvertices * 3; i += 3)
+		//	fout << vertices[i] << " " << vertices[i + 1] << " " << vertices[i + 2] << endl;
+		//fout << "faces: " << endl;
+		//for (int i = 0; i < nfaces * 3; i += 3)
+		//	fout << faces[i] << " " << faces[i + 1] << " " << faces[i + 2] << endl;
+
+		return 0;
 	}
 }

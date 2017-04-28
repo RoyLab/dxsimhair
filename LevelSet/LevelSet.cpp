@@ -60,7 +60,7 @@ namespace WR
     }
 
 	extern "C" WR_API ICollisionObject* loadCollisionObject(const wchar_t* fileName)
-    {
+    {  
         return new ADFCollisionObject(fileName);
     }
 

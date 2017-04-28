@@ -66,6 +66,8 @@ namespace XRwy {
 			float delta_time
 		);
 
+		SIMHAIR_DLL int InitCollisionObject(const int nvertices, const int nfaces, const float *vertices, const int *faces);
+
 		SIMHAIR_DLL void ReleaseHairEngine();
 
 		SIMHAIR_DLL int GetHairParticleCount();

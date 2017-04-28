@@ -100,7 +100,6 @@ GameObject:
   m_Component:
   - component: {fileID: 297728567}
   - component: {fileID: 297728566}
-  - component: {fileID: 297728568}
   m_Layer: 0
   m_Name: HairObject
   m_TagString: Untagged
@@ -134,17 +133,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &297728568
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 297728565}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07ee727620fe21d46b5e06324e902c83, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &357644846
 Prefab:
   m_ObjectHideFlags: 0
@@ -187,7 +175,7 @@ Prefab:
     - target: {fileID: 23719623930773280, guid: a5d6b7751afaa5a4daf33c314caa5137,
         type: 2}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: a5d6b7751afaa5a4daf33c314caa5137, type: 2}
