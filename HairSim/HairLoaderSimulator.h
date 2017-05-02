@@ -34,14 +34,12 @@ namespace XRwy {
 			this->loader->loadFile(filepath.c_str(), this->hair);
 		}
 
-		virtual void on_frame(const float rigids[16], float *pos, float *dir, float delta_time) {
+		virtual void on_frame(const float rigids[16], float *pos, float *dir, float delta_time, ICollisionObject* collision_obj, const float collision_world2local_mat[16]) {
 			loader->nextFrame();
 
 			size_t size = sizeof(float) * 3 * hair->nParticle;
 			if (pos)
 				memcpy(pos, hair->position, size);
-			if (dir)
-				memcpy(dir, hair->direction, size);
 		}
 
 		virtual int get_particle_count() {

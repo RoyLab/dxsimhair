@@ -4,13 +4,13 @@
 #include "linmath.h"
 #include "EigenTypes.h"
 #include "wrConstants.h"
+#include "ICollisionObject.h"
 
 namespace WR
 {
 	class Hair;
 	class ISpring;
 	class StrainLimitPair;
-	class ICollisionObject;
 
 	Hair *loadFile(const char*);
 
@@ -30,12 +30,6 @@ namespace WR
 		bool isPerturbed() const { return mb_perturbed; }
 		bool isFixedPos() const { return mb_fixedPos; }
 		const Vec3 get_pos() const;
-
-		template <class Matrix>
-		Vec3 transposeFromReference(const Matrix& mat) const
-		{
-			return mat * m_ref;
-		}
 
 		float getMass() { return *mass;  }
 		float getMass_1() { return 1.0f / (*mass); }
@@ -108,7 +102,7 @@ namespace WR
 		const float* get_visible_particle_position(size_t i, size_t j) const { return get_particle_position(get_strand(i).get_visible_particle(j)); }
 		const float* get_particle_position(size_t i) const { return reinterpret_cast<const float*>(&m_position(3 * i)); }
 
-		void step(const Mat3& mWorld, float fTime, float fTimeElapsed);
+		void step(const Mat4& mWorld, float fTime, float fTimeElapsed, ICollisionObject *collisionObj, const Mat4& mWrold2Collision);
 
 	private:
 		//size_t add_particle(const vec3&, float *mass, bool isPerturbed = false, bool isFixedPos = false);

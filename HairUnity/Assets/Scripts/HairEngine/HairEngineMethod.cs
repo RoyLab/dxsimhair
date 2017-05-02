@@ -6,7 +6,7 @@ namespace HairEngine
 {
     class Func
     {
-        [DllImport("SimHair00005", EntryPoint = "InitializeHairEngine")]
+        [DllImport("SimHair00007", EntryPoint = "InitializeHairEngine")]
         private static extern int _InitializeHairEngine(IntPtr HairParameterPtr, IntPtr CollisionParameterPtr, IntPtr SkinningParameterPtr, IntPtr PdbParameterPtr);
 
         public static int InitializeHairEngine(HairParameter hair, CollisionParameter col, SkinningParameter skin, PbdParameter pbd) {
@@ -14,7 +14,7 @@ namespace HairEngine
             return ret;
         }
 
-        [DllImport("SimHair00005", EntryPoint = "UpdateParameter", CharSet = CharSet.Ansi)]
+        [DllImport("SimHair00007", EntryPoint = "UpdateParameter", CharSet = CharSet.Ansi)]
         private static extern int _UpdateParameter(
             [MarshalAs(UnmanagedType.LPStr)]
             string key,
@@ -26,7 +26,7 @@ namespace HairEngine
             return _UpdateParameter(key, value);
         }
 
-        [DllImport("SimHair00005", EntryPoint = "UpdateHairEngine")]
+        [DllImport("SimHair00007", EntryPoint = "UpdateHairEngine")]
         private static extern int _UpdateHairEngine(
             [MarshalAs(UnmanagedType.LPArray, SizeConst = 16)]
             float[] headMatrix,
@@ -41,20 +41,20 @@ namespace HairEngine
             return ret;
         }
 
-        [DllImport("SimHair00005", EntryPoint = "ReleaseHairEngine")]
+        [DllImport("SimHair00007", EntryPoint = "ReleaseHairEngine")]
         private static extern void _ReleaseHairEngine();
 
         public static void ReleaseHairEngine() {
             _ReleaseHairEngine();
         }
 
-        [DllImport("SimHair00005", EntryPoint = "GetHairParticleCount")]
+        [DllImport("SimHair00007", EntryPoint = "GetHairParticleCount")]
         public static extern int GetHairParticleCount();
 
-        [DllImport("SimHair00005", EntryPoint = "GetParticlePerStrandCount")]
+        [DllImport("SimHair00007", EntryPoint = "GetParticlePerStrandCount")]
         public static extern int GetParticlePerStrandCount();
 
-        [DllImport("SimHair00005", EntryPoint = "InitCollisionObject")]
+        [DllImport("SimHair00007", EntryPoint = "InitCollisionObject")]
         private static extern int _InitCollisionObject(
             int nVertices,
             int nFaces,

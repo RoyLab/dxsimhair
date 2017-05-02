@@ -15,43 +15,67 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_incremental_builder_3.h>
 #include <CGAL/Polyhedron_3.h>
+#include <CGAL/bounding_box.h>
+#include "ICollisionObject.h"
+#include "GridCollisionObject.h"
+#include "UnitTest.h"
 
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <algorithm>
+#include <functional>
+#include <utility>
+#include <unordered_map>
 using namespace std;
 
 using XR::ConfigReader;
 
 //#define USE_DEBUG_MODE
 
+namespace XRwy {
+	struct FaceIndex {
+		int a, b, c;
+	};
+}
+
 namespace {
+	using Poly3 = CGAL::Polyhedron_3<CGAL::FloatKernel>;
+	using HalfedgeDS3 = Poly3::HalfedgeDS;
+	using Vertex3 = HalfedgeDS3::Vertex;
+	using Point3 = Vertex3::Point;
+
 	template <class HDS>
-	struct PolyhedronBuilder: public CGAL::Modifier_base<HDS> {
-		PolyhedronBuilder(const int nvertices_, const int nfaces_, const float *vertices_, const int *faces_) : nvertices(nvertices_), nfaces(nfaces_), vertices(vertices_), faces(faces_) {}
+	struct PolyhedronBuilder : public CGAL::Modifier_base<HDS> {
+		PolyhedronBuilder(const vector<Point3> &vs, const vector<XRwy::FaceIndex> &fs) : vs_ptr(&vs), fs_ptr(&fs) {}
 
 		void operator() (HDS &hds) {
+			using Vertex = HDS::Vertex;
+			using Point = Vertex::Point;
+
+			const auto &vs = *vs_ptr;
+			const auto &fs = *fs_ptr;
+
 			CGAL::Polyhedron_incremental_builder_3<HDS> incr(hds, true);
 
-			incr.begin_surface(nvertices, nfaces);
-			using Vertex = HDS::Vertex;
-			using Point = HDS::Point;
-			for (int i = 0; i < nvertices * 3; i += 3)
-				incr.add_vertex(Point(vertices[i], vertices[i + 1], vertices[i + 2]));
-			for (int i = 0; i < nfaces * 3; i += 3) {
+			incr.begin_surface(vs.size(), fs.size());
+
+			for (int i = 0; i < vs.size(); ++i)
+				incr.add_vertex(vs[i]);
+			for (int i = 0; i < fs.size(); ++i) {
 				incr.begin_facet();
-				incr.add_vertex_to_facet(faces[i]);
-				incr.add_vertex_to_facet(faces[i + 1]);
-				incr.add_vertex_to_facet(faces[i + 2]);
+				incr.add_vertex_to_facet(fs[i].a);
+				incr.add_vertex_to_facet(fs[i].b);
+				incr.add_vertex_to_facet(fs[i].c);
 				incr.end_facet();
 			}
+
+			incr.end_surface();
 		}
 
 	private:
-		int nvertices;
-		int nfaces;
-		float *vertices;
-		int *faces;
+		const vector<Point3> *vs_ptr;
+		const vector<XRwy::FaceIndex> *fs_ptr;
 	};
 }
 
@@ -144,7 +168,13 @@ namespace XRwy {
 
 	int UpdateHairEngine(const float head_matrix[16], float *particle_positions, float *particle_directions, float delta_time) {
 #ifndef USE_DEBUG_MODE
-		simulator->on_frame(head_matrix, particle_positions, particle_directions, delta_time);
+		float mat4[16] = {
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		};
+		simulator->on_frame(head_matrix, particle_positions, particle_directions, delta_time, collision_object, mat4);
 #else
 		/* use for testing */
 		ofstream fout;
@@ -197,15 +227,75 @@ namespace XRwy {
 #endif
 	}
 
-	int InitCollisionObject(const int nvertices, const int nfaces, const float *vertices, const int *faces) {
+	struct UnorderedMapEqualToPoint3 {
+		bool operator() (const Point3 &p1, const Point3 &p2) const {
+			return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1]) + abs(p1[2] - p2[2]) < 1e-7;
+		}
+	};
 
-		using Poly3 = WR::Polyhedron_3_FaceWithId;
-		Poly3 poly;
-		PolyhedronBuilder<Poly3::HalfedgeDS> builder(nvertices, nfaces, vertices, faces);
-		poly.delegate(builder);
+	struct UnorderedMapHashPoint3 {
+		size_t operator() (const Point3 &p) const {
+			auto func = std::hash<float>{};
+			return func(p[0]) ^ func(p[1]) ^ func(p[2]);
+		}
+	};
 
-		collision_object = createCollisionObject(poly);
+	int InitCollisionObject(int nvertices, int nfaces, const float *vertices, const int *faces) {
+
+		collision_object = WR::CreateGridCollisionObject("C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\box-1-1-1.grid2");
+
+		//size_t buck_size = 100000;
+
+		//Poly3 poly;
+
+		//unordered_map<Point3, int, UnorderedMapHashPoint3, UnorderedMapEqualToPoint3> remap_v;
+		//vector<FaceIndex> remap_fv;
+		//vector<Point3> remap_vv;
+
+
+		//for (int i = 0, count = 0; i < nvertices * 3; i += 3) {
+		//	auto v = Point3(vertices[i], vertices[i + 1], vertices[i + 2]);
+		//	if (remap_v.find(v) == remap_v.end()) {
+		//		remap_v.insert(pair<Point3, int>(v, count++));
+		//	}
+		//}
+
+		//remap_vv.reserve(remap_v.size());
+		//for (auto it = remap_v.begin(); it != remap_v.end(); ++it)
+		//	remap_vv.push_back(it->first);
+
+		//for (int i = 0; i < nfaces * 3; i += 3) {
+		//	auto find_new_idx = [&remap_v, &vertices](const int idx) -> int {
+		//		auto v = Point3(vertices[idx * 3], vertices[idx * 3 + 1], vertices[idx * 3 + 2]);
+		//		return remap_v.find(v)->second;
+		//	};
+
+		//	remap_fv.push_back(FaceIndex{ find_new_idx(faces[i]), find_new_idx(faces[i + 1]), find_new_idx(faces[i + 2]) });
+		//}
+
+		//PolyhedronBuilder<Poly3::HalfedgeDS> builder(remap_vv, remap_fv);
+		//poly.delegate(builder);
+
+		//collision_object = WR::CreateGridCollisionObject2(poly);
+
+		//WriteGridCollisionObject(collision_object, "C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\box-1-1-1.grid2");
 		
+		//creating test point
+		vector<Point3> test_points;
+		test_points.emplace_back(0.465559870, 0.298745625, 0.408978552);
+		for (int i = 0; i < 1000; ++i)
+			test_points.emplace_back(randf(), randf(), randf());
+		cout << "Begin testing ..." << endl;
+		Point3 ret;
+		for (const auto &point : test_points) {
+			auto result = collision_object->position_correlation(point, &ret);
+			cout << '(' << point[0] << ',' << point[1] << ',' << point[2] << ") " << (result ? "True" : "False");
+			if (result) {
+				cout << ' ' << ret[0] << ',' << ret[1] << ',' << ret[2] << ")";
+			}
+			cout << endl;
+		}
+
 
 		/* use for testing */
 		//ofstream fout("C:\\Users\\vivid\\Desktop\\InitCollisionObject.txt", ios::out);

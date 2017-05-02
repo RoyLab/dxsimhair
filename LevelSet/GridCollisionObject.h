@@ -1,5 +1,6 @@
 #pragma once
 #include "ICollisionObject.h"
+#include "UnitTest.h"
 
 namespace XRwy
 {
@@ -7,13 +8,19 @@ namespace XRwy
 		public WR::ICollisionObject
 	{
 	public:
-		GridCollisionObject(const char*);
+		//GridCollisionObject(const char*);
+		GridCollisionObject(CGAL::Polyhedron_3<CGAL::FloatKernel> &iMesh, int slice = 64);
+		GridCollisionObject(const char* file_path);
 		virtual ~GridCollisionObject();
 
 		float query_distance(const Point_3& p) const;
 		float query_squared_distance(const Point_3& p) const;
 		bool exceed_threshhold(const Point_3& p, float thresh = 0.f) const;
 		bool position_correlation(const Point_3& p, Point_3* pCorrect, float thresh = 0.f) const;
+
+		void write_to_file(const char* file_path);
+
+		static GridCollisionObject* load_file(const char *file_path);
 
 	private:
 		WR::LevelSetVData* query(int i, int j, int k) const { return data + i*yz + j*z + k; }
@@ -23,7 +30,8 @@ namespace XRwy
 		float bbox[6];
 		float diag[3];
 
-		float tolerance, step, correctionRate, maxstep;
+		float tolerance , correctionRate, maxstep;
+		Vector_3 step;
 
 		WR::LevelSetVData* data = nullptr;
 	};

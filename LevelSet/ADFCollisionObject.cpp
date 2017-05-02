@@ -441,9 +441,15 @@ namespace WR
                         << ", " << dist1 << ", " << dist2;
                 }
             }
-            Vector_3 grad(v[0], v[1], v[2]);
-            grad = grad / sqrt(grad.squared_length());
-            vItr->info().gradient = grad;
+			if (v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0) {
+				//the gradient is zero, then every direction is okay?
+				vItr->info().gradient = Vector_3(1.0f, 0.0f, 0.0f);
+			}
+			else {
+				Vector_3 grad(v[0], v[1], v[2]);
+				grad = grad / sqrt(grad.squared_length());
+				vItr->info().gradient = grad;
+			}
         }
 
 		delete tester;

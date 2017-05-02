@@ -49,29 +49,45 @@ namespace WR
 		return new XRwy::GridCollisionObject(fileName);
 	}
 
+	extern "C" WR_API ICollisionObject* CreateGridCollisionObject2(CGAL::Polyhedron_3<CGAL::FloatKernel> &iMesh) {
+		return new XRwy::GridCollisionObject(iMesh);
+	}
+
+	extern "C" WR_API void WriteGridCollisionObject(ICollisionObject* collisionObj, const char* file_path) {
+		auto gridObj = dynamic_cast<XRwy::GridCollisionObject *>(collisionObj);
+		if (gridObj) {
+			gridObj->write_to_file(file_path);
+		}
+	}
 
 	extern "C" WR_API ICollisionObject* createCollisionObject(Polyhedron_3_FaceWithId& poly)
     {
-        ADFOctree* pTree = new ADFOctree;
-        pTree->construct(poly, 2);
-        ICollisionObject* pCO = pTree->releaseAndCreateCollisionObject();
-        delete pTree;
-        return pCO;
+		assert(0);
+        //ADFOctree* pTree = new ADFOctree;
+        //pTree->construct(poly, 2);
+        //ICollisionObject* pCO = pTree->releaseAndCreateCollisionObject();
+        //delete pTree;
+        //return pCO;
+		return nullptr;
     }
 
 	extern "C" WR_API ICollisionObject* loadCollisionObject(const wchar_t* fileName)
     {  
-        return new ADFCollisionObject(fileName);
+		assert(0);
+        /*return new ADFCollisionObject(fileName);*/
+		return nullptr;
     }
 
 	extern "C" WR_API ICollisionObject* createCollisionObject2(const wchar_t* fileName)
     {
-        Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
-        assert(pModel);
-        ICollisionObject* pCO = createCollisionObject(*pModel);
-        assert(pCO);
-        delete pModel;
-        return pCO;
+		assert(0);
+        //Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
+        //assert(pModel);
+        //ICollisionObject* pCO = createCollisionObject(*pModel);
+        //assert(pCO);
+        //delete pModel;
+        //return pCO;
+		return nullptr;
     }
 
     template <class Poly>
@@ -92,88 +108,89 @@ namespace WR
 
     void runLevelSetBenchMark(const wchar_t* fileName)
     {
-        XR::ConfigReader reader("..\\config.ini");
-        int level = std::stoi(reader.getValue("maxlevel"));
-        int number = std::stoi(reader.getValue("testnumber"));
-        bool loadArray = std::stoi(reader.getValue("loadtest"));
-        float tmp = std::stof(reader.getValue("boxgap"));
-        bool regen = std::stoi(reader.getValue("regenmodel"));
+		assert(0);
+  //      XR::ConfigReader reader("..\\config.ini");
+  //      int level = std::stoi(reader.getValue("maxlevel"));
+  //      int number = std::stoi(reader.getValue("testnumber"));
+  //      bool loadArray = std::stoi(reader.getValue("loadtest"));
+  //      float tmp = std::stof(reader.getValue("boxgap"));
+  //      bool regen = std::stoi(reader.getValue("regenmodel"));
 
-        ADFOctree::set_box_enlarge_size(tmp);
+  //      ADFOctree::set_box_enlarge_size(tmp);
 
-        Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
-        assert(pModel);
+  //      Polyhedron_3_FaceWithId* pModel = WRG::readFile<Polyhedron_3_FaceWithId>(fileName);
+  //      assert(pModel);
 
-		mat4x4 identity;  mat4x4_identity(identity);
-		auto mat = ComputeHeadTransformation(reinterpret_cast<float*>(identity));
+		//mat4x4 identity;  mat4x4_identity(identity);
+		//auto mat = ComputeHeadTransformation(reinterpret_cast<float*>(identity));
 
-		for (auto itr = pModel->vertices_begin(); itr != pModel->vertices_end(); itr++)
-		{
-			auto &vertex = itr->point();
-			vec4 v{ vertex[0], vertex[1], vertex[2], 1.0f };
-			DirectX::XMVECTOR pos = DirectX::XMLoadFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(v));
-			auto newpos = DirectX::XMVector3Transform(pos, mat);
-			XMFLOAT4 last; XMStoreFloat4(&last, newpos);
-			itr->point() = Polyhedron_3_FaceWithId::Point_3(last.x, last.y, last.z);
-		}
+		//for (auto itr = pModel->vertices_begin(); itr != pModel->vertices_end(); itr++)
+		//{
+		//	auto &vertex = itr->point();
+		//	vec4 v{ vertex[0], vertex[1], vertex[2], 1.0f };
+		//	DirectX::XMVECTOR pos = DirectX::XMLoadFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(v));
+		//	auto newpos = DirectX::XMVector3Transform(pos, mat);
+		//	XMFLOAT4 last; XMStoreFloat4(&last, newpos);
+		//	itr->point() = Polyhedron_3_FaceWithId::Point_3(last.x, last.y, last.z);
+		//}
 
-        auto* tester = CGAL::Ext::createDistanceTester<Polyhedron_3_FaceWithId, K>(*pModel);
+  //      auto* tester = CGAL::Ext::createDistanceTester<Polyhedron_3_FaceWithId, K>(*pModel);
 
-        ICollisionObject* pCO = nullptr;
-        if (regen)
-        {
-			/* generate octree level set obj */
-            ADFOctree* pTree = new ADFOctree;
-            pTree->construct(*pModel, level);
-            pCO = pTree->releaseAndCreateCollisionObject();
-            delete pTree;
-        }
-        else
-        {
-            //pCO = new ADFCollisionObject(L"hair");
+  //      ICollisionObject* pCO = nullptr;
+  //      if (regen)
+  //      {
+		//	/* generate octree level set obj */
+  //          ADFOctree* pTree = new ADFOctree;
+  //          pTree->construct(*pModel, level);
+  //          pCO = pTree->releaseAndCreateCollisionObject();
+  //          delete pTree;
+  //      }
+  //      else
+  //      {
+  //          //pCO = new ADFCollisionObject(L"hair");
 
-			/* generate grid level set obj */
-			pCO = CreateGridCollisionObject("D:/hair project/models/head.grid");
-        }
+		//	/* generate grid level set obj */
+		//	pCO = CreateGridCollisionObject("D:/hair project/models/head.grid");
+  //      }
 
-        double size = max_coordinate(*pModel);
-        std::vector<Point> points;
-        if (loadArray)
-        {
-            loadPoints(L"test.dat", points);
-            number = points.size();
-        }
-        else
-        {
-            points.reserve(number);
-            CGAL::Random_points_in_cube_3<Point> gen(size);
-            for (unsigned int i = 0; i < number; ++i)
-                points.push_back(*gen++);
-        }
+  //      double size = max_coordinate(*pModel);
+  //      std::vector<Point> points;
+  //      if (loadArray)
+  //      {
+  //          loadPoints(L"test.dat", points);
+  //          number = points.size();
+  //      }
+  //      else
+  //      {
+  //          points.reserve(number);
+  //          CGAL::Random_points_in_cube_3<Point> gen(size);
+  //          for (unsigned int i = 0; i < number; ++i)
+  //              points.push_back(*gen++);
+  //      }
 
-        while (number--)
-        {
-            auto & p = points[number];
-            double dist = pCO->query_distance(p);
-            double std_dist = tester->query_signed_distance(p);
-            cout << "Point: " << p << endl;
-			if (dist < 1000)
-				cout << " Dist1: " << dist << " Dist2: " << std_dist <<
-                "\t\t diff: " << dist - std_dist << endl;
+  //      while (number--)
+  //      {
+  //          auto & p = points[number];
+  //          double dist = pCO->query_distance(p);
+  //          double std_dist = tester->query_signed_distance(p);
+  //          cout << "Point: " << p << endl;
+		//	if (dist < 1000)
+		//		cout << " Dist1: " << dist << " Dist2: " << std_dist <<
+  //              "\t\t diff: " << dist - std_dist << endl;
 
-            Point crt;
-            if (pCO->position_correlation(p, &crt))
-				cout << "                                  corrected distance: " << pCO->query_distance(crt) << endl;
+  //          Point crt;
+  //          if (pCO->position_correlation(p, &crt))
+		//		cout << "                                  corrected distance: " << pCO->query_distance(crt) << endl;
 
-			cout << endl;
-        }
+		//	cout << endl;
+  //      }
 
-        //if (regen)
-        //    pCO->save_model(L"hair");
+  //      //if (regen)
+  //      //    pCO->save_model(L"hair");
 
-        delete pCO;
+  //      delete pCO;
 
-        delete tester;
-        delete pModel;
+  //      delete tester;
+  //      delete pModel;
     }
 }

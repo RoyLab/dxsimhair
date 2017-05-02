@@ -32,7 +32,8 @@ public class DllImportTestController : MonoBehaviour {
 
         Func.InitializeHairEngine(param, col, skin, pbd);
         var collisionMesh = collisionObject.GetComponent<MeshFilter>().mesh;
-        if (collisionMesh != null) {
+        if (collisionMesh != null)
+        {
             Func.InitCollisionObject(collisionMesh);
         }
 

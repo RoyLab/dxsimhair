@@ -398,58 +398,90 @@ namespace WR
 
 	void Hair::onFrame(Mat3 world, float fTime, float fTimeElapsed)
 	{
-		static Mat3 lastWorld = Mat3::Identity();
+		//static Mat3 lastWorld = Mat3::Identity();
 
-		float tStep = fTimeElapsed;
-		int nPass = 1;
-		if (fTimeElapsed > TIME_STEP)
-		{
-			nPass = static_cast<int>(fTimeElapsed / TIME_STEP) + 1;
-			tStep = fTimeElapsed / static_cast<float>(nPass);
-		}
+		//float tStep = fTimeElapsed;
+		//int nPass = 1;
+		//if (fTimeElapsed > TIME_STEP)
+		//{
+		//	nPass = static_cast<int>(fTimeElapsed / TIME_STEP) + 1;
+		//	tStep = fTimeElapsed / static_cast<float>(nPass);
+		//}
 
-		if (nPass > MAX_PASS_NUMBER) nPass = MAX_PASS_NUMBER;
+		//if (nPass > MAX_PASS_NUMBER) nPass = MAX_PASS_NUMBER;
 
-		float start = fTime - fTimeElapsed;
-		auto matStep = (world - lastWorld) / nPass;
-		for (int i = 0; i < nPass; i++)
-		{
-			lastWorld += matStep;
-			step(lastWorld, (start += tStep), tStep);
-			//std::cout << std::setprecision(2) << tStep << ' ';
-			//Sleep(500);
-		}
+		//float start = fTime - fTimeElapsed;
+		//auto matStep = (world - lastWorld) / nPass;
+		//for (int i = 0; i < nPass; i++)
+		//{
+		//	lastWorld += matStep;
+		//	step(lastWorld, (start += tStep), tStep);
+		//	//std::cout << std::setprecision(2) << tStep << ' ';
+		//	//Sleep(500);
+		//}
 	}
 
-	void Hair::step(const Mat3& mWorld, float fTime, float fTimeElapsed)
+	void Hair::step(const Mat4& mWorld, float fTime, float fTimeElapsed, ICollisionObject *collisionObj, const Mat4& mWrold2Collision)
 	{
+		cout << "step" << endl;
 		assert(mb_simInited);
 
 		// modify root node's pos, vel. first 3.
 		// 假设固定点都在匀速运动
+		int g_count = 0;
 		for (auto &strand : m_strands)
 		{
 			for (int j = 0; j < 3; j++)
 			{
 				size_t idx = strand.get_particle(j);
-				Vec3 newPos = get_particle(idx).transposeFromReference(mWorld);
+				Vec3 ref = get_particle(idx).get_ref();
+				Vec3 newPos = (mWorld * Vec4(ref(0), ref(1), ref(2), 1.0)).segment(0, 3);
 				Vec3 newVel = (newPos - Vec3(get_particle_position(idx))) / fTimeElapsed;
 				triple(m_velocity, idx) = newVel;
 			}
 
-			VecX dv = extract_dv(strand, fTimeElapsed);
-			//std::cout << "dv=" << std::endl;
-			//for (int i = 0; i < dv.rows(); i += 3) {
-			//	std::cout << '(' << dv(i) << ',' << dv(i + 1) << ',' << dv(i + 2) << ") ";
-			//}
-			//std::cout << std::endl;
-
 			int si = strand.get_particle(0) * 3, sn = strand.m_parIds.size() * 3;
 			auto pos_seg = m_position.segment(si, sn);
 			auto vel_seg = m_velocity.segment(si, sn);
+			VecX dv = extract_dv(strand, fTimeElapsed);
+			//if (si <= 1377 && si + sn > 1377) {
+			//	cout << "before" << endl;
+			//	for (int i = 0; i < sn; i += 3) {
+			//		std::cout << si + i << ": dv=(" << dv(i) << ',' << dv(i + 1) << ',' << dv(i + 2) << ")  pos=(" << pos_seg(i) << ',' << pos_seg(i + 1) << ',' << pos_seg(i + 2) << ")  vel=(" << vel_seg(i) << ',' << vel_seg(i + 1) << ',' << vel_seg(i + 2) << ')' << endl;;
+			//	}
+			//	std::cout << std::endl;
+			//}
 			vel_seg += dv;
 			pos_seg += vel_seg * fTimeElapsed;
+
+			g_count++;
 		}
+
+		if (collisionObj && APPLY_COLLISION) {
+
+			using Point3 = ICollisionObject::Point_3;
+
+			for (int i = 0; i < m_position.rows(); i += 3) {
+				Point3 temp = Point3(m_position(i), m_position(i + 1), m_position(i + 2));
+				bool correct = collisionObj->position_correlation(temp, &temp);
+				if (correct) {
+					m_position(i) = temp[0];
+					m_position(i + 1) = temp[1];
+					m_position(i + 2) = temp[2];
+				}
+			}
+		}
+
+		//int si = 1377, sn = 81;
+		//auto pos_seg = m_position.segment(si, sn);
+		//auto vel_seg = m_velocity.segment(si, sn);
+		//if (si <= 1377 && si + sn > 1377) {
+		//	cout << "after" << endl;
+		//	for (int i = 0; i < sn; i += 3) {
+		//		std::cout << si + i << ": pos=(" << pos_seg(i) << ',' << pos_seg(i + 1) << ',' << pos_seg(i + 2) << ")  vel=(" << vel_seg(i) << ',' << vel_seg(i + 1) << ',' << vel_seg(i + 2) << ')' << endl;;
+		//	}
+		//	std::cout << std::endl;
+		//}
 
 		//size_t dim = m_position.size();
 		//SparseMatAssemble K(dim, dim), B(dim, dim);
