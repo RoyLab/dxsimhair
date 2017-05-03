@@ -4,6 +4,7 @@
 #include "xlogger.h"
 #include "wrSpring.h"
 #include "EigenTypes.h"
+#include "LevelSet.h"
 #include <iostream>
 using namespace std;
 
@@ -98,7 +99,7 @@ namespace WR
 	Hair* HairParticle::m_hair = nullptr;
 	Hair* HairStrand::m_hair = nullptr;
 
-	Hair* loadFile(const char* path)
+	Hair* loadFile(const char* path, const ICollisionObject *collision_obj, bool use_scale, float scale_x, float scale_y, float scale_z)
 	{
 		std::ifstream file(path, std::ios::binary);
 		if (file)
@@ -130,7 +131,17 @@ namespace WR
 					SAFE_DELETE(hair);
 					break;
 				}
-				hair->add_strand(reinterpret_cast<float*>(cbuffer));
+
+				float *cbuffer_float = reinterpret_cast<float *>(cbuffer);
+
+				if (use_scale) {
+					for (int i = 0; i < 3 * N_PARTICLES_PER_STRAND; i += 3) {
+						cbuffer_float[i] *= scale_x;
+						cbuffer_float[i + 1] *= scale_y;
+						cbuffer_float[i + 2] *= scale_z;
+					}
+				}
+				hair->add_strand(cbuffer_float, collision_obj);
 
 				file.seekg(sizeof(int) + (COMPRESS_RATIO * i + static_cast<int>(COMPRESS_RATIO * randf())) * sizeof(float) * 3 * N_PARTICLES_PER_STRAND);
 			}
@@ -144,7 +155,7 @@ namespace WR
 	}
 
 	// n is not used here
-	bool Hair::add_strand(float* positions, size_t n)
+	bool Hair::add_strand(float* positions, const ICollisionObject *collision_obj, size_t n)
 	{
 		vec3* pos = reinterpret_cast<vec3*>(positions);
 
@@ -152,6 +163,21 @@ namespace WR
 		vec3 *edgeSprings = new vec3[N_PARTICLES_PER_STRAND - 1];
 		for (int i = 0; i < N_PARTICLES_PER_STRAND - 1; i++)
 			vec3_sub(edgeSprings[i], pos[i + 1], pos[i]);
+
+		//if we have a collision object, we first make sure the particles are all outside the object
+		//if (APPLY_COLLISION && collision_obj) {
+		//	for (int i = 0; i < N_PARTICLES_PER_STRAND; i++) {
+		//		ICollisionObject::Point_3 tmp =
+		//			(i == 0) ? ICollisionObject::Point_3(pos[i][0], pos[i][1], pos[i][2])
+		//			: ICollisionObject::Point_3(pos[i - 1][0] + edgeSprings[i - 1][0], pos[i - 1][1] + edgeSprings[i - 1][1], pos[i - 1][2] + edgeSprings[i - 1][2]);
+
+		//		if (collision_obj->position_correlation(tmp, &tmp, 0.02)) {
+		//			pos[i][0] = tmp[0];
+		//			pos[i][1] = tmp[1];
+		//			pos[i][2] = tmp[2];
+		//		}
+		//	}
+		//}
 
 		// check for any co-linear condition
 		// the index means a virtual node should be added AFTER the (i)th real node
@@ -423,12 +449,10 @@ namespace WR
 
 	void Hair::step(const Mat4& mWorld, float fTime, float fTimeElapsed, ICollisionObject *collisionObj, const Mat4& mWrold2Collision)
 	{
-		cout << "step" << endl;
 		assert(mb_simInited);
 
 		// modify root node's pos, vel. first 3.
 		// 假设固定点都在匀速运动
-		int g_count = 0;
 		for (auto &strand : m_strands)
 		{
 			for (int j = 0; j < 3; j++)
@@ -440,48 +464,32 @@ namespace WR
 				triple(m_velocity, idx) = newVel;
 			}
 
-			int si = strand.get_particle(0) * 3, sn = strand.m_parIds.size() * 3;
+			size_t idx0 = strand.get_particle(0), par_count = strand.m_parIds.size();
+			size_t si = strand.get_particle(0) * 3, sn = strand.m_parIds.size() * 3;
 			auto pos_seg = m_position.segment(si, sn);
 			auto vel_seg = m_velocity.segment(si, sn);
 			VecX dv = extract_dv(strand, fTimeElapsed);
-			//if (si <= 1377 && si + sn > 1377) {
-			//	cout << "before" << endl;
-			//	for (int i = 0; i < sn; i += 3) {
-			//		std::cout << si + i << ": dv=(" << dv(i) << ',' << dv(i + 1) << ',' << dv(i + 2) << ")  pos=(" << pos_seg(i) << ',' << pos_seg(i + 1) << ',' << pos_seg(i + 2) << ")  vel=(" << vel_seg(i) << ',' << vel_seg(i + 1) << ',' << vel_seg(i + 2) << ')' << endl;;
-			//	}
-			//	std::cout << std::endl;
-			//}
 			vel_seg += dv;
 			pos_seg += vel_seg * fTimeElapsed;
 
-			g_count++;
-		}
+			if (APPLY_COLLISION && collisionObj) {
+				for (const auto &par_id : strand.m_parIds) {
+					const auto & par = get_particle(par_id);
+					if (par.isFixedPos())
+						continue;
 
-		if (collisionObj && APPLY_COLLISION) {
-
-			using Point3 = ICollisionObject::Point_3;
-
-			for (int i = 0; i < m_position.rows(); i += 3) {
-				Point3 temp = Point3(m_position(i), m_position(i + 1), m_position(i + 2));
-				bool correct = collisionObj->position_correlation(temp, &temp);
-				if (correct) {
-					m_position(i) = temp[0];
-					m_position(i + 1) = temp[1];
-					m_position(i + 2) = temp[2];
+					const size_t idx = par_id * 3;
+					ICollisionObject::Point_3 tmp(m_position(idx), m_position(idx + 1), m_position(idx + 2));
+					if (collisionObj->position_correlation(tmp, &tmp, 0.01f)) {
+						m_position(idx) = tmp[0];
+						m_position(idx + 1) = tmp[1];
+						m_position(idx + 2) = tmp[2];
+					}
 				}
 			}
 		}
 
-		//int si = 1377, sn = 81;
-		//auto pos_seg = m_position.segment(si, sn);
-		//auto vel_seg = m_velocity.segment(si, sn);
-		//if (si <= 1377 && si + sn > 1377) {
-		//	cout << "after" << endl;
-		//	for (int i = 0; i < sn; i += 3) {
-		//		std::cout << si + i << ": pos=(" << pos_seg(i) << ',' << pos_seg(i + 1) << ',' << pos_seg(i + 2) << ")  vel=(" << vel_seg(i) << ',' << vel_seg(i + 1) << ',' << vel_seg(i + 2) << ')' << endl;;
-		//	}
-		//	std::cout << std::endl;
-		//}
+		resolve_strain_limits(m_position, m_velocity, fTimeElapsed);
 
 		//size_t dim = m_position.size();
 		//SparseMatAssemble K(dim, dim), B(dim, dim);

@@ -4,24 +4,12 @@
 #include "EigenTypes.h"
 
 namespace XRwy {
-	HairFullModelSimulator::HairFullModelSimulator() : HairSimulator() {
+	HairFullModelSimulator::HairFullModelSimulator(const ICollisionObject *collision_obj) : HairSimulator() {
 		assert(g_paramDict.find("hairmodel")->second == "full");
 
 		N_PARTICLES_PER_STRAND = stoi(g_paramDict.find("particleperstrand")->second);
 		COMPRESS_RATIO = stoi(g_paramDict.find("full_compressratio")->second);
 
-		this->wr_hair = WR::loadFile(g_paramDict.find("reffile")->second.c_str());
-
-		int use_transform = stoi(g_paramDict.find("full_usetransform")->second);
-		if (use_transform) {
-			float transform_scale = stof(g_paramDict.find("full_transformscale")->second);
-			bool transform_x = stoi(g_paramDict.find("full_transformmirrorx")->second);
-			bool transform_y = stoi(g_paramDict.find("full_transformmirrory")->second);
-			bool transform_z = stoi(g_paramDict.find("full_transformmirrorz")->second);
-
-			this->wr_hair->scale(transform_scale);
-			this->wr_hair->mirror(transform_x, transform_y, transform_z);
-		}
 
 		//initialize parameter
 		//dynamic parts
@@ -52,6 +40,19 @@ namespace XRwy {
 		this->register_item("full_collision", &APPLY_COLLISION);
 		this->register_item("full_strainlimit", &APPLY_STRAINLIMIT);
 
+
+		bool use_transform = stoi(g_paramDict.find("full_usetransform")->second);
+		float transform_scale;
+		bool mirror_x, mirror_y, mirror_z;
+		if (use_transform) {
+			transform_scale = stof(g_paramDict.find("full_transformscale")->second);
+			mirror_x = stoi(g_paramDict.find("full_transformmirrorx")->second);
+			mirror_y = stoi(g_paramDict.find("full_transformmirrory")->second);
+			mirror_z = stoi(g_paramDict.find("full_transformmirrorz")->second);
+		}
+
+		this->wr_hair = WR::loadFile(g_paramDict.find("reffile")->second.c_str(), collision_obj, use_transform, transform_scale * (mirror_x ? -1.0f : 1.0f), transform_scale * (mirror_y ? -1.0f : 1.0f), transform_scale * (mirror_z ? -1.0f : 1.0f));
+
 		WR::HairStrand::set_hair(this->wr_hair);
 		WR::HairParticle::set_hair(this->wr_hair);
 		this->wr_hair->init_simulation();
@@ -66,7 +67,7 @@ namespace XRwy {
 			}
 
 		for (int i = 0; i < N_PASS_PER_STEP; ++i)
-			this->wr_hair->step(rigid_mat4, 0.0f, TIME_STEP / N_PASS_PER_STEP, collision_obj, collision_world2local_mat4);
+			this->wr_hair->step(rigid_mat4, 0.0f, delta_time / N_PASS_PER_STEP, collision_obj, collision_world2local_mat4);
 		
 		int cur = 0;
 		for (int i = 0; i < this->wr_hair->n_strands(); ++i)

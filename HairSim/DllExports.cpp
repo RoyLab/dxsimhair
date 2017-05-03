@@ -98,11 +98,18 @@ namespace XRwy {
 		conf_reader.getParamDict(g_paramDict);
 		conf_reader.close();
 
+		//first initialize the collision object
+		const auto & col_it = g_paramDict.find("collisionfile");
+		if (col_it != g_paramDict.end()) {
+			const auto & col_file_path = col_it->second;
+			collision_object = WR::CreateGridCollisionObject(col_file_path.c_str());
+		}
+
 		const string hairmodel_type = g_paramDict.find("hairmodel")->second;
 		if (hairmodel_type == "loader")
 			simulator = new HairLoaderSimulator;
 		else if (hairmodel_type == "full")
-			simulator = new HairFullModelSimulator;
+			simulator = new HairFullModelSimulator(collision_object);
 		else
 			assert(false);
 #else
@@ -242,59 +249,43 @@ namespace XRwy {
 
 	int InitCollisionObject(int nvertices, int nfaces, const float *vertices, const int *faces) {
 
-		collision_object = WR::CreateGridCollisionObject("C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\box-1-1-1.grid2");
+		size_t buck_size = 100000;
 
-		//size_t buck_size = 100000;
+		Poly3 poly;
 
-		//Poly3 poly;
-
-		//unordered_map<Point3, int, UnorderedMapHashPoint3, UnorderedMapEqualToPoint3> remap_v;
-		//vector<FaceIndex> remap_fv;
-		//vector<Point3> remap_vv;
+		unordered_map<Point3, int, UnorderedMapHashPoint3, UnorderedMapEqualToPoint3> remap_v;
+		vector<FaceIndex> remap_fv;
+		vector<Point3> remap_vv;
 
 
-		//for (int i = 0, count = 0; i < nvertices * 3; i += 3) {
-		//	auto v = Point3(vertices[i], vertices[i + 1], vertices[i + 2]);
-		//	if (remap_v.find(v) == remap_v.end()) {
-		//		remap_v.insert(pair<Point3, int>(v, count++));
-		//	}
-		//}
+		for (int i = 0, count = 0; i < nvertices * 3; i += 3) {
+			auto v = Point3(vertices[i], vertices[i + 1], vertices[i + 2]);
+			if (remap_v.find(v) == remap_v.end()) {
+				remap_v.insert(pair<Point3, int>(v, count++));
+			}
+		}
 
-		//remap_vv.reserve(remap_v.size());
-		//for (auto it = remap_v.begin(); it != remap_v.end(); ++it)
-		//	remap_vv.push_back(it->first);
+		remap_vv.reserve(remap_v.size());
+		for (auto it = remap_v.begin(); it != remap_v.end(); ++it)
+			remap_vv.push_back(it->first);
 
-		//for (int i = 0; i < nfaces * 3; i += 3) {
-		//	auto find_new_idx = [&remap_v, &vertices](const int idx) -> int {
-		//		auto v = Point3(vertices[idx * 3], vertices[idx * 3 + 1], vertices[idx * 3 + 2]);
-		//		return remap_v.find(v)->second;
-		//	};
+		for (int i = 0; i < nfaces * 3; i += 3) {
+			auto find_new_idx = [&remap_v, &vertices](const int idx) -> int {
+				auto v = Point3(vertices[idx * 3], vertices[idx * 3 + 1], vertices[idx * 3 + 2]);
+				return remap_v.find(v)->second;
+			};
 
-		//	remap_fv.push_back(FaceIndex{ find_new_idx(faces[i]), find_new_idx(faces[i + 1]), find_new_idx(faces[i + 2]) });
-		//}
+			remap_fv.push_back(FaceIndex{ find_new_idx(faces[i]), find_new_idx(faces[i + 1]), find_new_idx(faces[i + 2]) });
+		}
 
-		//PolyhedronBuilder<Poly3::HalfedgeDS> builder(remap_vv, remap_fv);
-		//poly.delegate(builder);
+		PolyhedronBuilder<Poly3::HalfedgeDS> builder(remap_vv, remap_fv);
+		poly.delegate(builder);
 
-		//collision_object = WR::CreateGridCollisionObject2(poly);
+		collision_object = WR::CreateGridCollisionObject2(poly);
 
-		//WriteGridCollisionObject(collision_object, "C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\box-1-1-1.grid2");
+		WriteGridCollisionObject(collision_object, "C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\box-1-1-1-078.grid2");
 		
 		//creating test point
-		vector<Point3> test_points;
-		test_points.emplace_back(0.465559870, 0.298745625, 0.408978552);
-		for (int i = 0; i < 1000; ++i)
-			test_points.emplace_back(randf(), randf(), randf());
-		cout << "Begin testing ..." << endl;
-		Point3 ret;
-		for (const auto &point : test_points) {
-			auto result = collision_object->position_correlation(point, &ret);
-			cout << '(' << point[0] << ',' << point[1] << ',' << point[2] << ") " << (result ? "True" : "False");
-			if (result) {
-				cout << ' ' << ret[0] << ',' << ret[1] << ',' << ret[2] << ")";
-			}
-			cout << endl;
-		}
 
 
 		/* use for testing */

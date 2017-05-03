@@ -9,7 +9,6 @@ public class DllImportTestController : MonoBehaviour {
 
     public Material material;
     public Transform headTransform;
-    public GameObject collisionObject;
 
     Vector3[] positions = null, directions = null;
     float[] headMatrix = new float[16]
@@ -31,11 +30,6 @@ public class DllImportTestController : MonoBehaviour {
         PbdParameter pbd = new PbdParameter("", 0.0f, 0.0f, 0); //ignore
 
         Func.InitializeHairEngine(param, col, skin, pbd);
-        var collisionMesh = collisionObject.GetComponent<MeshFilter>().mesh;
-        if (collisionMesh != null)
-        {
-            Func.InitCollisionObject(collisionMesh);
-        }
 
         int particleCount = Func.GetHairParticleCount();
         int particlePerStrandCount = Func.GetParticlePerStrandCount();

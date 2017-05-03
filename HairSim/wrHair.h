@@ -12,7 +12,7 @@ namespace WR
 	class ISpring;
 	class StrainLimitPair;
 
-	Hair *loadFile(const char*);
+	Hair *loadFile(const char*, const ICollisionObject *collision_obj, bool use_scale, float scale_x, float scale_y, float scale_z);
 
 	class HairParticle
 	{
@@ -90,7 +90,7 @@ namespace WR
 		void scale(float x);
 		void mirror(bool, bool, bool);
 
-		bool add_strand(float* positions, size_t n = N_PARTICLES_PER_STRAND);
+		bool add_strand(float* positions, const ICollisionObject *collision_obj, size_t n = N_PARTICLES_PER_STRAND);
 		void reserve(size_t np, size_t ns) { m_strands.reserve(ns); m_particles.reserve(np); }
 
 		size_t n_strands() const { return m_strands.size(); }
