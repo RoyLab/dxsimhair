@@ -650,6 +650,7 @@ python "$(SolutionDir)Scripts\copydll.py" release</Command>
     <ClCompile Include="HairFullModelSimulator.cpp" />
     <ClCompile Include="HairLoader.cpp" />
     <ClCompile Include="HairManager.cpp" />
+    <ClCompile Include="HairReducedModelSimulator.cpp" />
     <ClCompile Include="HairRenderer.cpp" />
     <ClCompile Include="HairSampleSelector.cpp" />
     <ClCompile Include="HairSimulator.cpp" />
@@ -687,6 +688,7 @@ python "$(SolutionDir)Scripts\copydll.py" release</Command>
     <ClInclude Include="DllExports.h" />
     <ClInclude Include="GUIManager.h" />
     <ClInclude Include="HairColor.h" />
+    <ClInclude Include="HairReducedModelSimulator.h" />
     <ClInclude Include="HairFullModelSimulator.h" />
     <ClInclude Include="HairLoaderSimulator.h" />
     <ClInclude Include="HairManager.h" />

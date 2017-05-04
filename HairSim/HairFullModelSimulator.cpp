@@ -5,11 +5,14 @@
 
 namespace XRwy {
 	HairFullModelSimulator::HairFullModelSimulator(const ICollisionObject *collision_obj) : HairSimulator() {
-		assert(g_paramDict.find("hairmodel")->second == "full");
+		const auto & hairmodel = g_paramDict.find("hairmodel")->second;
+		assert(hairmodel == "full" || hairmodel == "reduced");
 
-		N_PARTICLES_PER_STRAND = stoi(g_paramDict.find("particleperstrand")->second);
+		if (hairmodel == "full") {
+			//in the reduced model, N_PARTICLE_PER_STRAND is handle by reduced model
+			N_PARTICLES_PER_STRAND = stoi(g_paramDict.find("particleperstrand")->second);
+		}
 		COMPRESS_RATIO = stoi(g_paramDict.find("full_compressratio")->second);
-
 
 		//initialize parameter
 		//dynamic parts
@@ -25,7 +28,7 @@ namespace XRwy {
 		GRAVITY[1] = stof(g_paramDict.find("full_gravityy")->second);
 		GRAVITY[2] = stof(g_paramDict.find("full_gravityz")->second);
 
-		APPLY_COLLISION = stoi(g_paramDict.find("full_collision")->second);
+		APPLY_COLLISION = stoi(g_paramDict.find("collision")->second);
 		APPLY_STRAINLIMIT = stoi(g_paramDict.find("full_strainlimit")->second);
 
 		TIME_STEP = stof(g_paramDict.find("full_timestep")->second);
@@ -40,22 +43,24 @@ namespace XRwy {
 		this->register_item("full_collision", &APPLY_COLLISION);
 		this->register_item("full_strainlimit", &APPLY_STRAINLIMIT);
 
+		//if the hair model is reduced, that we should control this part for initalization
+		if (hairmodel == "full") {
+			bool use_transform = stoi(g_paramDict.find("hair_usetransform")->second);
+			float transform_scale = 1.0;
+			bool mirror_x = false, mirror_y = false, mirror_z = false;
+			if (use_transform) {
+				transform_scale = stof(g_paramDict.find("hair_transformscale")->second);
+				mirror_x = stoi(g_paramDict.find("hair_transformmirrorx")->second);
+				mirror_y = stoi(g_paramDict.find("hair_transformmirrory")->second);
+				mirror_z = stoi(g_paramDict.find("hair_transformmirrorz")->second);
+			}
 
-		bool use_transform = stoi(g_paramDict.find("full_usetransform")->second);
-		float transform_scale;
-		bool mirror_x, mirror_y, mirror_z;
-		if (use_transform) {
-			transform_scale = stof(g_paramDict.find("full_transformscale")->second);
-			mirror_x = stoi(g_paramDict.find("full_transformmirrorx")->second);
-			mirror_y = stoi(g_paramDict.find("full_transformmirrory")->second);
-			mirror_z = stoi(g_paramDict.find("full_transformmirrorz")->second);
+			this->wr_hair = WR::loadFile(g_paramDict.find("reffile")->second.c_str(), collision_obj, use_transform, transform_scale * (mirror_x ? -1.0f : 1.0f), transform_scale * (mirror_y ? -1.0f : 1.0f), transform_scale * (mirror_z ? -1.0f : 1.0f));
+
+			WR::HairStrand::set_hair(this->wr_hair);
+			WR::HairParticle::set_hair(this->wr_hair);
+			this->wr_hair->init_simulation();
 		}
-
-		this->wr_hair = WR::loadFile(g_paramDict.find("reffile")->second.c_str(), collision_obj, use_transform, transform_scale * (mirror_x ? -1.0f : 1.0f), transform_scale * (mirror_y ? -1.0f : 1.0f), transform_scale * (mirror_z ? -1.0f : 1.0f));
-
-		WR::HairStrand::set_hair(this->wr_hair);
-		WR::HairParticle::set_hair(this->wr_hair);
-		this->wr_hair->init_simulation();
 	}
 
 	void HairFullModelSimulator::on_frame(const float rigids[16], float *pos, float *dir, float delta_time, ICollisionObject* collision_obj, const float collision_world2local_mat[16]) {

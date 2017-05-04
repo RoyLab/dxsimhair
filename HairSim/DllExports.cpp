@@ -10,6 +10,7 @@
 #include "HairSimulator.h"
 #include "HairLoaderSimulator.h"
 #include "HairFullModelSimulator.h"
+#include "HairReducedModelSimulator.h"
 #include "LevelSet.h"
 
 #include <CGAL/Simple_cartesian.h>
@@ -110,6 +111,8 @@ namespace XRwy {
 			simulator = new HairLoaderSimulator;
 		else if (hairmodel_type == "full")
 			simulator = new HairFullModelSimulator(collision_object);
+		else if (hairmodel_type == "reduced")
+			simulator = new HairReducedModelSimulator(collision_object);
 		else
 			assert(false);
 #else

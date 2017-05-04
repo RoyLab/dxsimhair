@@ -126,6 +126,9 @@
     <ClCompile Include="HairFullModelSimulator.cpp">
       <Filter>Source Files\StaticHair</Filter>
     </ClCompile>
+    <ClCompile Include="HairReducedModelSimulator.cpp">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -216,6 +219,9 @@
       <Filter>Source Files\Wr</Filter>
     </ClInclude>
     <ClInclude Include="HairFullModelSimulator.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
+    <ClInclude Include="HairReducedModelSimulator.h">
       <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
   </ItemGroup>
