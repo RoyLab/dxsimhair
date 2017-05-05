@@ -37,8 +37,26 @@ public class DllImportTestController : MonoBehaviour {
         positions = new Vector3[particleCount];
         directions = new Vector3[particleCount];
 
+        int[] colorBuffer = new int[strandCount];
+        int i = 0;
+        HairLoader.ColorApply colorApplier = HairLoader.ColorApplyDefault;
+        if (Func.GetStrandColor(colorBuffer) == true) {
+            colorApplier = delegate ()
+            {
+                int colorInHex = colorBuffer[i];
+                float r = ((colorInHex & 0xff0000) >> 16) / 255.0f;
+                float g = ((colorInHex & 0x00ff00) >> 8) / 255.0f;
+                float b = (colorInHex & 0x0000ff) / 255.0f;
+
+                i += 1;
+                if (i >= colorBuffer.Length)
+                    i = 0;
+                return new Color(r, g, b);
+            };
+        }
+
         Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 30.0e-3f);
-        foreach (var gameObject in HairLoader.LoadFixedParticlePerStrand(positions, strandCount, particlePerStrandCount))
+        foreach (var gameObject in HairLoader.Load(positions, strandCount, delegate (int _) { return particlePerStrandCount; }, colorApplier))
         {
             gameObject.transform.parent = this.transform;
             gameObject.GetComponent<MeshRenderer>().material = material;
@@ -81,7 +99,6 @@ public class DllImportTestController : MonoBehaviour {
         if (positions == null || directions == null)
             return;
 
-        var deltaTime = Time.deltaTime;
         Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 0.03f);
 
         foreach (var transform in this.transform)

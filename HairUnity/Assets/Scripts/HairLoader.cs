@@ -10,7 +10,7 @@ using System.IO;
 public class HairLoader {
 
     public delegate Color ColorApply();
-    private static Color ColorApplyDefault() {
+    public static Color ColorApplyDefault() {
         return Random.ColorHSV(0.0f, 1.0f, 0.6f, 0.6f, 0.7f, 0.7f);
     }
 

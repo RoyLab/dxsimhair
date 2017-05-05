@@ -20,6 +20,27 @@ namespace {
 }
 
 namespace XRwy {
+
+	HairReducedModelSimulator::MinDistanceComparator::MinDistanceComparator(const HairReducedModelSimulator *simulator_, int idx): simulator(simulator_), compare_idx(idx) {}
+
+	bool HairReducedModelSimulator::MinDistanceComparator::operator() (const std::pair<int, float> &lhs, const std::pair<int, float> &rhs) {
+		int lidx = lhs.first, ridx = rhs.first;
+		return distance(lidx) < distance(ridx);
+	}
+
+	float HairReducedModelSimulator::MinDistanceComparator::distance(int idx) {
+		float *compare_idx_array = simulator->pos_ptr_from_strand(compare_idx);
+		float *idx_array = simulator->pos_ptr_from_strand(idx);
+
+		float sqr_ret = 0.0, delta;
+		for (int i = 0; i < 3; ++i) {
+			delta = compare_idx_array[i] - idx_array[i];
+			sqr_ret += delta * delta;
+		}
+
+		return std::sqrt(sqr_ret);
+	}
+
 	HairReducedModelSimulator::HairReducedModelSimulator(const ICollisionObject* collision_obj) {
 		assert(g_paramDict.find("hairmodel")->second == "reduced");
 
@@ -29,6 +50,34 @@ namespace XRwy {
 		read_resthairfile(g_paramDict.find("reffile")->second.c_str());
 
 		assert(N_PARTICLES_PER_STRAND * rest_nstrand == rest_nparticle);
+
+		//apply the strand color buffer, we first use the colorscheme to fill the guide hair, every normal hair's color will be same as the guide hair which has the min distance
+		strand_color_buffer = new int[this->rest_nstrand];
+		//vector<int> colorschemes = {
+		//	0xff0000, 0xff4500, 0xff7400, 0xff9400, 0xffaa00,
+		//	0xffbf00, 0xffd300, 0xffe700, 0xccf600, 0x98ed00,
+		//	0x62e200, 0x00c90d, 0x00af64, 0x009999, 0x0a64a4,
+		//	0x1240ab, 0x1a1eb2, 0x3914af, 0x540ead, 0x6f0aaa,
+		//	0xaa00a2, 0xce0071, 0xe20048
+		//};
+		vector<int> colorschemes = {
+			0xff6767, 0xffbf67, 0xffe367, 0x5feb97, 0x699ee6, 0xa369e7
+		};
+		//apply the color scheme to the guide
+		for (int i = 0; i < guide_ids.size(); ++i)
+			strand_color_buffer[guide_ids[i]] = colorschemes[i % colorschemes.size()];
+
+		//apply the color scheme to the normal hair, we select the guide hair which has the minimum distance
+		for (int i = 0; i < this->rest_nstrand; ++i) {
+			//if it is the guide hair, then continue
+			if (guide_ids_reverse[i] >= 0) continue;
+
+			MinDistanceComparator comparator(this, i);
+			const auto &id_and_weights = strand_infos[i].id_and_weights;
+			const int color_guide_id = min_element(id_and_weights.begin(), id_and_weights.end(), comparator)->first;
+			
+			strand_color_buffer[i] = strand_color_buffer[color_guide_id];
+		}
 
 		//load the guide hair to the full simulator
 		full_simulator = new HairFullModelSimulator(collision_obj);
@@ -191,10 +240,16 @@ namespace XRwy {
 		return N_PARTICLES_PER_STRAND;
 	}
 
+	int HairReducedModelSimulator::apply_hair_color(int *color_array) {
+		memcpy(color_array, strand_color_buffer, sizeof(int) * this->rest_nstrand);
+		return this->rest_nstrand;
+	}
+
 	HairReducedModelSimulator::~HairReducedModelSimulator() {
 		SAFE_DELETE(this->full_simulator);
 		SAFE_DELETE_ARRAY(this->rest_pos);
 		SAFE_DELETE_ARRAY(this->rest_vel);
 		SAFE_DELETE_ARRAY(this->guide_pos_buffer);
+		SAFE_DELETE_ARRAY(this->strand_color_buffer);
 	}
 }

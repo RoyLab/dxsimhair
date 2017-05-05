@@ -303,4 +303,10 @@ namespace XRwy {
 
 		return 0;
 	}
+
+	int GetStrandColor(int *color_buffer) {
+		HairColorGenerator *generator = dynamic_cast<HairColorGenerator *>(simulator);
+		if (!generator) return -1;
+		return generator->apply_hair_color(color_buffer);
+	}
 }
