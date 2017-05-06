@@ -82,7 +82,7 @@ namespace Hair
 
 		groupId.resize(np);
 		for (int i = 0; i < np; i++)
-			groupId[i] = static_cast<gid_t>(gids[i]);
+			groupId[i] = static_cast<gid_t>(gids[i / skipFactor]);
 
 		auto minmaxpair = std::minmax_element(groupId.begin(), groupId.end());
 		nGroup = *minmaxpair.second - *minmaxpair.first + 1;

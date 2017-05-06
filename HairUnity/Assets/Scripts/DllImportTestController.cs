@@ -9,6 +9,8 @@ public class DllImportTestController : MonoBehaviour {
 
     public Material material;
     public Transform headTransform;
+    public bool animteWhenStart = true;
+    public String configurationFilePath = "C:\\Users\\vivid\\Desktop\\newconfig.ini";
 
     Vector3[] positions = null, directions = null;
     float[] headMatrix = new float[16]
@@ -18,11 +20,16 @@ public class DllImportTestController : MonoBehaviour {
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
     };
+    bool hasStarted = false;
 
     // Use this for initialization
     void Start () {
+        if (animteWhenStart)
+            GetStart();
+	}
 
-        string configDescription = System.IO.File.ReadAllText("C:\\Users\\vivid\\Desktop\\newconfig.ini").Replace("\r\n", "\n");
+    public void GetStart() {
+        string configDescription = System.IO.File.ReadAllText(configurationFilePath).Replace("\r\n", "\n");
         HairParameter param = new HairParameter(false, false, false, configDescription);
 
         CollisionParameter col = new CollisionParameter("", 0.0f, 0.0f, 0.0f); //ignore
@@ -40,7 +47,8 @@ public class DllImportTestController : MonoBehaviour {
         int[] colorBuffer = new int[strandCount];
         int i = 0;
         HairLoader.ColorApply colorApplier = HairLoader.ColorApplyDefault;
-        if (Func.GetStrandColor(colorBuffer) == true) {
+        if (Func.GetStrandColor(colorBuffer) == true)
+        {
             colorApplier = delegate ()
             {
                 int colorInHex = colorBuffer[i];
@@ -61,6 +69,8 @@ public class DllImportTestController : MonoBehaviour {
             gameObject.transform.parent = this.transform;
             gameObject.GetComponent<MeshRenderer>().material = material;
         }
+
+        hasStarted = true;
 
         /* use for testing */
         //HairParameter param = new HairParameter(true, false, true, "hairfilepath");
@@ -85,7 +95,7 @@ public class DllImportTestController : MonoBehaviour {
         //int b = Func.GetParticlePerStrandCount();
 
         //Func.ReleaseHairEngine();
-	}
+    }
 
     float[] ApplyTranformToWorldMatrix() {
         for (int i = 0; i < 4; ++i)
@@ -96,7 +106,7 @@ public class DllImportTestController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (positions == null || directions == null)
+        if (!hasStarted)
             return;
 
         Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 0.03f);

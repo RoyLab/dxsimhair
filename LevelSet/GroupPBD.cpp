@@ -134,8 +134,6 @@ namespace XRwy
 			}
 			x = solver.solve(b);
 		}
-
-		ParameterDictionary g_PBDParas;
 	}
 
 	extern "C" WR_API IHairCorrection* CreateHairCorrectionObject()
@@ -151,9 +149,9 @@ namespace XRwy
 
 	bool GroupPBD::initialize(HairGeometry* hair, float dr, float balance, const int* groupInfo, size_t ngi, int nGroup)
 	{
-		ConfigReader reader("../config2.ini");
-		reader.getParamDict(g_PBDParas);
-		reader.close();
+		//ConfigReader reader("../config2.ini");
+		//reader.getParamDict(g_PBDParas);
+		//reader.close();
 
 		this->dr = dr;
 		this->nHairParticleGroup = nGroup;
@@ -466,12 +464,8 @@ namespace XRwy
 		// prepare for the iterations
 		XMFLOAT3* allocMem = new XMFLOAT3[hair->nParticle];
 		XMFLOAT3 *p0 = hair->position, *p1 = allocMem;
-		int max_iteration = std::stoi(g_PBDParas["maxpbditer"]);
 
-		int chunksize = std::stoi(g_PBDParas["chunksize"]);
-
-
-		for (size_t i = 0; i < max_iteration; i++)
+		for (size_t i = 0; i < 3 /* max iteration*/; i++)
 		{
 			float t = 0.0f;
 			std::memcpy(p1, p0, sizeof(XMFLOAT3) * hair->nParticle);
@@ -511,10 +505,6 @@ namespace XRwy
 	GroupPBD2::GroupPBD2(HairGeometry * hair, float dr, float balance, const int * groupInfo, size_t ngi, int nGroup):
 		mf(groupInfo, hair->nParticle, balance, hair->particlePerStrand), pgrid(dr)
 	{
-		ConfigReader reader("../config2.ini");
-		reader.getParamDict(g_PBDParas);
-		reader.close();
-
 		id0 = &id[0]; id1 = &id[1];
 		old0 = &id[2]; old1 = &id[3];
 

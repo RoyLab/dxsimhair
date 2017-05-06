@@ -286,7 +286,7 @@ namespace XRwy {
 
 		collision_object = WR::CreateGridCollisionObject2(poly);
 
-		WriteGridCollisionObject(collision_object, "C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\box-1-1-1-078.grid2");
+		WriteGridCollisionObject(collision_object, "C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\collisionobject.grid2");
 		
 		//creating test point
 

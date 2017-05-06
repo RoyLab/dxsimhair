@@ -50,12 +50,17 @@ namespace XRwy {
 		float *rest_pos = nullptr;
 		float *rest_vel = nullptr;
 
+		HairGeometry geom; //a simple wrapper to use the old api
+
+		GroupPBD2 *pbd_handle = nullptr;
+
 		float *guide_pos_buffer = nullptr;
 
 		int *strand_color_buffer = nullptr;
 	private:
 		void read_weightfile(const char *);
 		void read_resthairfile(const char *);
+		void init_pbd();
 
 		//helper function
 		inline int full_sim_idx2guide_id(int idx) const { return guide_ids[idx]; }

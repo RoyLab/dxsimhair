@@ -48,6 +48,7 @@ namespace XRwy {
 
 		read_weightfile(g_paramDict.find("reduced_weightsfile")->second.c_str());
 		read_resthairfile(g_paramDict.find("reffile")->second.c_str());
+		init_pbd();
 
 		assert(N_PARTICLES_PER_STRAND * rest_nstrand == rest_nparticle);
 
@@ -207,6 +208,35 @@ namespace XRwy {
 		fhair.close();
 	}
 
+	void HairReducedModelSimulator::init_pbd() {
+		this->geom.nStrand = this->rest_nstrand;
+		this->geom.nParticle = this->rest_nparticle;
+		this->geom.particlePerStrand = N_PARTICLES_PER_STRAND;
+		this->geom.position = reinterpret_cast<XMFLOAT3*>(this->rest_pos);
+
+		if (stoi(g_paramDict.find("reduced_pbd_enable")->second)) {
+			float dr = stof(g_paramDict.find("reduced_pbd_dr")->second);
+			int ngroup = stoi(g_paramDict.find("reduced_pbd_ngroup")->second);
+			float balance = stof(g_paramDict.find("reduced_pbd_balance")->second);
+
+			ifstream fpbd(g_paramDict.find("reduced_pbd_file")->second, ios::binary);
+			int32_t ngi;
+			ReadNBytes(fpbd, &ngi, 4);
+
+			int *gid = new int[ngi];
+			int32_t gid_buffer;
+			for (int i = 0; i < ngi; ++i) {
+				ReadNBytes(fpbd, &gid_buffer, 4);
+				gid[i] = static_cast<int>(gid_buffer);
+			}
+
+			this->pbd_handle = new GroupPBD2(&(this->geom), dr, balance, gid, ngi, ngroup);
+			this->pbd_handle->initialize(&(this->geom), dr, balance, gid, ngi, ngroup);
+
+			SAFE_DELETE_ARRAY(gid);
+		}
+	}
+
 	void HairReducedModelSimulator::on_frame(const float rigids[16], float *pos, float *dir, float delta_time, ICollisionObject* collision_obj, const float collision_world2local_mat[16]) {
 
 		for (int i = 0; i < this->rest_nstrand; ++i)
@@ -228,6 +258,10 @@ namespace XRwy {
 				float_ptr_add_with_weight(strand_ptr, sim_ptr, sz, weight);
 			}
 		}
+
+		//pbd
+		if (pbd_handle)
+			pbd_handle->solve(&(this->geom));
 
 		memcpy(pos, this->rest_pos, sizeof(float) * 3 * this->rest_nparticle);
 	}
@@ -251,5 +285,6 @@ namespace XRwy {
 		SAFE_DELETE_ARRAY(this->rest_vel);
 		SAFE_DELETE_ARRAY(this->guide_pos_buffer);
 		SAFE_DELETE_ARRAY(this->strand_color_buffer);
+		SAFE_DELETE(this->pbd_handle);
 	}
 }
