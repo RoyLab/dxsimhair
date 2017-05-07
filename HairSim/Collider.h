@@ -4,6 +4,21 @@
 #include <fstream>
 #include <cstdint>
 
+namespace {
+	void trilinear_intp(const float p[3], float weights[8]) {
+		float pc[3] = { 1 - p[0], 1 - p[1], 1 - p[2] };
+		float w2[4] = { pc[0] * pc[1], p[0] * pc[1], pc[0] * p[1] , p[0] * p[1] };
+		weights[0] = w2[0] * pc[2]; 
+		weights[1] = w2[1] * pc[2];
+		weights[2] = w2[2] * pc[2]; 
+		weights[3] = w2[3] * pc[2];
+		weights[4] = w2[0] * p[2]; 
+		weights[5] = w2[1] * p[2]; 
+		weights[6] = w2[2] * p[2]; 
+		weights[7] = w2[3] * p[2]; 
+	}
+}
+
 namespace XRwy {
 	using Pos3 = vec3;
 	using Vec3 = vec3;
@@ -156,12 +171,32 @@ namespace XRwy {
 			int cj = static_cast<int>(j);
 			int ck = static_cast<int>(k);
 
-			if ((i >= 0 && j >= 0 && k >= 0 && i < nx && j < ny && k < nz) == false)
+			if ((i >= 0 && j >= 0 && k >= 0 && i < nx - 1 && j < ny - 1 && k < nz - 1) == false)
 				return 1e20; //very large
-			const auto &cell = (*this)(ci, cj, ck);
 
-			vec3_copy(grad, cell.grad);
-			return cell.dist;
+			const auto o = *this;
+			float localcoord[] = { i - ci, j - cj, k - ck };
+			float weights[8];
+			trilinear_intp(localcoord, weights);
+
+			CellData* cell_handles[] = {
+				&o(i, j, k), &o(i + 1, j, k),
+				&o(i, j + 1, k), &o(i + 1, j + 1, k),
+				&o(i, j, k + 1), &o(i + 1, j, k + 1),
+				&o(i, j + 1, k + 1), &o(i + 1, j + 1, k + 1)
+			};
+
+			float ret_dist = 0.0;
+			Gradient3 grad_tmp;
+			vec3_zero(grad);
+			for (int i = 0; i < 8; ++i) {
+				ret_dist += cell_handles[i]->dist * weights[i];
+				vec3_scale(grad_tmp, cell_handles[i]->grad, weights[i]);
+				vec3_add(grad, grad, grad_tmp);
+			}
+			vec3_norm(grad, grad);
+
+			return ret_dist;
 		}
 	protected:
 		CellData* data;
