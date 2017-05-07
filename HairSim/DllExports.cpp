@@ -12,6 +12,7 @@
 #include "HairFullModelSimulator.h"
 #include "HairReducedModelSimulator.h"
 #include "LevelSet.h"
+#include "Collider.h"
 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_incremental_builder_3.h>
@@ -85,7 +86,11 @@ namespace XRwy {
 	using ICollisionObject = WR::ICollisionObject;
 
 	HairSimulator *simulator = nullptr;
-	ICollisionObject *collision_object = nullptr;
+
+	float collision_tolerance, collision_push_time_factor;
+	DistanceQuerier *querier = nullptr;
+	BasicColliderFixer *fixer = nullptr;
+	Collider *collider = nullptr;
 
 #ifdef USE_DEBUG_MODE
 	string root_path = "C:\\Users\\vivid\\Desktop\\";
@@ -100,19 +105,26 @@ namespace XRwy {
 		conf_reader.close();
 
 		//first initialize the collision object
-		const auto & col_it = g_paramDict.find("collisionfile");
-		if (col_it != g_paramDict.end()) {
-			const auto & col_file_path = col_it->second;
-			collision_object = WR::CreateGridCollisionObject(col_file_path.c_str());
-		}
+		//const auto & col_it = g_paramDict.find("collisionfile");
+		//if (col_it != g_paramDict.end()) {
+		//	const auto & col_file_path = col_it->second;
+		//	collision_object = WR::CreateGridCollisionObject(col_file_path.c_str());
+		//}
+
+		querier = new GridCollisionQuerier(g_paramDict.find("collisionfile")->second.c_str());
+		//querier = new SphereDistanceQuerier(0, 0, 0, 0.5);
+		collision_tolerance = stof(g_paramDict.find("collision_tolerance")->second);
+		collision_push_time_factor = stof(g_paramDict.find("collision_pushtimefactor")->second);
+		fixer = new BasicColliderFixer(collision_tolerance, 0.03);
+		collider = new Collider(fixer, querier);
 
 		const string hairmodel_type = g_paramDict.find("hairmodel")->second;
 		if (hairmodel_type == "loader")
 			simulator = new HairLoaderSimulator;
 		else if (hairmodel_type == "full")
-			simulator = new HairFullModelSimulator(collision_object);
+			simulator = new HairFullModelSimulator(collider);
 		else if (hairmodel_type == "reduced")
-			simulator = new HairReducedModelSimulator(collision_object);
+			simulator = new HairReducedModelSimulator(collider);
 		else
 			assert(false);
 #else
@@ -184,7 +196,10 @@ namespace XRwy {
 			0, 0, 1, 0,
 			0, 0, 0, 1
 		};
-		simulator->on_frame(head_matrix, particle_positions, particle_directions, delta_time, collision_object, mat4);
+
+		if (fixer)
+			fixer->set_push_time(delta_time * collision_push_time_factor);
+		simulator->on_frame(head_matrix, particle_positions, particle_directions, delta_time, collider, mat4);
 #else
 		/* use for testing */
 		ofstream fout;
@@ -210,7 +225,9 @@ namespace XRwy {
 	void ReleaseHairEngine() {
 #ifndef USE_DEBUG_MODE
 		SAFE_DELETE(simulator);
-		SAFE_DELETE(collision_object);
+		SAFE_DELETE(querier);
+		SAFE_DELETE(fixer);
+		SAFE_DELETE(collider);
 #else
 		/* use for testing */
 		ofstream fout;
@@ -252,6 +269,17 @@ namespace XRwy {
 
 	int InitCollisionObject(int nvertices, int nfaces, const float *vertices, const int *faces) {
 
+		ofstream fout("C:\\Users\\vivid\\Desktop\\MeshInfo.txt", ios::out);
+		fout << nvertices << endl;
+		for (int i = 0; i < nvertices * 3; i += 3)
+			fout << vertices[i] << " " << vertices[i + 1] << " " << vertices[i + 2] << endl;
+		fout << nfaces << endl;
+		for (int i = 0; i < nfaces * 3; i += 3)
+			fout << faces[i] << " " << faces[i + 1] << " " << faces[i + 2] << endl;
+		return 0;
+	}
+
+	void GenerateGrid2Object() {
 		size_t buck_size = 100000;
 
 		Poly3 poly;
@@ -260,17 +288,32 @@ namespace XRwy {
 		vector<FaceIndex> remap_fv;
 		vector<Point3> remap_vv;
 
+		int nvertices, nfaces;
+		float *vertices;
+		int *faces;
+		ifstream fin("C:\\Users\\vivid\\Desktop\\MeshInfo.txt", ios::in);
+
+		fin >> nvertices;
+		vertices = new float[3 * nvertices];
+		for (int i = 0; i < 3 * nvertices; ++i) {
+			fin >> vertices[i];
+		}
+		fin >> nfaces;
+		faces = new int[3 * nfaces];
+		for (int i = 0; i < 3 * nfaces; ++i)
+			fin >> faces[i];
+
+		fin.close();
+
 
 		for (int i = 0, count = 0; i < nvertices * 3; i += 3) {
 			auto v = Point3(vertices[i], vertices[i + 1], vertices[i + 2]);
 			if (remap_v.find(v) == remap_v.end()) {
 				remap_v.insert(pair<Point3, int>(v, count++));
+				remap_vv.push_back(v);
 			}
+			cout << "point(" << v[0] << "," << v[1] << "," << v[2] << ") " << i / 3 << "=>" << remap_v.find(v)->second << endl;
 		}
-
-		remap_vv.reserve(remap_v.size());
-		for (auto it = remap_v.begin(); it != remap_v.end(); ++it)
-			remap_vv.push_back(it->first);
 
 		for (int i = 0; i < nfaces * 3; i += 3) {
 			auto find_new_idx = [&remap_v, &vertices](const int idx) -> int {
@@ -281,32 +324,35 @@ namespace XRwy {
 			remap_fv.push_back(FaceIndex{ find_new_idx(faces[i]), find_new_idx(faces[i + 1]), find_new_idx(faces[i + 2]) });
 		}
 
+		ofstream fout("C:\\Users\\vivid\\Desktop\\MeshInfoModified.txt", ios::out);
+		fout << remap_vv.size() << endl;
+
+		for (const auto & point : remap_vv)
+			fout << point[0] << " " << point[1] << " " << point[2] << endl;
+
+		fout << remap_fv.size() << endl;
+		for (const auto & face_idx : remap_fv) {
+			fout << face_idx.a << " " << face_idx.b << " " << face_idx.c << endl;
+		}
+
+		fout.close();
+
 		PolyhedronBuilder<Poly3::HalfedgeDS> builder(remap_vv, remap_fv);
 		poly.delegate(builder);
 
-		collision_object = WR::CreateGridCollisionObject2(poly);
+		ICollisionObject *collision_object;
+		collision_object = WR::CreateGridCollisionObject2(poly, 128);
 
 		WriteGridCollisionObject(collision_object, "C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\collisionobject.grid2");
-		
-		//creating test point
-
-
-		/* use for testing */
-		//ofstream fout("C:\\Users\\vivid\\Desktop\\InitCollisionObject.txt", ios::out);
-		//
-		//fout << "vertices: " << endl;
-		//for (int i = 0; i < nvertices * 3; i += 3)
-		//	fout << vertices[i] << " " << vertices[i + 1] << " " << vertices[i + 2] << endl;
-		//fout << "faces: " << endl;
-		//for (int i = 0; i < nfaces * 3; i += 3)
-		//	fout << faces[i] << " " << faces[i + 1] << " " << faces[i + 2] << endl;
-
-		return 0;
 	}
 
 	int GetStrandColor(int *color_buffer) {
 		HairColorGenerator *generator = dynamic_cast<HairColorGenerator *>(simulator);
 		if (!generator) return -1;
 		return generator->apply_hair_color(color_buffer);
+	}
+
+	void DebugCode() {
+		GridCollisionQuerier q("C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\sphere-r1-128.grid2");
 	}
 }

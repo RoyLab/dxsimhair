@@ -5,6 +5,8 @@
 #include "wrSpring.h"
 #include "EigenTypes.h"
 #include "LevelSet.h"
+#include "Collider.h"
+#include "XRwy_h.h"
 #include <iostream>
 using namespace std;
 
@@ -99,7 +101,7 @@ namespace WR
 	Hair* HairParticle::m_hair = nullptr;
 	Hair* HairStrand::m_hair = nullptr;
 
-	Hair* loadFile(const char* path, const ICollisionObject *collision_obj, bool use_scale, float scale_x, float scale_y, float scale_z)
+	Hair* loadFile(const char* path, const XRwy::Collider *collider, bool use_scale, float scale_x, float scale_y, float scale_z)
 	{
 		std::ifstream file(path, std::ios::binary);
 		if (file)
@@ -141,7 +143,7 @@ namespace WR
 						cbuffer_float[i + 2] *= scale_z;
 					}
 				}
-				hair->add_strand(cbuffer_float, collision_obj);
+				hair->add_strand(cbuffer_float, collider);
 
 				file.seekg(sizeof(int) + (COMPRESS_RATIO * i + static_cast<int>(COMPRESS_RATIO * randf())) * sizeof(float) * 3 * N_PARTICLES_PER_STRAND);
 			}
@@ -155,7 +157,7 @@ namespace WR
 	}
 
 	// n is not used here
-	bool Hair::add_strand(float* positions, const ICollisionObject *collision_obj, size_t n)
+	bool Hair::add_strand(float* positions, const XRwy::Collider *collider, size_t n)
 	{
 		vec3* pos = reinterpret_cast<vec3*>(positions);
 
@@ -447,49 +449,48 @@ namespace WR
 		//}
 	}
 
-	void Hair::step(const Mat4& mWorld, float fTime, float fTimeElapsed, ICollisionObject *collisionObj, const Mat4& mWrold2Collision)
+	void Hair::step(const Mat4& mWorld, float fTime, float fTimeElapsed, const XRwy::Collider *collider, const Mat4& mWrold2Collision)
 	{
 		assert(mb_simInited);
 
+		float delta_time = fTimeElapsed / N_PASS_PER_STEP;
+
 		// modify root node's pos, vel. first 3.
 		// 假设固定点都在匀速运动
-		for (auto &strand : m_strands)
-		{
-			for (int j = 0; j < 3; j++)
+		for (int _ = 0; _ < N_PASS_PER_STEP; ++_) {
+			for (auto &strand : m_strands)
 			{
-				size_t idx = strand.get_particle(j);
-				Vec3 ref = get_particle(idx).get_ref();
-				Vec3 newPos = (mWorld * Vec4(ref(0), ref(1), ref(2), 1.0)).segment(0, 3);
-				Vec3 newVel = (newPos - Vec3(get_particle_position(idx))) / fTimeElapsed;
-				triple(m_velocity, idx) = newVel;
+				for (int j = 0; j < 3; j++)
+				{
+					size_t idx = strand.get_particle(j);
+					Vec3 ref = get_particle(idx).get_ref();
+					Vec3 newPos = (mWorld * Vec4(ref(0), ref(1), ref(2), 1.0)).segment(0, 3);
+					Vec3 newVel = (newPos - Vec3(get_particle_position(idx))) / delta_time;
+					triple(m_velocity, idx) = newVel;
+				}
+
+				size_t idx0 = strand.get_particle(0), par_count = strand.m_parIds.size();
+				size_t si = strand.get_particle(0) * 3, sn = strand.m_parIds.size() * 3;
+				auto pos_seg = m_position.segment(si, sn);
+				auto vel_seg = m_velocity.segment(si, sn);
+				VecX dv = extract_dv(strand, delta_time);
+				vel_seg += dv;
+				pos_seg += vel_seg * delta_time;
 			}
 
-			size_t idx0 = strand.get_particle(0), par_count = strand.m_parIds.size();
-			size_t si = strand.get_particle(0) * 3, sn = strand.m_parIds.size() * 3;
-			auto pos_seg = m_position.segment(si, sn);
-			auto vel_seg = m_velocity.segment(si, sn);
-			VecX dv = extract_dv(strand, fTimeElapsed);
-			vel_seg += dv;
-			pos_seg += vel_seg * fTimeElapsed;
+			resolve_strain_limits(m_position, m_velocity, delta_time);
 
-			if (APPLY_COLLISION && collisionObj) {
-				for (const auto &par_id : strand.m_parIds) {
-					const auto & par = get_particle(par_id);
-					if (par.isFixedPos())
-						continue;
-
-					const size_t idx = par_id * 3;
-					ICollisionObject::Point_3 tmp(m_position(idx), m_position(idx + 1), m_position(idx + 2));
-					if (collisionObj->position_correlation(tmp, &tmp, 0.01f)) {
-						m_position(idx) = tmp[0];
-						m_position(idx + 1) = tmp[1];
-						m_position(idx + 2) = tmp[2];
+			if (APPLY_COLLISION && collider) {
+				for (int i = 0; i < m_particles.size() * 3; i += 3) {
+					XRwy::Pos3 pos{ m_position(i), m_position(i + 1), m_position(i + 2) };
+					XRwy::Vec3 vel{ m_velocity(i), m_velocity(i + 1), m_velocity(i + 2) };
+					if (collider->fix(pos, vel)) {
+						m_position(i) = pos[0]; m_position(i + 1) = pos[1]; m_position(i + 2) = pos[2];
+						m_velocity(i) = vel[0]; m_velocity(i + 1) = vel[1]; m_velocity(i + 2) = vel[2];
 					}
 				}
 			}
 		}
-
-		resolve_strain_limits(m_position, m_velocity, fTimeElapsed);
 
 		//size_t dim = m_position.size();
 		//SparseMatAssemble K(dim, dim), B(dim, dim);

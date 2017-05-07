@@ -684,6 +684,7 @@ python "$(SolutionDir)Scripts\copydll.py" release</Command>
     <ClInclude Include="BasicRenderer.h" />
     <ClInclude Include="CFBXLoader.h" />
     <ClInclude Include="CFBXRendererDX11.h" />
+    <ClInclude Include="Collider.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DllExports.h" />
     <ClInclude Include="GUIManager.h" />

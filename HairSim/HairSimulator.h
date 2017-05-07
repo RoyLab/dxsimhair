@@ -9,6 +9,7 @@
 #include <map>
 #include <utility>
 #include "ICollisionObject.h"
+#include "Collider.h"
 using namespace std;
 
 namespace XRwy {
@@ -17,7 +18,7 @@ namespace XRwy {
 	class HairSimulator {
 	public:
 		HairSimulator() = default;
-		virtual void on_frame(const float rigids[16], float *pos, float *dir, float delta_time, ICollisionObject* collision_obj, const float collision_world2local_mat[16]) = 0;
+		virtual void on_frame(const float rigids[16], float *pos, float *dir, float delta_time, const Collider* collider, const float collision_world2local_mat[16]) = 0;
 		virtual int get_particle_count() = 0;
 		virtual int get_particle_per_strand_count() = 0;
 		virtual ~HairSimulator() = default;

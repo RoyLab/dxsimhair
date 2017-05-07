@@ -22,6 +22,7 @@ void apply_param_config(HairParameter &param, const string &conf) {
 
 int main()
 {
+	//DebugCode();
 	HairParameter param;
 
 	ifstream fin;
@@ -41,9 +42,10 @@ int main()
 	float *positions = new float[3 * size];
 	float *directions = new float[3 * size];
 
-	UpdateHairEngine(rigid, positions, directions, 0.03f);
-	for (int i = 0; i < 3 * min(1000, size); i += 3)
-		cout << '(' << positions[i] << ',' << positions[i + 1] << ',' << positions[i + 2] << ')' << endl;
+	for (int i = 0; i < 500; ++i) {
+		cout << "Updaing frame " << i << endl;
+		UpdateHairEngine(rigid, positions, directions, 0.03f);
+	}
 	 
 	ReleaseHairEngine();
 }

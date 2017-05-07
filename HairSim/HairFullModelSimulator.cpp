@@ -4,7 +4,7 @@
 #include "EigenTypes.h"
 
 namespace XRwy {
-	HairFullModelSimulator::HairFullModelSimulator(const ICollisionObject *collision_obj) : HairSimulator() {
+	HairFullModelSimulator::HairFullModelSimulator(const Collider *collision_obj) : HairSimulator() {
 		const auto & hairmodel = g_paramDict.find("hairmodel")->second;
 		assert(hairmodel == "full" || hairmodel == "reduced");
 
@@ -63,7 +63,7 @@ namespace XRwy {
 		}
 	}
 
-	void HairFullModelSimulator::on_frame(const float rigids[16], float *pos, float *dir, float delta_time, ICollisionObject* collision_obj, const float collision_world2local_mat[16]) {
+	void HairFullModelSimulator::on_frame(const float rigids[16], float *pos, float *dir, float delta_time, const Collider* collider, const float collision_world2local_mat[16]) {
 		WR::Mat4 rigid_mat4, collision_world2local_mat4;
 		for (int i = 0; i < 4; ++i)
 			for (int j = 0; j < 4; ++j) {
@@ -71,8 +71,7 @@ namespace XRwy {
 				collision_world2local_mat4(i, j)= collision_world2local_mat[i * 4 + j];
 			}
 
-		for (int i = 0; i < N_PASS_PER_STEP; ++i)
-			this->wr_hair->step(rigid_mat4, 0.0f, delta_time / N_PASS_PER_STEP, collision_obj, collision_world2local_mat4);
+		this->wr_hair->step(rigid_mat4, 0.0f, delta_time, collider, collision_world2local_mat4);
 		
 		int cur = 0;
 		for (int i = 0; i < this->wr_hair->n_strands(); ++i)

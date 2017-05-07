@@ -41,7 +41,7 @@ namespace XRwy {
 		return std::sqrt(sqr_ret);
 	}
 
-	HairReducedModelSimulator::HairReducedModelSimulator(const ICollisionObject* collision_obj) {
+	HairReducedModelSimulator::HairReducedModelSimulator(const Collider* collider) {
 		assert(g_paramDict.find("hairmodel")->second == "reduced");
 
 		N_PARTICLES_PER_STRAND = stoi(g_paramDict.find("particleperstrand")->second);
@@ -81,12 +81,12 @@ namespace XRwy {
 		}
 
 		//load the guide hair to the full simulator
-		full_simulator = new HairFullModelSimulator(collision_obj);
+		full_simulator = new HairFullModelSimulator(collider);
 		full_simulator->wr_hair = new WR::Hair;
 		full_simulator->wr_hair->reserve(this->rest_nguide * N_PARTICLES_PER_STRAND, this->rest_nguide);
 		WR::Hair *full_hair = full_simulator->wr_hair;
 		for (const auto guide_id : guide_ids) {
-			full_hair->add_strand(pos_ptr_from_strand(guide_id), collision_obj, N_PARTICLES_PER_STRAND);
+			full_hair->add_strand(pos_ptr_from_strand(guide_id), collider, N_PARTICLES_PER_STRAND);
 		}
 		WR::HairStrand::set_hair(full_hair);
 		WR::HairParticle::set_hair(full_hair);
@@ -237,13 +237,13 @@ namespace XRwy {
 		}
 	}
 
-	void HairReducedModelSimulator::on_frame(const float rigids[16], float *pos, float *dir, float delta_time, ICollisionObject* collision_obj, const float collision_world2local_mat[16]) {
+	void HairReducedModelSimulator::on_frame(const float rigids[16], float *pos, float *dir, float delta_time, const Collider* collider, const float collision_world2local_mat[16]) {
 
 		for (int i = 0; i < this->rest_nstrand; ++i)
 			for (const auto &id_and_weight : strand_infos[i].id_and_weights)
 				assert(id_and_weight.first < rest_nstrand && id_and_weight.first >= 0);
 
-		full_simulator->on_frame(rigids, guide_pos_buffer, nullptr, delta_time, collision_obj, collision_world2local_mat);
+		full_simulator->on_frame(rigids, guide_pos_buffer, nullptr, delta_time, collider, collision_world2local_mat);
 
 		//interploration
 		for (int i = 0; i < this->rest_nstrand; ++i) {

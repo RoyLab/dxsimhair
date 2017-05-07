@@ -227,5 +227,8 @@
     <ClInclude Include="HairColorGenerator.h">
       <Filter>Source Files\StaticHair</Filter>
     </ClInclude>
+    <ClInclude Include="Collider.h">
+      <Filter>Source Files\StaticHair</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

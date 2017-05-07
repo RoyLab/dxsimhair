@@ -20,7 +20,7 @@ namespace WR
 	extern "C" WR_API ICollisionObject* createCollisionObject2(const wchar_t* fileName);
 	extern "C" WR_API ICollisionObject* loadCollisionObject(const wchar_t* fileName);
 	extern "C" WR_API ICollisionObject* CreateGridCollisionObject(const char* fileName);
-	extern "C" WR_API ICollisionObject* CreateGridCollisionObject2(CGAL::Polyhedron_3<CGAL::FloatKernel> &iMesh);
+	extern "C" WR_API ICollisionObject* CreateGridCollisionObject2(CGAL::Polyhedron_3<CGAL::FloatKernel> &iMesh, int slice=64);
 
 	extern "C" WR_API void WriteGridCollisionObject(ICollisionObject* collisionObj, const char* file_path);
 }

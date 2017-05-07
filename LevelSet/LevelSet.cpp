@@ -49,8 +49,8 @@ namespace WR
 		return new XRwy::GridCollisionObject(fileName);
 	}
 
-	extern "C" WR_API ICollisionObject* CreateGridCollisionObject2(CGAL::Polyhedron_3<CGAL::FloatKernel> &iMesh) {
-		return new XRwy::GridCollisionObject(iMesh);
+	extern "C" WR_API ICollisionObject* CreateGridCollisionObject2(CGAL::Polyhedron_3<CGAL::FloatKernel> &iMesh, int slice) {
+		return new XRwy::GridCollisionObject(iMesh, slice);
 	}
 
 	extern "C" WR_API void WriteGridCollisionObject(ICollisionObject* collisionObj, const char* file_path) {

@@ -11,8 +11,8 @@ namespace XRwy {
 		friend class WR::Hair;
 		friend class HairReducedModelSimulator;
 	public:
-		HairFullModelSimulator(const ICollisionObject* collision_obj);
-		virtual void on_frame(const float rigids[16], float *pos, float *dir, float delta_time, ICollisionObject* collision_obj, const float collision_world2local_mat[16]);
+		HairFullModelSimulator(const Collider* collider);
+		virtual void on_frame(const float rigids[16], float *pos, float *dir, float delta_time, const Collider* collider, const float collision_world2local_mat[16]);
 		virtual int get_particle_count();
 		virtual int get_particle_per_strand_count();
 		virtual ~HairFullModelSimulator();

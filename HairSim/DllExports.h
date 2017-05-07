@@ -75,5 +75,7 @@ namespace XRwy {
 		SIMHAIR_DLL int GetParticlePerStrandCount();
 
 		SIMHAIR_DLL int GetStrandColor(int *color_buffer);
+
+		SIMHAIR_DLL void DebugCode();
 	}
 }

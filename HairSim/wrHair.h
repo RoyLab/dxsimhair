@@ -5,6 +5,7 @@
 #include "EigenTypes.h"
 #include "wrConstants.h"
 #include "ICollisionObject.h"
+#include "Collider.h"
 
 namespace WR
 {
@@ -12,7 +13,7 @@ namespace WR
 	class ISpring;
 	class StrainLimitPair;
 
-	Hair *loadFile(const char*, const ICollisionObject *collision_obj, bool use_scale, float scale_x, float scale_y, float scale_z);
+	Hair *loadFile(const char*, const XRwy::Collider *collider, bool use_scale, float scale_x, float scale_y, float scale_z);
 
 	class HairParticle
 	{
@@ -90,7 +91,7 @@ namespace WR
 		void scale(float x);
 		void mirror(bool, bool, bool);
 
-		bool add_strand(float* positions, const ICollisionObject *collision_obj, size_t n = N_PARTICLES_PER_STRAND);
+		bool add_strand(float* positions, const XRwy::Collider *collider, size_t n = N_PARTICLES_PER_STRAND);
 		void reserve(size_t np, size_t ns) { m_strands.reserve(ns); m_particles.reserve(np); }
 
 		size_t n_strands() const { return m_strands.size(); }
@@ -102,7 +103,7 @@ namespace WR
 		const float* get_visible_particle_position(size_t i, size_t j) const { return get_particle_position(get_strand(i).get_visible_particle(j)); }
 		const float* get_particle_position(size_t i) const { return reinterpret_cast<const float*>(&m_position(3 * i)); }
 
-		void step(const Mat4& mWorld, float fTime, float fTimeElapsed, ICollisionObject *collisionObj, const Mat4& mWrold2Collision);
+		void step(const Mat4& mWorld, float fTime, float fTimeElapsed, const XRwy::Collider *collider, const Mat4& mWrold2Collision);
 
 	private:
 		//size_t add_particle(const vec3&, float *mass, bool isPerturbed = false, bool isFixedPos = false);

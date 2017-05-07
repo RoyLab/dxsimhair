@@ -112,10 +112,10 @@ namespace XRwy
 
 		Ext::DistanceTester<Polyhedron, K> tester(iMesh);
 
-		std::ofstream fout("C:\\Users\\vivid\\Desktop\\CridCollisionObject.txt", std::ios::ate);
+		//std::ofstream fout("C:\\Users\\vivid\\Desktop\\CridCollisionObject.txt", std::ios::ate);
 
 		auto bbox = CGAL::bounding_box(iMesh.points_begin(), iMesh.points_end());
-		fout << "BoundingBox is: " << bbox << std::endl;
+		std::cout << "BoundingBox is: " << bbox << std::endl;
 		WRG::enlarge(bbox, 0.1f);
 
 		auto diag = bbox.max() - bbox.min();
@@ -131,7 +131,7 @@ namespace XRwy
 		float zPos = bbox.min().z() - resolution[2];
 
 		WR::LevelSetVData* data = new WR::LevelSetVData[total];
-		fout << "Allocate Memory: " << sizeof(WR::LevelSetVData) * total << " bytes\n";
+		std::cout << "Allocate Memory: " << sizeof(WR::LevelSetVData) * total << " bytes\n";
 
 		int count = 0;
 		for (int i = 0; i < grids[0]; i++)
@@ -139,7 +139,7 @@ namespace XRwy
 			yPos = bbox.min().y() - resolution[1];
 			for (int j = 0; j < grids[1]; j++)
 			{
-				fout << i << " " << j << std::endl;
+				std::cout << '(' << i << ' ' << j << ") " << std::flush;
 				zPos = bbox.min().z() - resolution[2];
 				for (int k = 0; k < grids[2]; k++)
 				{
@@ -156,10 +156,10 @@ namespace XRwy
 			}
 			xPos += resolution[0];
 		}
-		fout << count << " / " << total << " points are inside.\n" << std::endl;
-		fout.close();
+		std::cout << std::endl;
+		std::cout << count << " / " << total << " points are inside.\n" << std::endl;
+		//fout.close();
 
-		float sum = 0.0f;
 		for (int i = 1; i < res[0] + 1; i++)
 		{
 			for (int j = 1; j < res[1] + 1; j++)
@@ -170,14 +170,14 @@ namespace XRwy
 					data[idx].grad[0] = (data[IDX(i + 1, j, k)].value - data[IDX(i - 1, j, k)].value) / (2 * resolution[0]);
 					data[idx].grad[1] = (data[IDX(i, j + 1, k)].value - data[IDX(i, j - 1, k)].value) / (2 * resolution[1]);
 					data[idx].grad[2] = (data[IDX(i, j, k + 1)].value - data[IDX(i, j, k - 1)].value) / (2 * resolution[2]);
-					sum += vec3_len(data[idx].grad);
 					assert(!std::isnan(vec3_len(data[idx].grad)));
-					//vec3_norm(data[idx].grad, data[idx].grad);
+					if (data[idx].grad[0] == 0 && data[idx].grad[1] == 0 && data[idx].grad[2] == 0) {
+						data[idx].grad[0] = 1.0;
+					}
+					vec3_norm(data[idx].grad, data[idx].grad);
 				}
 			}
 		}
-
-		auto avg_len = sum / (res[0] * res[1] * res[2]);
 
 		//std::ofstream oFile(outputFile, std::ios::binary);
 
@@ -234,11 +234,6 @@ namespace XRwy
 				{
 					int idx = IDX(i, j, k);
 					this->data[data_idx] = data[idx];
-
-					//if the grad is zero, then apply a avg_len direction to x coor
-					if (this->data[data_idx].grad[0] == 0.0 && this->data[data_idx].grad[0] == 0.0 && this->data[data_idx].grad[2] == 0.0)
-						this->data[data_idx].grad[0] = avg_len;
-
 					++data_idx;
 				}
 			}
