@@ -38,13 +38,18 @@ int main()
 		for (int j = 0; j < 4; ++j)
 			rigid[i * 4 + j] = (i == j ? 1.0 : 0.0);
 
+	float collision_identity[16];
+	for (int i = 0; i < 4; ++i)
+		for (int j = 0; j < 4; ++j)
+			collision_identity[i * 4 + j] = ((i == j) ? 1.0 : 0.0);
+
 	int size = GetHairParticleCount();
 	float *positions = new float[3 * size];
 	float *directions = new float[3 * size];
 
 	for (int i = 0; i < 500; ++i) {
 		cout << "Updaing frame " << i << endl;
-		UpdateHairEngine(rigid, positions, directions, 0.03f);
+		UpdateHairEngine(rigid, collision_identity, positions, directions, 0.03f);
 	}
 	 
 	ReleaseHairEngine();

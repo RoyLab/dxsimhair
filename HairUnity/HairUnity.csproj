@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\DebugGetModifiedController.cs" />
+    <Compile Include="Assets\Scripts\DebugPrintWorld2LocalMatrix.cs" />
     <Compile Include="Assets\Scripts\DllImportTestController.cs" />
     <Compile Include="Assets\Scripts\FullModelParameterController.cs" />
     <Compile Include="Assets\Scripts\GetStartController.cs" />

@@ -9,6 +9,7 @@ public class DllImportTestController : MonoBehaviour {
 
     public Material material;
     public Transform headTransform;
+    public Transform colliderTransform;
     public bool animteWhenStart = true;
     public String configurationFilePath = "C:\\Users\\vivid\\Desktop\\newconfig.ini";
 
@@ -63,7 +64,7 @@ public class DllImportTestController : MonoBehaviour {
             };
         }
 
-        Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 30.0e-3f);
+        Func.UpdateHairEngine(headTransform, colliderTransform, positions, directions, 30.0e-3f);
         foreach (var gameObject in HairLoader.Load(positions, strandCount, delegate (int _) { return particlePerStrandCount; }, colorApplier))
         {
             gameObject.transform.parent = this.transform;
@@ -109,7 +110,7 @@ public class DllImportTestController : MonoBehaviour {
         if (!hasStarted)
             return;
 
-        Func.UpdateHairEngine(ApplyTranformToWorldMatrix(), positions, directions, 0.03f);
+        Func.UpdateHairEngine(headTransform, colliderTransform, positions, directions, 0.03f);
 
         foreach (var transform in this.transform)
         {

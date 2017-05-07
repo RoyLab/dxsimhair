@@ -188,18 +188,19 @@ namespace XRwy {
 		return 0;
 	}
 
-	int UpdateHairEngine(const float head_matrix[16], float *particle_positions, float *particle_directions, float delta_time) {
+	int UpdateHairEngine(
+		const float head_matrix[16],
+		const float collision_world2local_matrix[16],
+		float *particle_positions,
+		float *particle_directions,
+		float delta_time
+	) {
 #ifndef USE_DEBUG_MODE
-		float mat4[16] = {
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1
-		};
 
-		if (fixer)
+		if (fixer) {
 			fixer->set_push_time(delta_time * collision_push_time_factor);
-		simulator->on_frame(head_matrix, particle_positions, particle_directions, delta_time, collider, mat4);
+		}
+		simulator->on_frame(head_matrix, particle_positions, particle_directions, delta_time, collider, collision_world2local_matrix);
 #else
 		/* use for testing */
 		ofstream fout;

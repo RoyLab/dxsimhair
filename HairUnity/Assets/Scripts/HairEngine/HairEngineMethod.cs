@@ -6,7 +6,7 @@ namespace HairEngine
 {
     class Func
     {
-        [DllImport("SimHair00024", EntryPoint = "InitializeHairEngine")]
+        [DllImport("SimHair00027", EntryPoint = "InitializeHairEngine")]
         private static extern int _InitializeHairEngine(IntPtr HairParameterPtr, IntPtr CollisionParameterPtr, IntPtr SkinningParameterPtr, IntPtr PdbParameterPtr);
 
         public static int InitializeHairEngine(HairParameter hair, CollisionParameter col, SkinningParameter skin, PbdParameter pbd) {
@@ -14,7 +14,7 @@ namespace HairEngine
             return ret;
         }
 
-        [DllImport("SimHair00024", EntryPoint = "UpdateParameter", CharSet = CharSet.Ansi)]
+        [DllImport("SimHair00027", EntryPoint = "UpdateParameter", CharSet = CharSet.Ansi)]
         private static extern int _UpdateParameter(
             [MarshalAs(UnmanagedType.LPStr)]
             string key,
@@ -26,35 +26,50 @@ namespace HairEngine
             return _UpdateParameter(key, value);
         }
 
-        [DllImport("SimHair00024", EntryPoint = "UpdateHairEngine")]
+        [DllImport("SimHair00027", EntryPoint = "UpdateHairEngine")]
         private static extern int _UpdateHairEngine(
             [MarshalAs(UnmanagedType.LPArray, SizeConst = 16)]
             float[] headMatrix,
+            [MarshalAs(UnmanagedType.LPArray, SizeConst = 16)]
+            float[] collisionObjWorld2LocalMatrix,
             [In, Out] Vector3[] particlePositions,
             [In, Out] Vector3[] particleDirections,
             float deltaTime
             );
 
-        //This api will change later
-        public static int UpdateHairEngine(float[] headMatrix, Vector3[] particlePositions, Vector3[] particleDirections, float deltaTime) {
-            var ret = _UpdateHairEngine(headMatrix, particlePositions, particleDirections, deltaTime);
+        private static float[] GetTransformMatrixArray(Matrix4x4 mat)
+        {
+            float[] ret = new float[16];
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j)
+                    ret[i * 4 + j] = mat[i, j];
             return ret;
         }
 
-        [DllImport("SimHair00024", EntryPoint = "ReleaseHairEngine")]
+        //This api will change later
+        public static int UpdateHairEngine(Transform headRigidTransform, Transform colliderTransform, Vector3[] particlePositions, Vector3[] particleDirections, float deltaTime) {
+
+            var headMatrix = GetTransformMatrixArray(headRigidTransform.localToWorldMatrix);
+            var collisionWorld2LocalMatrix = GetTransformMatrixArray(colliderTransform.worldToLocalMatrix);
+
+            var ret = _UpdateHairEngine(headMatrix, collisionWorld2LocalMatrix, particlePositions, particleDirections, deltaTime);
+            return ret;
+        }
+
+        [DllImport("SimHair00027", EntryPoint = "ReleaseHairEngine")]
         private static extern void _ReleaseHairEngine();
 
         public static void ReleaseHairEngine() {
             _ReleaseHairEngine();
         }
 
-        [DllImport("SimHair00024", EntryPoint = "GetHairParticleCount")]
+        [DllImport("SimHair00027", EntryPoint = "GetHairParticleCount")]
         public static extern int GetHairParticleCount();
 
-        [DllImport("SimHair00024", EntryPoint = "GetParticlePerStrandCount")]
+        [DllImport("SimHair00027", EntryPoint = "GetParticlePerStrandCount")]
         public static extern int GetParticlePerStrandCount();
 
-        [DllImport("SimHair00024", EntryPoint = "InitCollisionObject")]
+        [DllImport("SimHair00027", EntryPoint = "InitCollisionObject")]
         private static extern int _InitCollisionObject(
             int nVertices,
             int nFaces,
@@ -72,7 +87,7 @@ namespace HairEngine
             return _InitCollisionObject(mesh.vertices.Length, mesh.triangles.Length / 3, mesh.vertices, mesh.triangles);
         }
 
-        [DllImport("SimHair00024", EntryPoint = "GetStrandColor")]
+        [DllImport("SimHair00027", EntryPoint = "GetStrandColor")]
         private static extern int _GetStrandColor(
             [In, Out] int[] colorBuffer
             );
