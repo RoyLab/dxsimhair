@@ -449,7 +449,7 @@ namespace WR
 		//}
 	}
 
-	void Hair::step(const Mat4& mWorld, float fTime, float fTimeElapsed, const XRwy::Collider *collider, const Mat4& mWrold2Collision)
+	void Hair::step(const Mat4& mWorld, float fTime, float fTimeElapsed, const XRwy::Collider *collider, const float mWorld2Collider[16])
 	{
 		assert(mb_simInited);
 
@@ -481,10 +481,13 @@ namespace WR
 			resolve_strain_limits(m_position, m_velocity, delta_time);
 
 			if (APPLY_COLLISION && collider) {
+				float mCollider2World[16];
+				XRwy::Collider::Helper::get_inverse_mat_array(mCollider2World, mWorld2Collider);
+
 				for (int i = 0; i < m_particles.size() * 3; i += 3) {
 					XRwy::Pos3 pos{ m_position(i), m_position(i + 1), m_position(i + 2) };
 					XRwy::Vec3 vel{ m_velocity(i), m_velocity(i + 1), m_velocity(i + 2) };
-					if (collider->fix(pos, vel)) {
+					if (collider->fix(pos, vel, mCollider2World, mWorld2Collider)) {
 						m_position(i) = pos[0]; m_position(i + 1) = pos[1]; m_position(i + 2) = pos[2];
 						m_velocity(i) = vel[0]; m_velocity(i + 1) = vel[1]; m_velocity(i + 2) = vel[2];
 					}

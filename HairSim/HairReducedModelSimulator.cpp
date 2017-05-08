@@ -71,7 +71,7 @@ namespace XRwy {
 		//apply the color scheme to the normal hair, we select the guide hair which has the minimum distance
 		for (int i = 0; i < this->rest_nstrand; ++i) {
 			//if it is the guide hair, then continue
-			if (guide_ids_reverse[i] >= 0) continue;
+			if (is_strand_guide(i) == true) continue;
 
 			MinDistanceComparator comparator(this, i);
 			const auto &id_and_weights = strand_infos[i].id_and_weights;
@@ -262,6 +262,21 @@ namespace XRwy {
 		//pbd
 		if (pbd_handle)
 			pbd_handle->solve(&(this->geom));
+
+		//fix hair body collision
+		if (APPLY_COLLISION && collider) {
+			float collision_local2world_mat[16];
+			Collider::Helper::get_inverse_mat_array(collision_local2world_mat, collision_world2local_mat);
+
+			for (int i = 0; i < this->rest_nstrand; ++i) {
+				if (is_strand_guide(i) == true) continue; //guide id collision has been fixed
+
+				float *begin_pos = pos_ptr_from_strand(i);
+				float *end_pos = pos_ptr_from_strand(i + 1);
+				for (float *par_pos = begin_pos; par_pos < end_pos; par_pos += 3)
+					collider->fix(par_pos, nullptr, collision_local2world_mat, collision_world2local_mat);
+			}
+		}
 
 		memcpy(pos, this->rest_pos, sizeof(float) * 3 * this->rest_nparticle);
 	}

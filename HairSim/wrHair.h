@@ -103,7 +103,7 @@ namespace WR
 		const float* get_visible_particle_position(size_t i, size_t j) const { return get_particle_position(get_strand(i).get_visible_particle(j)); }
 		const float* get_particle_position(size_t i) const { return reinterpret_cast<const float*>(&m_position(3 * i)); }
 
-		void step(const Mat4& mWorld, float fTime, float fTimeElapsed, const XRwy::Collider *collider, const Mat4& mWrold2Collision);
+		void step(const Mat4& mWorld, float fTime, float fTimeElapsed, const XRwy::Collider *collider, const float mWrold2Collision[16]);
 
 	private:
 		//size_t add_particle(const vec3&, float *mass, bool isPerturbed = false, bool isFixedPos = false);

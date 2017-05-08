@@ -63,6 +63,9 @@ namespace XRwy {
 		void init_pbd();
 
 		//helper function
+		inline bool is_strand_guide(int strandidx) const { return guide_ids_reverse[strandidx] >= 0; }
+		inline bool is_particle_in_guide_strand(int paridx) const { return is_strand_guide(paridx / N_PARTICLES_PER_STRAND); }
+
 		inline int full_sim_idx2guide_id(int idx) const { return guide_ids[idx]; }
 		inline int guide_id2full_sim_idx(int id) const { return guide_ids_reverse[id]; }
 

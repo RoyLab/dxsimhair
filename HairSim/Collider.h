@@ -3,9 +3,10 @@
 #include <cmath>
 #include <fstream>
 #include <cstdint>
+#include "Eigen\src\Core\Array.h"
 
 namespace {
-	void trilinear_intp(const float p[3], float weights[8]) {
+	inline void trilinear_intp(const float p[3], float weights[8]) {
 		float pc[3] = { 1 - p[0], 1 - p[1], 1 - p[2] };
 		float w2[4] = { pc[0] * pc[1], p[0] * pc[1], pc[0] * p[1] , p[0] * p[1] };
 		weights[0] = w2[0] * pc[2]; 
@@ -16,6 +17,13 @@ namespace {
 		weights[5] = w2[1] * p[2]; 
 		weights[6] = w2[2] * p[2]; 
 		weights[7] = w2[3] * p[2]; 
+	}
+
+	inline void mat4x4_mul_vec3(vec3 ret, const float mat[16], const vec3 vec) {
+		vec3 vec_{ vec[0], vec[1], vec[2] };
+		ret[0] = mat[0] * vec_[0] + mat[1] * vec_[1] + mat[2] * vec_[2] + mat[3];
+		ret[1] = mat[4] * vec_[0] + mat[5] * vec_[1] + mat[6] * vec_[2] + mat[7];
+		ret[2] = mat[8] * vec_[0] + mat[9] * vec_[1] + mat[10] * vec_[2] + mat[11];
 	}
 }
 
@@ -38,11 +46,44 @@ namespace XRwy {
 
 	class Collider {
 	public:
+		class Helper {
+		public:
+			static void get_inverse_mat_array(float inverse_mat[16], const float mat[16]) {
+				Eigen::Matrix4f mat4, mat4_inverse;
+				for (int i = 0; i < 4; ++i)
+					for (int j = 0; j < 4; ++j)
+						mat4(i, j) = mat[i * 4 + j];
+
+				mat4_inverse = mat4.inverse();
+
+				for (int i = 0; i < 4; ++i)
+					for (int j = 0; j < 4; ++j)
+						inverse_mat[i * 4 + j] = mat4_inverse(i, j);
+			}
+		};
+	public:
 		Collider(ColliderFixer *fixer_, DistanceQuerier *querier_) : fixer(fixer_), querier(querier_) {}
 
-		bool fix(Pos3 pos, Vec3 vel) const {
+		bool fix(Pos3 pos, Vec3 vel, const float world_mat[16], const float world_inverse_mat[16]) const {
+			Pos3 rel_pos; 
+			mat4x4_mul_vec3(rel_pos, world_inverse_mat, pos);
+
+			Gradient3 rel_grad, rel_diff;
+			float rel_distance;
+			rel_distance = querier->query_pos(rel_pos, rel_grad);
+			vec3_scale(rel_diff, rel_grad, rel_distance);
+
+			Gradient3 diff;
+			mat4x4_mul_vec3(diff, world_mat, rel_diff);
+
 			Gradient3 grad;
-			float distance = querier->query_pos(pos, grad);
+			float distance = vec3_len(diff);
+			vec3_scale(grad, diff, 1.0 / distance);
+			if (rel_distance < 0) {
+				distance = -distance;
+				grad[0] = -grad[0]; grad[1] = -grad[1]; grad[2] = -grad[2];
+			}
+
 			return fixer->fix(distance, grad, pos, vel);
 		}
 
@@ -63,20 +104,31 @@ namespace XRwy {
 			float diff_distance = target_distance - distance;
 			Pos3 diff; 
 			vec3_scale(diff, grad, diff_distance);
-			/*vec3_add(pos, pos, diff);*/
+			vec3_add(pos, pos, diff);
 
-			Vec3 vel_n, vel_t;
-			float proj_len = vec3_mul_inner(vel, grad);
-			vec3_scale(vel_n, grad, proj_len);
-			vec3_sub(vel_t, vel, vel_n);
-			vec3_scale(vel_n, diff, push_time_1);
-			vec3_add(vel, vel_n, vel_t);
+			if (vel) {
+				Vec3 vel_n, vel_t;
+				float proj_len = vec3_mul_inner(vel, grad);
+				vec3_scale(vel_n, grad, proj_len);
+				vec3_sub(vel_t, vel, vel_n);
+				vec3_scale(vel_n, diff, push_time_1);
+				vec3_add(vel, vel_n, vel_t);
+			}
 		}
 
 		void set_tolerance(float tolerance_) {
 			e = tolerance_;
 			b = e / exp(e);
 		}
+
+		//void set_tolerance(float tolerance_, const float collider_world2local_mat[16]) {
+		//	vec3 vx{ collider_world2local_mat[0], collider_world2local_mat[4], collider_world2local_mat[8] };
+		//	vec3 vy{ collider_world2local_mat[1], collider_world2local_mat[5], collider_world2local_mat[9] };
+		//	vec3 vz{ collider_world2local_mat[2], collider_world2local_mat[6], collider_world2local_mat[10] };
+		//	float sx = vec3_len(vx), sy = vec3_len(vy), sz = vec3_len(vz);
+		//	float avg_s = (sx + sy + sz) / 3.0;
+		//	set_tolerance(avg_s * tolerance_);
+		//}
 
 		void set_push_time(float push_time_) {
 			push_time = push_time_;
@@ -102,10 +154,11 @@ namespace XRwy {
 		virtual float query_pos(const Pos3 pos, Gradient3 grad) const {
 			Pos3 diff_from_center;
 			vec3_sub(diff_from_center, pos, center);
-			
-			float diff_len = vec3_len(diff_from_center);
-			vec3_norm(grad, diff_from_center);
-			return diff_len - r;
+
+			float diff_from_center_len = vec3_len(diff_from_center);
+			vec3_scale(grad, diff_from_center, 1.0 / diff_from_center_len);
+
+			return diff_from_center_len - r;
 		}
 	private:
 		Pos3 center;
@@ -171,8 +224,9 @@ namespace XRwy {
 			int cj = static_cast<int>(j);
 			int ck = static_cast<int>(k);
 
-			if ((i >= 0 && j >= 0 && k >= 0 && i < nx - 1 && j < ny - 1 && k < nz - 1) == false)
-				return 1e20; //very large
+			if ((i >= 0 && j >= 0 && k >= 0 && i < nx - 1 && j < ny - 1 && k < nz - 1) == false) {
+				return 1e20;
+			}
 
 			const auto o = *this;
 			float localcoord[] = { i - ci, j - cj, k - ck };

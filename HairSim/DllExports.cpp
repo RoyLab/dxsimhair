@@ -199,6 +199,7 @@ namespace XRwy {
 
 		if (fixer) {
 			fixer->set_push_time(delta_time * collision_push_time_factor);
+			fixer->set_tolerance(collision_tolerance);
 		}
 		simulator->on_frame(head_matrix, particle_positions, particle_directions, delta_time, collider, collision_world2local_matrix);
 #else
@@ -313,8 +314,9 @@ namespace XRwy {
 				remap_v.insert(pair<Point3, int>(v, count++));
 				remap_vv.push_back(v);
 			}
-			cout << "point(" << v[0] << "," << v[1] << "," << v[2] << ") " << i / 3 << "=>" << remap_v.find(v)->second << endl;
 		}
+
+		cout << "Total: " << nvertices << " to " << remap_vv.size() << endl;
 
 		for (int i = 0; i < nfaces * 3; i += 3) {
 			auto find_new_idx = [&remap_v, &vertices](const int idx) -> int {
@@ -354,6 +356,6 @@ namespace XRwy {
 	}
 
 	void DebugCode() {
-		GridCollisionQuerier q("C:\\Codes\\Projects\\SJTU Final Project\\dxsimhairdata\\grid\\sphere-r1-128.grid2");
+		GenerateGrid2Object();
 	}
 }

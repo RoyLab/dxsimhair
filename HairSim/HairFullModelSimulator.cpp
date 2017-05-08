@@ -64,14 +64,13 @@ namespace XRwy {
 	}
 
 	void HairFullModelSimulator::on_frame(const float rigids[16], float *pos, float *dir, float delta_time, const Collider* collider, const float collision_world2local_mat[16]) {
-		WR::Mat4 rigid_mat4, collision_world2local_mat4;
+		WR::Mat4 rigid_mat4;
 		for (int i = 0; i < 4; ++i)
 			for (int j = 0; j < 4; ++j) {
 				rigid_mat4(i, j) = rigids[i * 4 + j];
-				collision_world2local_mat4(i, j)= collision_world2local_mat[i * 4 + j];
 			}
 
-		this->wr_hair->step(rigid_mat4, 0.0f, delta_time, collider, collision_world2local_mat4);
+		this->wr_hair->step(rigid_mat4, 0.0f, delta_time, collider, collision_world2local_mat);
 		
 		int cur = 0;
 		for (int i = 0; i < this->wr_hair->n_strands(); ++i)
