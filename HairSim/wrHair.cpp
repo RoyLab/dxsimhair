@@ -8,7 +8,9 @@
 #include "Collider.h"
 #include "XRwy_h.h"
 #include <iostream>
+#include "tbb\tbb.h"
 using namespace std;
+using namespace tbb;
 
 #define FULL_IMPLICIT
 using namespace WR;
@@ -458,8 +460,11 @@ namespace WR
 		// modify root node's pos, vel. first 3.
 		// 假设固定点都在匀速运动
 		for (int _ = 0; _ < N_PASS_PER_STEP; ++_) {
-			for (auto &strand : m_strands)
+
+			parallel_for(size_t(0), m_strands.size(), [&mWorld, delta_time, this](size_t i)
+			//for (int i = 0; i < m_strands.size(); ++i)
 			{
+				const auto &strand = this->get_strand(i);
 				for (int j = 0; j < 3; j++)
 				{
 					size_t idx = strand.get_particle(j);
@@ -476,7 +481,8 @@ namespace WR
 				VecX dv = extract_dv(strand, delta_time);
 				vel_seg += dv;
 				pos_seg += vel_seg * delta_time;
-			}
+			});
+			
 
 			resolve_strain_limits(m_position, m_velocity, delta_time);
 
@@ -764,11 +770,11 @@ namespace WR
 
 	void Hair::resolve_strain_limits(VecX& pos, VecX& vel, float t) const
 	{
-		bool flag = false;
 		for (auto &limit : m_strain_limits)
 		{
 			//Vec3 diff = Vec3(get_particle_position(limit->Id[0])) - Vec3(get_particle_position(limit->Id[1]));
 			Vec3 pred_diff = triple(pos, limit->Id[0]) - triple(pos, limit->Id[1]);
+			bool flag = false;
 			float sqRatio = pred_diff.dot(pred_diff) / limit->squared_length;
 
 			if (sqRatio > 1.21f)

@@ -3,8 +3,10 @@
 #include <fstream>
 #include <cstdint>
 #include <unordered_set>
+#include "tbb/tbb.h"
 
 using std::int32_t;
+using namespace tbb;
 
 namespace {
 	void float_ptr_set_zero(float *ptr, size_t sz) {
@@ -243,42 +245,75 @@ namespace XRwy {
 			for (const auto &id_and_weight : strand_infos[i].id_and_weights)
 				assert(id_and_weight.first < rest_nstrand && id_and_weight.first >= 0);
 
+		ofstream fout("C:\\Users\\vivid\\Desktop\\DebugCrash.txt", ios::out);
+
+		fout << "full simulation on frame(begin)" << endl;
 		full_simulator->on_frame(rigids, guide_pos_buffer, nullptr, delta_time, collider, collision_world2local_mat);
+		fout << "full simulation on frame(end)" << endl;
 
 		//interploration
-		for (int i = 0; i < this->rest_nstrand; ++i) {
-			float *strand_ptr = pos_ptr_from_strand(i);
+		//for (int i = 0; i < this->rest_nstrand; ++i) {
+		//	float *strand_ptr = pos_ptr_from_strand(i);
+		//	size_t sz = 3 * N_PARTICLES_PER_STRAND;
+		//	float_ptr_set_zero(strand_ptr, sz);
+
+		//	for (const auto &id_and_weight : strand_infos[i].id_and_weights) {
+		//		int id = id_and_weight.first;
+		//		float weight = id_and_weight.second;
+		//		float *sim_ptr = float_ptr_from_strand(guide_pos_buffer, guide_id2full_sim_idx(id));
+		//		float_ptr_add_with_weight(strand_ptr, sim_ptr, sz, weight);
+		//	}
+		//}
+
+		fout << "full simulation parallel interploration(begin)" << endl;
+		parallel_for(static_cast<size_t>(0), static_cast<size_t>(this->rest_nstrand), [this](size_t i) 
+		//for (int i = 0; i < this->rest_nstrand; ++i)
+		{
+			float *strand_ptr = this->pos_ptr_from_strand(i);
 			size_t sz = 3 * N_PARTICLES_PER_STRAND;
 			float_ptr_set_zero(strand_ptr, sz);
 
-			for (const auto &id_and_weight : strand_infos[i].id_and_weights) {
+			for (const auto &id_and_weight : this->strand_infos[i].id_and_weights) {
 				int id = id_and_weight.first;
 				float weight = id_and_weight.second;
-				float *sim_ptr = float_ptr_from_strand(guide_pos_buffer, guide_id2full_sim_idx(id));
+				float *sim_ptr = this->float_ptr_from_strand(guide_pos_buffer, guide_id2full_sim_idx(id));
 				float_ptr_add_with_weight(strand_ptr, sim_ptr, sz, weight);
 			}
-		}
+		});
+		fout << "full simulation parallel interploration(end)" << endl;
 
 		//pbd
-		if (pbd_handle)
-			pbd_handle->solve(&(this->geom));
+		//if (pbd_handle)
+		//	pbd_handle->solve(&(this->geom));
 
+		fout << "collision detection(begin)" << endl;
 		//fix hair body collision
 		if (APPLY_COLLISION && collider) {
 			float collision_local2world_mat[16];
 			Collider::Helper::get_inverse_mat_array(collision_local2world_mat, collision_world2local_mat);
 
-			for (int i = 0; i < this->rest_nstrand; ++i) {
-				if (is_strand_guide(i) == true) continue; //guide id collision has been fixed
+			//for (int i = 0; i < this->rest_nstrand; ++i) {
+			//	if (is_strand_guide(i) == true) continue; //guide id collision has been fixed
+
+			//	float *begin_pos = pos_ptr_from_strand(i);
+			//	float *end_pos = pos_ptr_from_strand(i + 1);
+			//	for (float *par_pos = begin_pos; par_pos < end_pos; par_pos += 3)
+			//		collider->fix(par_pos, nullptr, collision_local2world_mat, collision_world2local_mat);
+			//}
+			parallel_for(static_cast<size_t>(0), static_cast<size_t>(this->rest_nstrand), [this, collider, &collision_local2world_mat, &collision_world2local_mat] (size_t i) {
+				if (is_strand_guide(i) == true) return; //guide id collision has been fixed
 
 				float *begin_pos = pos_ptr_from_strand(i);
 				float *end_pos = pos_ptr_from_strand(i + 1);
 				for (float *par_pos = begin_pos; par_pos < end_pos; par_pos += 3)
 					collider->fix(par_pos, nullptr, collision_local2world_mat, collision_world2local_mat);
-			}
+			});
 		}
+		fout << "collision detection(end)" << endl;
 
+		fout << "memory copy(begin)" << endl;
 		memcpy(pos, this->rest_pos, sizeof(float) * 3 * this->rest_nparticle);
+		fout << "memory copy(end)" << endl;
 	}
 
 	int HairReducedModelSimulator::get_particle_count() {

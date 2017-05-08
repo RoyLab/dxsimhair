@@ -224,7 +224,7 @@ namespace XRwy {
 			int cj = static_cast<int>(j);
 			int ck = static_cast<int>(k);
 
-			if ((i >= 0 && j >= 0 && k >= 0 && i < nx - 1 && j < ny - 1 && k < nz - 1) == false) {
+			if ((ci >= 0 && cj >= 0 && ck >= 0 && ci < nx - 1 && cj < ny - 1 && ck < nz - 1) == false) {
 				return 1e20;
 			}
 
@@ -234,11 +234,34 @@ namespace XRwy {
 			trilinear_intp(localcoord, weights);
 
 			CellData* cell_handles[] = {
-				&o(i, j, k), &o(i + 1, j, k),
-				&o(i, j + 1, k), &o(i + 1, j + 1, k),
-				&o(i, j, k + 1), &o(i + 1, j, k + 1),
-				&o(i, j + 1, k + 1), &o(i + 1, j + 1, k + 1)
+				&o(ci, cj, ck), &o(ci + 1, cj, ck),
+				&o(ci, cj + 1, ck), &o(ci + 1, cj + 1, ck),
+				&o(ci, cj, ck + 1), &o(ci + 1, cj, ck + 1),
+				&o(ci, cj + 1, ck + 1), &o(ci + 1, cj + 1, ck + 1)
 			};
+			//for (int it = 0; it < 8; ++it) {
+			//	if (cell_handles[it] == nullptr) {
+			//		//dump all data
+			//		using namespace std;
+			//		ofstream fout("C:\\Users\\vivid\\Desktop\\IllegalIndex.txt", ios::out);
+			//		fout << setprecision(10);
+			//		fout << "it=" << it << endl;
+			//		fout << "i=" << i << ", ci=" << ci << endl;
+			//		fout << "j=" << j << ", cj=" << cj << endl;
+			//		fout << "k=" << k << ", ck=" << ck << endl;
+
+			//		fout << "x=" << nx << ", y=" << ny << ", z=" << nz << ", yz=" << nyz << ", size=" << data_size << endl;
+			//		fout << "bbox(x)=(" << bbox[0] << ',' << bbox[3] << "), bbox(y)=(" << bbox[1] << ',' << bbox[4] << "), bbox(z)=(" << bbox[2] << ',' << bbox[5] << ')' << endl;
+			//		fout << "diag(x)=" << diag[0] << ", diag(y)=" << diag[1] << ", diag(z)=" << diag[2] << endl;
+			//		fout << "step(x)=" << step[0] << ", step(y)=" << step[1] << ", step(z)=" << step[2] << endl;
+			//		fout << "max(x) by step=" << step[0] * (nx - 1) + bbox[0]
+			//			<< ", max(y) by step=" << step[1] * (ny - 1) + bbox[1]
+			//			<< ", max(z) by step=" << step[2] * (nz - 1) + bbox[2] << endl;
+
+			//		fout.close();
+			//		assert(0);
+			//	}
+			//}
 
 			float ret_dist = 0.0;
 			Gradient3 grad_tmp;
@@ -260,7 +283,12 @@ namespace XRwy {
 		Pos3 step;
 
 		CellData &operator() (const int i, const int j, const int k) const {
-			return *(data + i * nyz + j * nz + k);
+			const int offset = i * nyz + j * nz + k;
+			//if (offset < 0 || offset >= data_size) {
+			//	CellData *null = 0;
+			//	return *null;
+			//}
+			return data[offset];
 		}
 	};
 }
