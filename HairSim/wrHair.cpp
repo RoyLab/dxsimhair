@@ -457,6 +457,9 @@ namespace WR
 
 		float delta_time = fTimeElapsed / N_PASS_PER_STEP;
 
+		mRigid = mWorld;
+		Mat4 mRigidDelta = mRigid - mLastRigid;
+
 		// modify root node's pos, vel. first 3.
 		// 假设固定点都在匀速运动
 		for (int _ = 0; _ < N_PASS_PER_STEP; ++_) {
@@ -493,13 +496,19 @@ namespace WR
 				for (int i = 0; i < m_particles.size() * 3; i += 3) {
 					XRwy::Pos3 pos{ m_position(i), m_position(i + 1), m_position(i + 2) };
 					XRwy::Vec3 vel{ m_velocity(i), m_velocity(i + 1), m_velocity(i + 2) };
-					if (collider->fix(pos, vel, mCollider2World, mWorld2Collider)) {
+
+					Vec4 rigid_vel_vec3 = mRigidDelta * Vec4(pos[0], pos[1], pos[2], 1.0);
+					XRwy::Vec3 rigid_vel{ rigid_vel_vec3(0), rigid_vel_vec3(1), rigid_vel_vec3(2) };
+
+					if (collider->fix(pos, vel, rigid_vel, mCollider2World, mWorld2Collider)) {
 						m_position(i) = pos[0]; m_position(i + 1) = pos[1]; m_position(i + 2) = pos[2];
 						m_velocity(i) = vel[0]; m_velocity(i + 1) = vel[1]; m_velocity(i + 2) = vel[2];
 					}
 				}
 			}
 		}
+
+		mLastRigid = mRigid;
 
 		//size_t dim = m_position.size();
 		//SparseMatAssemble K(dim, dim), B(dim, dim);

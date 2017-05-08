@@ -306,7 +306,7 @@ namespace XRwy {
 				float *begin_pos = pos_ptr_from_strand(i);
 				float *end_pos = pos_ptr_from_strand(i + 1);
 				for (float *par_pos = begin_pos; par_pos < end_pos; par_pos += 3)
-					collider->fix(par_pos, nullptr, collision_local2world_mat, collision_world2local_mat);
+					collider->fix(par_pos, nullptr, nullptr, collision_local2world_mat, collision_world2local_mat);
 			});
 		}
 		fout << "collision detection(end)" << endl;

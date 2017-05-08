@@ -35,7 +35,7 @@ namespace XRwy {
 	class ColliderFixer {
 	public:
 		//get the input distance and grad, and ouput the correction of the pos and vel
-		virtual bool fix(float distance, Gradient3 grad, Pos3 pos, Vec3 vel) const = 0;
+		virtual bool fix(float distance, Gradient3 grad, Vec3 rigid_vel, Pos3 pos, Vec3 vel) const = 0;
 	};
 
 	class DistanceQuerier {
@@ -64,7 +64,7 @@ namespace XRwy {
 	public:
 		Collider(ColliderFixer *fixer_, DistanceQuerier *querier_) : fixer(fixer_), querier(querier_) {}
 
-		bool fix(Pos3 pos, Vec3 vel, const float world_mat[16], const float world_inverse_mat[16]) const {
+		bool fix(Pos3 pos, Vec3 vel, Vec3 rigid_vel, const float world_mat[16], const float world_inverse_mat[16]) const {
 			Pos3 rel_pos; 
 			mat4x4_mul_vec3(rel_pos, world_inverse_mat, pos);
 
@@ -84,7 +84,7 @@ namespace XRwy {
 				grad[0] = -grad[0]; grad[1] = -grad[1]; grad[2] = -grad[2];
 			}
 
-			return fixer->fix(distance, grad, pos, vel);
+			return fixer->fix(distance, grad, rigid_vel, pos, vel);
 		}
 
 		~Collider() = default; //it just a wrapper, we don't free anything
@@ -97,7 +97,7 @@ namespace XRwy {
 	public:
 		BasicColliderFixer(float tolerance_, float push_time_) : e(tolerance_), b(e / exp(e)), push_time(push_time_), push_time_1(1.0 / push_time_) {}
 
-		virtual bool fix(float distance, Gradient3 grad, Pos3 pos, Vec3 vel) const {
+		virtual bool fix(float distance, Gradient3 grad, Vec3 rigid_vel, Pos3 pos, Vec3 vel) const {
 			if (distance >= e) return false;
 			float target_distance = func(distance); //target_distance > e > distance
 
@@ -113,6 +113,7 @@ namespace XRwy {
 				vec3_sub(vel_t, vel, vel_n);
 				vec3_scale(vel_n, diff, push_time_1);
 				vec3_add(vel, vel_n, vel_t);
+				vec3_add(vel, vel, rigid_vel);
 			}
 		}
 

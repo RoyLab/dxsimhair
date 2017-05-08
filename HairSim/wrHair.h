@@ -138,6 +138,9 @@ namespace WR
 		SparseMat                       m_mass_1, m_mass, m_wind_damping;
 
 		bool                            mb_simInited = false;
+
+		Mat4 mRigid = Mat4::Identity(); //the rigid transformation of current frame
+		Mat4 mLastRigid = Mat4::Identity(); //the rigid tranformation of last frame
 	};
 
 	inline const Vec3 HairParticle::get_pos() const
